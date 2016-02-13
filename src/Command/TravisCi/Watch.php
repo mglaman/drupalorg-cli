@@ -16,6 +16,7 @@ class Watch extends Command
     {
         $this
           ->setName('travisci:watch')
+          ->setAliases(['tci:w'])
           ->addArgument('build', InputArgument::REQUIRED, 'The build ID')
           ->setDescription('Watches a Travis CI job');
     }

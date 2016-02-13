@@ -15,6 +15,7 @@ class ListBuilds extends Command
     {
         $this
           ->setName('travisci:list')
+          ->setAliases(['tci:l'])
           ->addArgument('slug', InputArgument::REQUIRED, 'The project slug')
           ->setDescription('Lists Travis Ci builds for a Drupal project');
     }

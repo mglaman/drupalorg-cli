@@ -15,6 +15,7 @@ class Watch extends Command
     {
         $this
           ->setName('drupalci:watch')
+          ->setAliases(['ci:w'])
           ->addArgument('job', InputArgument::REQUIRED, 'The job ID')
           ->setDescription('Watches a Drupal CI job');
     }

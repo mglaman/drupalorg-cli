@@ -3,6 +3,7 @@
 namespace mglaman\DrupalOrgCli;
 
 use Symfony\Component\Console\Application as ParentApplication;
+use Symfony\Component\Console\Command\HelpCommand;
 
 class Application extends ParentApplication
 {
@@ -14,6 +15,14 @@ class Application extends ParentApplication
         parent::__construct('Drupal.org CLI', '0.0.1');
         $this->setDefaultTimezone();
         $this->addCommands($this->getCommands());
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function getDefaultCommands()
+    {
+        return array(new HelpCommand(), new Command\ListCommand());
     }
 
     /**

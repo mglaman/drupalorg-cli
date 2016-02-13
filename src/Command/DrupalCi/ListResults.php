@@ -14,6 +14,7 @@ class ListResults extends Command
     {
         $this
           ->setName('drupalci:list')
+          ->setAliases(['ci:l'])
           ->addArgument('nid', InputArgument::REQUIRED, 'The issue node ID')
           ->setDescription('Lists test results for an issue');
     }

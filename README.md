@@ -9,10 +9,18 @@ A command line tool for interfacing with Drupal.org. Uses the Drupal.org REST AP
 ````
 
 Available commands:
-  help            Displays help for a command
-  list            Lists commands
+  help                         Displays help for a command
+  list                         Lists commands
+ ci
  drupalci
-  drupalci:list   Lists test results for an issue
-  drupalci:watch  Watches a Drupal CI job
+  drupalci:list (ci:l)         Lists test results for an issue
+  drupalci:watch (ci:w)        Watches a Drupal CI job
+ project
+  project:release-notes (rn)   View release notes for a release
+  project:releases             Lists available releases
+ tci
+ travisci
+  travisci:list (tci:l)        Lists Travis Ci builds for a Drupal project
+  travisci:watch (tci:w)       Watches a Travis CI job
 
 ````
