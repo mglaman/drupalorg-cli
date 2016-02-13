@@ -25,8 +25,8 @@ class ListResults extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $issueNid = $this->stdIn->getArgument('nid');
-        $issue = $this->client->getNode($issueNid);
-        $piftJobs = $this->client->getPiftJobs([
+        $issue = $this->getNode($issueNid);
+        $piftJobs = $this->getPiftJobs([
             'issue_nid' => $issueNid,
         ])->get('list');
 
@@ -41,7 +41,7 @@ class ListResults extends Command
         ]);
 
         foreach ($piftJobs as $job) {
-            $patch = $this->client->getFile($job->file_id);
+            $patch = $this->getFile($job->file_id);
 
             if ($job->result == 'pass') {
                 $style = 'info';

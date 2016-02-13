@@ -2,8 +2,6 @@
 
 namespace mglaman\DrupalOrgCli\DrupalOrg;
 
-use GuzzleHttp\Cookie\CookieJar;
-
 class Client {
     /**
      * @var \GuzzleHttp\Client
