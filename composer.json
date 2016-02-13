@@ -1,0 +1,22 @@
+{
+    "name": "mglaman/drupalorg-cli",
+    "description": "Command line interface for interacting with Drupal.org",
+    "require": {
+        "symfony/console": "^3.0",
+        "guzzlehttp/guzzle": "^6.1",
+        "symfony/process": "^3.0",
+        "psr/log": "^1.0"
+    },
+    "license": "GPL-2.0",
+    "autoload": {
+        "psr-4": {
+            "mglaman\\DrupalOrgCli\\": "src"
+        }
+    },
+    "authors": [
+        {
+            "name": "Matt Glaman",
+            "email": "nmd.matt@gmail.com"
+        }
+    ]
+}

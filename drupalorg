@@ -1,0 +1,22 @@
+#!/usr/bin/env php
+<?php
+define('CLI_ROOT', __DIR__);
+error_reporting(E_ALL);
+if (file_exists(CLI_ROOT . '/vendor/autoload.php')) {
+    require CLI_ROOT . '/vendor/autoload.php';
+} elseif (file_exists(CLI_ROOT . '/../../autoload.php')) {
+    // This would be the autoloader's location if the package is installed
+    // globally.
+    require CLI_ROOT . '/../../autoload.php';
+} else {
+    echo "Composer autoload file not found.\n";
+    echo "You need to run 'composer install'.\n";
+    exit(1);
+}
+
+use mglaman\DrupalOrgCli\Application;
+use Symfony\Component\Console\Input\ArgvInput;
+$input = new ArgvInput();
+
+$application = new Application();
+$application->run($input);
