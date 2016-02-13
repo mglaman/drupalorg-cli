@@ -39,7 +39,7 @@ class Watch extends Command
         else {
             while ($job->get('status') != 'complete') {
                 $progress->advance();
-                sleep(15);
+                sleep(60);
                 $job = $this->client->getPiftJob($jobId);
             }
         }

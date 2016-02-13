@@ -2,6 +2,8 @@
 
 namespace mglaman\DrupalOrgCli\DrupalOrg;
 
+use GuzzleHttp\Cookie\CookieJar;
+
 class Client {
     /**
      * @var \GuzzleHttp\Client
@@ -16,8 +18,10 @@ class Client {
     {
         $this->client = new \GuzzleHttp\Client([
             'base_uri' => $this->apiUrl,
+            'cookies' => true,
             'headers' => [
                 'Accept' => 'application/json',
+                'Accept-Encoding' => '*',
             ]
         ]);
     }
