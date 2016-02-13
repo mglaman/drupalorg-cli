@@ -27,6 +27,8 @@ class Application extends ParentApplication
         }
         $commands[] = new Command\DrupalCi\ListResults();
         $commands[] = new Command\DrupalCi\Watch();
+        $commands[] = new Command\TravisCi\ListBuilds();
+        $commands[] = new Command\TravisCi\Watch();
         return $commands;
     }
 

@@ -18,6 +18,7 @@ class Client {
             'base_uri' => $this->apiUrl,
             'cookies' => true,
             'headers' => [
+                'User-Agent' => 'DrupalOrgCli/0.0.1',
                 'Accept' => 'application/json',
                 'Accept-Encoding' => '*',
             ]
