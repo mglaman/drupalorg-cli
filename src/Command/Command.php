@@ -91,6 +91,26 @@ abstract class Command extends BaseCommand
     }
 
     /**
+     * Wrapper method to retrieve a project, using cache.
+     *
+     * @param $nid
+     * @param bool $reset
+     * @return false|\mglaman\DrupalOrgCli\DrupalOrg\RawResponse|mixed
+     */
+    protected function getProject($machineName, $reset = false) {
+        $cid = implode(':', ['project', $machineName]);
+        $cached = $this->getCacheKey($cid);
+        if ($cached === FALSE || $reset) {
+            $this->debug("Cache MISS for $cid");
+            $cached = $this->client->getProject($machineName);
+            $this->setCacheKey($cid, $cached, 21600);
+        } else {
+            $this->debug("Cache HIT for $cid");
+        }
+        return $cached;
+    }
+
+    /**
      * Wrapper method to retrieve a file, using cache.
      *
      * Files don't change, so we cache 'em for good.

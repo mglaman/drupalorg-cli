@@ -64,4 +64,28 @@ class Client {
         // Guzzle hates me and parameters.
         return $this->request('https://www.drupal.org/api-d7/pift_ci_job.json?issue_nid=' . $options['issue_nid'] . '&sort='. $options['sort'] . '&direction=' . $options['direction']);
     }
+
+    /**
+     * @param $machineName
+     * @return \mglaman\DrupalOrgCli\DrupalOrg\RawResponse
+     */
+    public function getProject($machineName) {
+        return $this->request('https://www.drupal.org/api-d7/node.json?field_project_machine_name=' . $machineName);
+    }
+
+    public function getProjectReleases($projectNid, array $options = []) {
+        $options += [
+          'field_release_project' => $projectNid,
+          'type' => 'project_release',
+            // No Dec by default.
+            'field_release_build_type' => 'static',
+            // Current releases only, by default.
+//          'field_release_update_status' => 0,
+          'sort' => 'nid',
+          'direction' => 'DESC',
+            'limit' => 5,
+        ];
+
+        return $this->request('node.json?' . http_build_query($options));
+    }
 }
