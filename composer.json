@@ -19,5 +19,8 @@
             "name": "Matt Glaman",
             "email": "nmd.matt@gmail.com"
         }
+    ],
+    "bin": [
+      "drupalorg"
     ]
 }
