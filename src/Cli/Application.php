@@ -40,6 +40,7 @@ class Application extends ParentApplication
         $commands[] = new Command\DrupalCi\ListResults();
         $commands[] = new Command\DrupalCi\Watch();
         $commands[] = new Command\Project\Link();
+        $commands[] = new Command\Project\Kanban();
         $commands[] = new Command\Project\Releases();
         $commands[] = new Command\Project\ReleaseNotes();
         $commands[] = new Command\TravisCi\ListBuilds();
