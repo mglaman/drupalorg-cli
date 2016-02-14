@@ -1,6 +1,6 @@
 <?php
 
-namespace mglaman\DrupalOrgCli\DrupalOrg;
+namespace mglaman\DrupalOrg;
 
 class RawResponse {
     /**

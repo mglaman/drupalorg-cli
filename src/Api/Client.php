@@ -1,6 +1,6 @@
 <?php
 
-namespace mglaman\DrupalOrgCli\DrupalOrg;
+namespace mglaman\DrupalOrg;
 
 class Client {
     /**
@@ -42,7 +42,7 @@ class Client {
 
     /**
      * @param $nid
-     * @return \mglaman\DrupalOrgCli\DrupalOrg\RawResponse
+     * @return \mglaman\DrupalOrg\RawResponse
      */
     public function getNode($nid) {
         return $this->request('node/' . $nid);
@@ -67,7 +67,7 @@ class Client {
 
     /**
      * @param $machineName
-     * @return \mglaman\DrupalOrgCli\DrupalOrg\RawResponse
+     * @return \mglaman\DrupalOrg\RawResponse
      */
     public function getProject($machineName) {
         return $this->request('https://www.drupal.org/api-d7/node.json?field_project_machine_name=' . $machineName);

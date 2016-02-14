@@ -2,7 +2,7 @@
 namespace mglaman\DrupalOrgCli\Command;
 
 use mglaman\DrupalOrgCli\Cache;
-use mglaman\DrupalOrgCli\DrupalOrg\Client;
+use mglaman\DrupalOrg\Client;
 use Symfony\Component\Console\Command\Command as BaseCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -19,7 +19,7 @@ abstract class Command extends BaseCommand
     /** @var bool */
     protected static $interactive = false;
     /**
-     * @var \mglaman\DrupalOrgCli\DrupalOrg\Client
+     * @var \mglaman\DrupalOrg\Client
      */
     protected $client;
 
@@ -75,7 +75,7 @@ abstract class Command extends BaseCommand
      *
      * @param $nid
      * @param bool $reset
-     * @return false|\mglaman\DrupalOrgCli\DrupalOrg\RawResponse|mixed
+     * @return false|\mglaman\DrupalOrg\RawResponse|mixed
      */
     protected function getNode($nid, $reset = false) {
         $cid = implode(':', ['node', $nid]);
@@ -95,7 +95,7 @@ abstract class Command extends BaseCommand
      *
      * @param $nid
      * @param bool $reset
-     * @return false|\mglaman\DrupalOrgCli\DrupalOrg\RawResponse|mixed
+     * @return false|\mglaman\DrupalOrg\RawResponse|mixed
      */
     protected function getProject($machineName, $reset = false) {
         $cid = implode(':', ['project', $machineName]);
@@ -117,7 +117,7 @@ abstract class Command extends BaseCommand
      *
      * @param $fid
      * @param bool $reset
-     * @return false|\mglaman\DrupalOrgCli\DrupalOrg\RawResponse|mixed
+     * @return false|\mglaman\DrupalOrg\RawResponse|mixed
      */
     protected function getFile($fid, $reset = false) {
         $cid = implode(':', ['file', $fid]);
@@ -139,7 +139,7 @@ abstract class Command extends BaseCommand
      *
      * @param $jobId
      * @param bool $reset
-     * @return false|\mglaman\DrupalOrgCli\DrupalOrg\RawResponse|mixed
+     * @return false|\mglaman\DrupalOrg\RawResponse|mixed
      */
     protected function getPiftJob($jobId, $reset = false) {
         $cid = implode(':', ['pift', $jobId]);
@@ -162,7 +162,7 @@ abstract class Command extends BaseCommand
      *
      * @param array $options
      * @param bool $reset
-     * @return false|\mglaman\DrupalOrgCli\DrupalOrg\RawResponse|mixed
+     * @return false|\mglaman\DrupalOrg\RawResponse|mixed
      */
     protected function getPiftJobs(array $options, $reset = false) {
         $cid = implode(':', ['pift:jobs:', implode(':', $options)]);

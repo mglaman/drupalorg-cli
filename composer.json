@@ -11,7 +11,8 @@
     "license": "GPL-2.0",
     "autoload": {
         "psr-4": {
-            "mglaman\\DrupalOrgCli\\": "src"
+            "mglaman\\DrupalOrgCli\\": "src/Cli",
+            "mglaman\\DrupalOrg\\": "src/Api"
         }
     },
     "authors": [
