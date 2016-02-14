@@ -7,12 +7,13 @@ use Symfony\Component\Console\Command\HelpCommand;
 
 class Application extends ParentApplication
 {
+    const VERSION = '0.0.2';
     /**
      * {@inheritdoc}
      */
     public function __construct()
     {
-        parent::__construct('Drupal.org CLI', '0.0.1');
+        parent::__construct('Drupal.org CLI', self::VERSION);
         $this->setDefaultTimezone();
         $this->addCommands($this->getCommands());
     }
@@ -38,6 +39,7 @@ class Application extends ParentApplication
         $commands[] = new Command\CacheClear();
         $commands[] = new Command\DrupalCi\ListResults();
         $commands[] = new Command\DrupalCi\Watch();
+        $commands[] = new Command\Project\Link();
         $commands[] = new Command\Project\Releases();
         $commands[] = new Command\Project\ReleaseNotes();
         $commands[] = new Command\TravisCi\ListBuilds();
