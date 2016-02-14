@@ -2,6 +2,7 @@
 
 namespace mglaman\DrupalOrgCli\Command\Project;
 
+use mglaman\DrupalOrg\Request;
 use mglaman\DrupalOrgCli\Command\Command;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputArgument;
@@ -29,7 +30,7 @@ class ReleaseNotes extends Command
         $machineName = $this->stdIn->getArgument('project');
         $project = $this->getProject($machineName)->get('list')[0];
         $version = $this->stdIn->getArgument('version');
-        $release = $this->client->request('node.json?' . http_build_query([
+        $release = $this->client->request(new Request('node.json', [
               'field_release_project' => $project->nid,
               'field_release_version' => $version,
           ]))

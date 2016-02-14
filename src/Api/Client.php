@@ -31,7 +31,6 @@ class Client {
      * @throws \Exception
      */
     public function request(Request $request) {
-        print_r($request->getUrl());
         $res = $this->client->request('GET', $request->getUrl());
         if ($res->getStatusCode() == 200) {
             return new RawResponse((string) $res->getBody());
