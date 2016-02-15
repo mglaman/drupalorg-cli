@@ -3,6 +3,7 @@
 namespace mglaman\DrupalOrgCli\Command\DrupalCi;
 
 use mglaman\DrupalOrgCli\Command\Command;
+use mglaman\DrupalOrgCli\NotificationTrait;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputArgument;
@@ -11,6 +12,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class Watch extends Command
 {
+    use NotificationTrait;
+
     protected function configure()
     {
         $this
@@ -45,6 +48,7 @@ class Watch extends Command
             }
         }
         $progress->finish();
+        $this->sendNotification('DrupalCI', "DrupalCI test {$jobId} completed");
         $this->stdOut->writeln('');
 
         $table = new Table($this->stdOut);
