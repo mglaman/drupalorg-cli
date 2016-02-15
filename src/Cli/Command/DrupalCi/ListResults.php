@@ -4,9 +4,13 @@ namespace mglaman\DrupalOrgCli\Command\DrupalCi;
 
 use mglaman\DrupalOrgCli\Command\Command;
 use Symfony\Component\Console\Helper\Table;
+use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Question\ChoiceQuestion;
+use Symfony\Component\Console\Question\Question;
 
 class ListResults extends Command
 {
@@ -41,6 +45,8 @@ class ListResults extends Command
             'Result',
         ]);
 
+        $jobRunning = null;
+
         foreach ($piftJobs as $job) {
             $patch = $this->getFile($job->file_id);
 
@@ -52,6 +58,10 @@ class ListResults extends Command
                 $style = 'comment';
             }
 
+            if ($job->status == 'running') {
+                $jobRunning = $job->job_id;
+            }
+
             $table->addRow([
                 $job->job_id,
                 $patch->get('name'),
@@ -60,6 +70,26 @@ class ListResults extends Command
             ]);
         }
         $table->render();
+
+        if ($jobRunning) {
+            $helper = $this->getHelper('question');
+            $question = new ChoiceQuestion(
+              "Test #{$jobRunning} is running, do you want to watch it? [Yes]",
+              ['Yes' => '', 'No' => ''],
+              0
+            );
+            $answer = $helper->ask($this->stdIn, $this->stdOut, $question);
+
+            if ($answer == 'Yes') {
+                $command = $this->getApplication()->find('drupalci:watch');
+                $this->stdIn = new ArgvInput([
+                    'application' => 'drupalorgcli',
+                    'command' => 'drupalci:watch',
+                    'job' => $jobRunning,
+                ]);
+                $command->run($this->stdIn, $this->stdOut);
+            }
+        }
     }
 
 }

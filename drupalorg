@@ -15,8 +15,4 @@ if (file_exists(CLI_ROOT . '/vendor/autoload.php')) {
 }
 
 use mglaman\DrupalOrgCli\Application;
-use Symfony\Component\Console\Input\ArgvInput;
-$input = new ArgvInput();
-
-$application = new Application();
-$application->run($input);
+(new Application())->run();
