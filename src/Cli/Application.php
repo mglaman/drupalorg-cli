@@ -39,6 +39,7 @@ class Application extends ParentApplication
         $commands[] = new Command\CacheClear();
         $commands[] = new Command\DrupalCi\ListResults();
         $commands[] = new Command\DrupalCi\Watch();
+        $commands[] = new Command\Issue\Link();
         $commands[] = new Command\Project\Link();
         $commands[] = new Command\Project\Kanban();
         $commands[] = new Command\Project\Releases();
