@@ -6,7 +6,8 @@
         "guzzlehttp/guzzle": "^6.1",
         "symfony/process": "^3.0",
         "psr/log": "^1.0",
-        "doctrine/cache": "^1.6"
+        "doctrine/cache": "^1.6",
+        "dg/rss-php": "^1.2"
     },
     "license": "GPL-2.0",
     "autoload": {

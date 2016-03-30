@@ -46,6 +46,7 @@ class Application extends ParentApplication
         $commands[] = new Command\Project\ReleaseNotes();
         $commands[] = new Command\TravisCi\ListBuilds();
         $commands[] = new Command\TravisCi\Watch();
+        $commands[] = new Command\Maintainer\Issues();
         return $commands;
     }
 

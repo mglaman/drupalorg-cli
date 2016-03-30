@@ -4,9 +4,51 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "907c1d4a0b4e112a0f6e390d0d9fcbf4",
-    "content-hash": "d3f6d37abd5f1efadd204b5f94241e78",
+    "hash": "37204b594b062b538136eb188c52956b",
+    "content-hash": "78575b800158651b9b27b17bd378a821",
     "packages": [
+        {
+            "name": "dg/rss-php",
+            "version": "v1.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/dg/rss-php.git",
+                "reference": "b33661748d89d8c0c288e8d86feada6018d05031"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/dg/rss-php/zipball/b33661748d89d8c0c288e8d86feada6018d05031",
+                "reference": "b33661748d89d8c0c288e8d86feada6018d05031",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.2.2"
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "src/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "David Grudl",
+                    "homepage": "http://davidgrudl.com"
+                }
+            ],
+            "description": "RSS & Atom Feeds for PHP is a very small and easy-to-use library for consuming an RSS and Atom feed",
+            "homepage": "https://github.com/dg/rss-php",
+            "keywords": [
+                "atom",
+                "feed",
+                "rss"
+            ],
+            "time": "2015-07-02 11:54:05"
+        },
         {
             "name": "doctrine/cache",
             "version": "v1.6.0",
