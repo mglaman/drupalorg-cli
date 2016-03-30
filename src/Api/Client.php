@@ -52,7 +52,9 @@ class Client {
     }
 
     public function getPiftJob($jobId) {
-        return $this->request(new Request('pift_ci_job/' . $jobId));
+        return $this->request(new Request('pift_ci_job/' . $jobId, [
+            'time' => time(),
+        ]));
     }
 
     public function getPiftJobs(array $options) {
