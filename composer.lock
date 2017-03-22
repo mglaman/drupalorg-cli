@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "37204b594b062b538136eb188c52956b",
-    "content-hash": "78575b800158651b9b27b17bd378a821",
+    "hash": "7b076def6c6390bc59b3102272cbee80",
+    "content-hash": "d66b4479c1752c4979e46ab279fd19ac",
     "packages": [
         {
             "name": "dg/rss-php",
@@ -289,6 +289,55 @@
                 "uri"
             ],
             "time": "2016-01-23 01:23:02"
+        },
+        {
+            "name": "klaussilveira/gitter",
+            "version": "0.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/klaussilveira/gitter.git",
+                "reference": "6eff42830c336ee9b8b8b9d2f69b62bd9bcbaf3b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/klaussilveira/gitter/zipball/6eff42830c336ee9b8b8b9d2f69b62bd9bcbaf3b",
+                "reference": "6eff42830c336ee9b8b8b9d2f69b62bd9bcbaf3b",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0",
+                "symfony/process": ">=2.2"
+            },
+            "require-dev": {
+                "mockery/mockery": "0.9.1",
+                "phpunit/phpunit": ">=3.7.1",
+                "symfony/filesystem": ">=2.2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Gitter": "lib/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-2-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Klaus Silveira",
+                    "email": "klaussilveira@php.net",
+                    "homepage": "http://www.klaussilveira.com/",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Gitter allows you to interact in an object oriented manner with Git repositories.",
+            "homepage": "https://github.com/klaussilveira/gitter",
+            "keywords": [
+                "git",
+                "vcs"
+            ],
+            "time": "2014-05-24 15:18:29"
         },
         {
             "name": "psr/http-message",

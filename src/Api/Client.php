@@ -27,13 +27,13 @@ class Client {
 
     /**
      * @param Request $request
-     * @return RawResponse
+     * @return \mglaman\DrupalOrg\Response
      * @throws \Exception
      */
     public function request(Request $request) {
         $res = $this->client->request('GET', $request->getUrl());
         if ($res->getStatusCode() == 200) {
-            return new RawResponse((string) $res->getBody());
+            return new Response($res->getBody()->getContents());
         }
 
         throw new \Exception('Error code', $res->getStatusCode());
@@ -68,7 +68,7 @@ class Client {
 
     /**
      * @param $machineName
-     * @return \mglaman\DrupalOrg\RawResponse
+     * @return \mglaman\DrupalOrg\Response
      */
     public function getProject($machineName) {
         $request = new Request('node.json', [
@@ -85,7 +85,7 @@ class Client {
           'field_release_build_type' => 'static',
           'sort' => 'nid',
           'direction' => 'DESC',
-          'limit' => 5,
+          'limit' => 20,
         ];
 
         return $this->request(new Request('node.json', $options));

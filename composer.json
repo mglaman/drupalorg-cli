@@ -7,7 +7,8 @@
         "symfony/process": "^3.0",
         "psr/log": "^1.0",
         "doctrine/cache": "^1.6",
-        "dg/rss-php": "^1.2"
+        "dg/rss-php": "^1.2",
+        "klaussilveira/gitter": "^0.3.0"
     },
     "license": "GPL-2.0",
     "autoload": {

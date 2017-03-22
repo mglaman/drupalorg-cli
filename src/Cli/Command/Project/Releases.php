@@ -26,7 +26,7 @@ class Releases extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $machineName = $this->stdIn->getArgument('project');
-        $project = $this->getProject($machineName)->get('list')[0];
+        $project = $this->getProject($machineName)->getList()->offsetGet(0);
         $releases = $this->client->getProjectReleases($project->nid)
           ->get('list');
 

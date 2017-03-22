@@ -30,7 +30,7 @@ class Request
      */
     public function getUrl()
     {
-        return $this->baseUri . $this->endpoint . '?' . http_build_query($this->getOptions());
+        return $this->baseUri . $this->endpoint . '?' . urldecode(http_build_query($this->getOptions()));
     }
 
     /**

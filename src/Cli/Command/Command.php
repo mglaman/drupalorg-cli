@@ -95,7 +95,7 @@ abstract class Command extends BaseCommand
      *
      * @param $nid
      * @param bool $reset
-     * @return false|\mglaman\DrupalOrg\RawResponse|mixed
+     * @return \mglaman\DrupalOrg\Response
      */
     protected function getProject($machineName, $reset = false) {
         $cid = implode(':', ['project', $machineName]);
