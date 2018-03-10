@@ -44,10 +44,6 @@ class Apply extends IssueCommandBase {
    */
   protected function execute(InputInterface $input, OutputInterface $output)
   {
-    // Validate the issue versions branch, create or checkout issue branch.
-    $issueBranchCommand = $this->getApplication()->find('issue:branch');
-    $issueBranchCommand->run($this->stdIn, $this->stdOut);
-
     $nid = $this->stdIn->getArgument('nid');
     $issue = $this->getNode($nid);
 
@@ -70,6 +66,10 @@ class Apply extends IssueCommandBase {
   }
 
   protected function applyWithGit($issue, $patchFileName) {
+    // Validate the issue versions branch, create or checkout issue branch.
+    $issueBranchCommand = $this->getApplication()->find('issue:branch');
+    $issueBranchCommand->run($this->stdIn, $this->stdOut);
+
     $branchName = $this->buildBranchName($issue);
     $tempBranchName = $branchName . '-patch-temp';
 
