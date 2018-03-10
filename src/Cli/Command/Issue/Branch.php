@@ -37,12 +37,12 @@ class Branch extends IssueCommandBase {
     }
   }
 
-  /**
-   * {@inheritdoc}
-   *
-   */
-  protected function execute(InputInterface $input, OutputInterface $output)
-  {
+    /**
+     * {@inheritdoc}
+     *
+     */
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
     $nid = $this->stdIn->getArgument('nid');
     $issue = $this->getNode($nid);
     $branchName = $this->buildBranchName($issue);
@@ -65,8 +65,4 @@ class Branch extends IssueCommandBase {
     }
   }
 
-  protected function buildBranchName(RawResponse $issue) {
-    $cleanTitle = $this->getCleanIssueTitle($issue);
-    return sprintf('%s-%s', $issue->get('nid'), $cleanTitle);
-  }
 }

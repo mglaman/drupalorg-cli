@@ -40,4 +40,18 @@ abstract class IssueCommandBase extends Command {
     return $cleanTitle;
   }
 
+  /**
+   * Builds a branch name for an issue.
+   *
+   * @param \mglaman\DrupalOrg\RawResponse $issue
+   *   The raw response.
+   *
+   * @return string
+   *   The branch name.
+   */
+  protected function buildBranchName(RawResponse $issue) {
+    $cleanTitle = $this->getCleanIssueTitle($issue);
+    return sprintf('%s-%s', $issue->get('nid'), $cleanTitle);
+  }
+
 }
