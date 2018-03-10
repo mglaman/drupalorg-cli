@@ -34,3 +34,23 @@ Available commands:
   travisci:list (tci:l)        Lists Travis Ci builds for a Drupal project
   travisci:watch (tci:w)       Watches a Travis CI job
 ````
+
+## Getting Started
+
+### Requirements
+
+* [git](https://git-scm.com/) - Currently required to apply and create patches. Very useful for contributing patches back to an issue.
+* [composer](https://getcomposer.org/) - Only required for installation. Composer is not further used by this tool once installed.
+
+Use the following command to install the command line tool via Composer:
+
+`composer global require mglaman/drupalorg-cli`
+
+### Working with project issues
+
+If you want to use this to generate patches that you can contribute back to a Drupal project, it's best to work within a cloned repo of that project. To get instructions for cloning a project's repo, visit the "Version Control" tab on the project page.
+
+From within the directory of the project we're working on:
+
+* `drupalorg issue:apply [issue number]` - Create a new branch for the given issue, apply the latest patch on the issue to the new branch, then commit the changes locally.
+* `drupalorg issue:patch [issue number]` - Create a new patch for the given issue from the changes committed locally.
