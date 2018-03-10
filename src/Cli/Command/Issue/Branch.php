@@ -50,7 +50,7 @@ class Branch extends IssueCommandBase {
     $issueVersionBranch = $this->getIssueVersionBranchName($issue);
     if (!$this->repository->hasBranch($issueVersionBranch)) {
       $this->stdOut->writeln(sprintf('<error>The issue version branch %s is not available.</error>', $issueVersionBranch));
-      return;
+      return 1;
     }
     $this->stdOut->writeln(sprintf('<info>Creating issue branch for %s</info>', $issueVersionBranch));
     $this->repository->checkout($issueVersionBranch);
