@@ -8,6 +8,7 @@ use mglaman\DrupalOrgCli\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Process\Process;
 
 class Patch extends Command {
 
@@ -20,7 +21,7 @@ class Patch extends Command {
   {
     $this
       ->setName('issue:patch')
-      ->addArgument('nid', InputArgument::REQUIRED, 'The project machine name')
+      ->addArgument('nid', InputArgument::REQUIRED, 'The issue node ID')
       ->setDescription('Opens project kanban');
   }
 
@@ -48,7 +49,20 @@ class Patch extends Command {
     $output->writeln("<info>Patch name: $patchName");
 
     if ($this->checkBranch($issue)) {
+      $issue_version_branch = $issue->get('field_issue_version');
+      // Issue versions can be 8.x-1.0-rc1, 8.x-1.x-dev, 8.x-2.0. So we get the
+      // first section to find the development branch. This will give us a
+      // branch in the format of: 8.x-1.x, for example.
+      $issue_version_branch = substr($issue_version_branch, 0, 6) . 'x';
+      if (!$this->repository->hasBranch($issue_version_branch)) {
+        $this->stdErr->writeln("Issue branch $issue_version_branch does not exist locally.");
+      }
 
+      // Create a diff from our merge-base commit.
+      $process = new Process(sprintf('git diff --no-prefix --no-ext-diff $(git merge-base %s HEAD) HEAD', $issue_version_branch));
+      $process->run();
+
+      file_put_contents($patchName, $process->getOutput());
     }
   }
 
@@ -57,11 +71,7 @@ class Patch extends Command {
     $cleanTitle = strtolower(substr($cleanTitle, 0, 20));
     $cleanTitle = preg_replace('/(^_|_$)/', '', $cleanTitle);
 
-    return implode('_', [
-      $cleanTitle,
-      $issue->get('nid'),
-      $issue->get('comment_count') + 1
-    ]) . '.patch';
+    return sprintf('%s-%s-%s.patch', $cleanTitle, $issue->get('nid'), ($issue->get('comment_count') + 1));
   }
 
   protected function checkBranch(RawResponse $issue) {
