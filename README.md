@@ -34,3 +34,27 @@ Available commands:
   travisci:list (tci:l)        Lists Travis Ci builds for a Drupal project
   travisci:watch (tci:w)       Watches a Travis CI job
 ````
+
+## Getting Started
+
+### Requirements
+
+* [git](https://git-scm.com/)
+* [composer](https://getcomposer.org/)
+
+### Installation
+
+After installing git and composer:
+
+`composer global require mglaman/drupalorg-cli`
+
+### Use
+
+Since this tool uses git for a significant amount of its operations, we must first clone a project from drupal.org:
+
+`git clone --branch 8.x-1.x https://git.drupal.org/project/[project name].git && cd [project name]` 
+
+From within the directory of the project git repo we've cloned:
+
+* `drupalorg issue:apply [issue number]` - Create a new branch for the given issue, apply the latest patch on the issue to the new branch, then commit the changes locally.
+* `drupalorg issue:patch [issue number]` - Create a new patch for the given issue from the changes committed locally.
