@@ -5,9 +5,11 @@ namespace mglaman\DrupalOrgCli\Command\Project;
 use mglaman\DrupalOrg\RawResponse;
 use mglaman\DrupalOrgCli\Command\Command;
 use Symfony\Component\Console\Helper\Table;
+use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Question\ChoiceQuestion;
 
 class Releases extends Command
 {
@@ -40,6 +42,7 @@ class Releases extends Command
           'Link',
         ]);
 
+        $release_versions = [];
         foreach ($releases as $release) {
             $releaseDate = (new \DateTime())->setTimestamp($release->created);
             $now = new \DateTime();
@@ -72,8 +75,29 @@ class Releases extends Command
               $release->field_release_short_description ?: 'Needs short description',
               'https://wwww.drupal.org/project/' . $machineName,
             ]);
+          $release_versions[$release->field_release_version] = '';
         }
         $table->render();
+
+        $release_versions['cancel'] = '';
+
+        $helper = $this->getHelper('question');
+        $question = new ChoiceQuestion(
+          "View release notes? [cancel]",
+          $release_versions,
+          'cancel'
+        );
+      $answer = $helper->ask($this->stdIn, $this->stdOut, $question);
+      if ($answer != 'cancel') {
+        $command = $this->getApplication()->find('project:release-notes');
+        $sub_input = new ArgvInput([
+          'application' => 'drupalorgcli',
+          'command' => 'drupalci:release-notes',
+          'project' => $machineName,
+          'version' => $answer,
+        ]);
+        $command->run($sub_input, $this->stdOut);
+      }
     }
 
 }
