@@ -45,12 +45,13 @@ class Application extends ParentApplication
         $commands[] = new Command\Issue\Apply();
         $commands[] = new Command\Project\Link();
         $commands[] = new Command\Project\Kanban();
+        $commands[] = new Command\Project\ProjectIssues();
         $commands[] = new Command\Project\Releases();
         $commands[] = new Command\Project\ReleaseNotes();
         $commands[] = new Command\TravisCi\ListBuilds();
         $commands[] = new Command\TravisCi\Watch();
         $commands[] = new Command\Maintainer\Issues();
-        $commands[] = new Command\Project\ProjectIssues();
+        $commands[] = new Command\Maintainer\ReleaseNotes();
         return $commands;
     }
 
