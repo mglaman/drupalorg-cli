@@ -4,13 +4,12 @@ namespace mglaman\DrupalOrgCli\Command\Issue;
 
 use Gitter\Client;
 use mglaman\DrupalOrg\RawResponse;
-use mglaman\DrupalOrgCli\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
 
-class Patch extends Command {
+class Patch extends IssueCommandBase {
 
   /**
    * @var \Gitter\Repository
@@ -51,11 +50,7 @@ class Patch extends Command {
     $patchName = $this->buildPatchName($issue);
 
     if ($this->checkBranch($issue)) {
-      $issue_version_branch = $issue->get('field_issue_version');
-      // Issue versions can be 8.x-1.0-rc1, 8.x-1.x-dev, 8.x-2.0. So we get the
-      // first section to find the development branch. This will give us a
-      // branch in the format of: 8.x-1.x, for example.
-      $issue_version_branch = substr($issue_version_branch, 0, 6) . 'x';
+      $issue_version_branch = $this->getIssueVersionBranchName($issue);
       if (!$this->repository->hasBranch($issue_version_branch)) {
         $this->stdErr->writeln("Issue branch $issue_version_branch does not exist locally.");
       }
@@ -77,10 +72,7 @@ class Patch extends Command {
   }
 
   protected function buildPatchName(RawResponse $issue) {
-    $cleanTitle = preg_replace('/[^a-zA-Z0-9]+/', '_', $issue->get('title'));
-    $cleanTitle = strtolower(substr($cleanTitle, 0, 20));
-    $cleanTitle = preg_replace('/(^_|_$)/', '', $cleanTitle);
-
+    $cleanTitle = $this->getCleanIssueTitle($issue);
     return sprintf('%s-%s-%s.patch', $cleanTitle, $issue->get('nid'), ($issue->get('comment_count') + 1));
   }
 
