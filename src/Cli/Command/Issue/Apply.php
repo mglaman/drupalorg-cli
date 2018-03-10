@@ -57,8 +57,11 @@ class Apply extends IssueCommandBase {
     file_put_contents($patchFileName, $patchFileContents);
 
     if ($this->repository) {
-      $exitCode = $this->applyWithGit($issue, $patchFileName, $patchFileUrl);
+      $exitCode = $this->applyWithGit($issue, $patchFileName);
+    } elseif (shell_exec("command -v patch; echo $?") == 0) {
+      $exitCode = $this->applyWithPatch($patchFileName);
     } else {
+      $this->stdErr->writeln('This is not a Git repository and the `patch` command is not available.');
       $exitCode = 1;
     }
 
@@ -66,7 +69,7 @@ class Apply extends IssueCommandBase {
     return $exitCode;
   }
 
-  protected function applyWithGit($issue, $patchFileName, $patchFileUrl) {
+  protected function applyWithGit($issue, $patchFileName) {
     $branchName = $this->buildBranchName($issue);
     $tempBranchName = $branchName . '-patch-temp';
 
@@ -83,10 +86,10 @@ class Apply extends IssueCommandBase {
     if ($applyPatchProcess->getExitCode() != 0) {
       $this->stdOut->writeln('<error>Failed to apply the patch</error>');
       $this->stdOut->writeln($applyPatchProcess->getOutput());
-      return;
+      return 1;
     }
-    $this->stdOut->writeln(sprintf('<comment>%s</comment>', "Committing $patchFileUrl"));
-    $this->repository->commit($patchFileUrl);
+    $this->stdOut->writeln(sprintf('<comment>%s</comment>', "Committing $patchFileName"));
+    $this->repository->commit($patchFileName);
 
     // Check out existing issue branch for three way merge.
     $this->stdOut->writeln(sprintf('<comment>%s</comment>', "Checking out $branchName and merging"));
@@ -96,10 +99,19 @@ class Apply extends IssueCommandBase {
     if ($merge->getExitCode() != 0) {
       $this->stdOut->writeln('<error>Failed to apply the patch</error>');
       $this->stdOut->writeln($merge->getOutput());
-      return;
+      return 1;
     }
 
     $this->runProcess(sprintf('git branch -D %s', $tempBranchName));
+  }
+
+  protected function applyWithPatch($patchFileName) {
+    $process = $this->runProcess(sprintf('patch -p1 < %s', $patchFileName));
+    if ($process->getExitCode() != 0) {
+      $this->stdOut->writeln('<error>Failed to apply the patch</error>');
+      $this->stdOut->writeln($process->getOutput());
+      return 1;
+    }
   }
 
   protected function getPatchFileUrl(RawResponse $issue) {
