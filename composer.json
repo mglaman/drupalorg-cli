@@ -2,15 +2,15 @@
     "name": "mglaman/drupalorg-cli",
     "description": "Command line interface for interacting with Drupal.org",
     "require": {
-        "symfony/console": "^3.0",
-        "guzzlehttp/guzzle": "^6.1",
-        "symfony/process": "^3.0",
-        "psr/log": "^1.0",
-        "doctrine/cache": "^1.6",
         "dg/rss-php": "^1.2",
-        "klaussilveira/gitter": "^0.3.0"
+        "doctrine/cache": "^1.6",
+        "guzzlehttp/guzzle": "^6.1",
+        "klaussilveira/gitter": "^0.3.0",
+        "psr/log": "^1.0",
+        "symfony/console": "^4.0",
+        "symfony/process": "^4.0"
     },
-    "license": "GPL-2.0",
+    "license": "GPL-2.0-or-later",
     "autoload": {
         "psr-4": {
             "mglaman\\DrupalOrgCli\\": "src/Cli",
@@ -23,6 +23,9 @@
             "email": "nmd.matt@gmail.com"
         }
     ],
+    "config": {
+        "sort-packages": true
+    },
     "bin": [
       "drupalorg"
     ]
