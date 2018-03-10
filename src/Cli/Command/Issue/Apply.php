@@ -44,12 +44,58 @@ class Apply extends IssueCommandBase {
    */
   protected function execute(InputInterface $input, OutputInterface $output)
   {
-
+    // Validate the issue versions branch, create or checkout issue branch.
     $issueBranchCommand = $this->getApplication()->find('issue:branch');
     $issueBranchCommand->run($this->stdIn, $this->stdOut);
 
     $nid = $this->stdIn->getArgument('nid');
     $issue = $this->getNode($nid);
+
+    $patchFileUrl = $this->getPatchFileUrl($issue);
+    $patchFileContents = file_get_contents($patchFileUrl);
+    $patchFileName = $this->getCleanIssueTitle($issue) . 'merge-temp.patch';
+    file_put_contents($patchFileName, $patchFileContents);
+
+    $branchName = $this->buildBranchName($issue);
+    $tempBranchName = $branchName . '-patch-temp';
+
+    // Check out the root development branch to create a temporary merge branch
+    // where we will apply the patch, and then three way merge to existing issue
+    // branch.
+    $issueVersionBranch = $this->getIssueVersionBranchName($issue);
+    $this->repository->checkout($issueVersionBranch);
+    $this->stdOut->writeln(sprintf('<comment>%s</comment>', "Creating temp branch $tempBranchName"));
+    $this->repository->createBranch($tempBranchName);
+    $this->repository->checkout($tempBranchName);
+
+    $process = new Process(sprintf('git apply -v --index %s', $patchFileName));
+    $process->run();
+
+    if ($process->getExitCode() != 0) {
+      $this->stdOut->writeln('<error>Failed to apply the patch</error>');
+      $this->stdOut->writeln($process->getOutput());
+      return;
+    }
+    $this->stdOut->writeln(sprintf('<comment>%s</comment>', "Committing $patchFileUrl"));
+    $this->repository->commit($patchFileUrl);
+
+    // Check out existing issue branch for three way merge.
+    $this->stdOut->writeln(sprintf('<comment>%s</comment>', "Checking out $branchName and merging"));
+    $this->repository->checkout($branchName);
+    $merge = new Process(sprintf('git merge %s --strategy recursive -X theirs', $tempBranchName));
+    $merge->run();
+
+    if ($process->getExitCode() != 0) {
+      $this->stdOut->writeln('<error>Failed to apply the patch</error>');
+      $this->stdOut->writeln($process->getOutput());
+      return;
+    }
+
+    $deleteTempBranch = new Process(sprintf('git branch -D %s', $tempBranchName));
+    $deleteTempBranch->run();
+  }
+
+  protected function getPatchFileUrl(RawResponse $issue) {
     // Remove files hidden from display.
     $files = array_filter($issue->get('field_issue_files'), function ($value) {
       return (bool) $value->display;
@@ -65,25 +111,7 @@ class Apply extends IssueCommandBase {
     });
     $patchFile = reset($files);
     $patchFileUrl = $patchFile->get('url');
-
-    $process = new Process(sprintf('curl %s | git apply -v', $patchFileUrl));
-    $process->run();
-
-    if ($process->getExitCode() != 0) {
-      $this->stdOut->writeln('<error>Failed to apply the patch</error>');
-      $this->stdOut->writeln($process->getOutput());
-    } else {
-      $process = new Process('git diff');
-      $process->setTty(true);
-      $process->run();
-      $this->stdOut->write($process->getOutput());
-
-      $filesToCommit = new Process('git ls-files --others --modified --exclude=*.patch');
-      $filesToCommit->run();
-      $filesToCommit = array_filter(explode(PHP_EOL, trim($filesToCommit->getOutput())));
-      $this->repository->add($filesToCommit);
-      $this->repository->commit($patchFileUrl);
-    }
+    return $patchFileUrl;
   }
 
 }
