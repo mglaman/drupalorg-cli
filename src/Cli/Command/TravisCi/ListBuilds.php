@@ -108,6 +108,6 @@ class ListBuilds extends Command
             'commerce_kickstart' => 'commerceguys/commerce_kickstart',
         ];
 
-        return $maps[$project];
+        return $maps[$project] ?? $project;
     }
 }
