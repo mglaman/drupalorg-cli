@@ -17,6 +17,8 @@ class Patch extends Command {
    */
   protected $repository;
 
+  protected $cwd;
+
   protected function configure()
   {
     $this
@@ -27,9 +29,10 @@ class Patch extends Command {
 
   protected function initialize(InputInterface $input, OutputInterface $output) {
     parent::initialize($input, $output);
+    $this->cwd = getcwd();
     try {
       $client = new Client();
-      $this->repository = $client->getRepository(getcwd());
+      $this->repository = $client->getRepository($this->cwd);
     }
     catch (\Exception $e) {
       $this->repository = null;
@@ -46,7 +49,6 @@ class Patch extends Command {
     $issue = $this->getNode($nid);
 
     $patchName = $this->buildPatchName($issue);
-    $output->writeln("<info>Patch name: $patchName");
 
     if ($this->checkBranch($issue)) {
       $issue_version_branch = $issue->get('field_issue_version');
@@ -59,10 +61,18 @@ class Patch extends Command {
       }
 
       // Create a diff from our merge-base commit.
-      $process = new Process(sprintf('git diff --no-prefix --no-ext-diff $(git merge-base %s HEAD) HEAD', $issue_version_branch));
+      $merge_base_cmd = sprintf('$(git merge-base %s HEAD)', $issue_version_branch);
+      $process = new Process(sprintf('git diff --no-prefix --no-ext-diff %s HEAD', $merge_base_cmd));
       $process->run();
 
-      file_put_contents($patchName, $process->getOutput());
+      $filename = $this->cwd . DIRECTORY_SEPARATOR . $patchName;
+      file_put_contents($filename, $process->getOutput());
+      $this->stdOut->writeln("<comment>Patch written to {$filename}</comment>");
+
+      $process = new Process(sprintf('git diff %s --stat', $merge_base_cmd));
+      $process->setTty(true);
+      $process->run();
+      $this->stdOut->write($process->getOutput());
     }
   }
 
