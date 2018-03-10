@@ -53,9 +53,20 @@ class Apply extends IssueCommandBase {
 
     $patchFileUrl = $this->getPatchFileUrl($issue);
     $patchFileContents = file_get_contents($patchFileUrl);
-    $patchFileName = $this->getCleanIssueTitle($issue) . 'merge-temp.patch';
+    $patchFileName = $this->getCleanIssueTitle($issue) . '.patch';
     file_put_contents($patchFileName, $patchFileContents);
 
+    if ($this->repository) {
+      $exitCode = $this->applyWithGit($issue, $patchFileName, $patchFileUrl);
+    } else {
+      $exitCode = 1;
+    }
+
+    unlink($patchFileName);
+    return $exitCode;
+  }
+
+  protected function applyWithGit($issue, $patchFileName, $patchFileUrl) {
     $branchName = $this->buildBranchName($issue);
     $tempBranchName = $branchName . '-patch-temp';
 
@@ -68,12 +79,10 @@ class Apply extends IssueCommandBase {
     $this->repository->createBranch($tempBranchName);
     $this->repository->checkout($tempBranchName);
 
-    $process = new Process(sprintf('git apply -v --index %s', $patchFileName));
-    $process->run();
-
-    if ($process->getExitCode() != 0) {
+    $applyPatchProcess = $this->runProcess(sprintf('git apply -v --index %s', $patchFileName));
+    if ($applyPatchProcess->getExitCode() != 0) {
       $this->stdOut->writeln('<error>Failed to apply the patch</error>');
-      $this->stdOut->writeln($process->getOutput());
+      $this->stdOut->writeln($applyPatchProcess->getOutput());
       return;
     }
     $this->stdOut->writeln(sprintf('<comment>%s</comment>', "Committing $patchFileUrl"));
@@ -82,17 +91,15 @@ class Apply extends IssueCommandBase {
     // Check out existing issue branch for three way merge.
     $this->stdOut->writeln(sprintf('<comment>%s</comment>', "Checking out $branchName and merging"));
     $this->repository->checkout($branchName);
-    $merge = new Process(sprintf('git merge %s --strategy recursive -X theirs', $tempBranchName));
-    $merge->run();
+    $merge = $this->runProcess(sprintf('git merge %s --strategy recursive -X theirs', $tempBranchName));
 
-    if ($process->getExitCode() != 0) {
+    if ($merge->getExitCode() != 0) {
       $this->stdOut->writeln('<error>Failed to apply the patch</error>');
-      $this->stdOut->writeln($process->getOutput());
+      $this->stdOut->writeln($merge->getOutput());
       return;
     }
 
-    $deleteTempBranch = new Process(sprintf('git branch -D %s', $tempBranchName));
-    $deleteTempBranch->run();
+    $this->runProcess(sprintf('git branch -D %s', $tempBranchName));
   }
 
   protected function getPatchFileUrl(RawResponse $issue) {

@@ -7,6 +7,7 @@ use Symfony\Component\Console\Command\Command as BaseCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
+use Symfony\Component\Process\Process;
 
 abstract class Command extends BaseCommand
 {
@@ -175,5 +176,11 @@ abstract class Command extends BaseCommand
             $this->debug("Cache HIT for $cid");
         }
         return $cached;
+    }
+
+    protected function runProcess($cmd) {
+      $process = new Process($cmd);
+      $process->run();
+      return $process;
     }
 }
