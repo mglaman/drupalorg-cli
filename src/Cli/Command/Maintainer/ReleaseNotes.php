@@ -12,6 +12,11 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * Release note command
+ *
+ * Referenced off of `grn`. https://www.drupal.org/project/grn
+ */
 class ReleaseNotes extends Command
 {
 
@@ -21,6 +26,9 @@ class ReleaseNotes extends Command
   protected $repository;
 
   protected $cwd;
+
+  protected $nids = [];
+  protected $users = [];
 
   protected function configure()
   {
@@ -93,7 +101,7 @@ class ReleaseNotes extends Command
 
       case 'markdown':
       case 'md':
-      $this->stdOut->writeln(sprintf('Changes since %s', $ref1));
+      $this->stdOut->writeln(sprintf('Changes since %s: ', $ref1));
       $this->stdOut->writeln('');
         foreach ($changes as $change) {
           $this->stdOut->writeln(sprintf('* %s', $change));
@@ -102,7 +110,7 @@ class ReleaseNotes extends Command
 
       case 'html':
       default:
-        $this->stdOut->writeln(sprintf('<p>Changes since %s</p>', $ref1));
+        $this->stdOut->writeln(sprintf('<p>Changes since %s: </p>', $ref1));
         $this->stdOut->writeln('<ul>');
         foreach ($changes as $change) {
           $this->stdOut->writeln(sprintf('<li>%s</li>', $change));
@@ -126,7 +134,39 @@ class ReleaseNotes extends Command
       $replacement = '$1';
     }
 
+    preg_match('/\d+/S', $value, $this->nids);
     $value = preg_replace('/#(\d+)/S', $replacement, $value);
+
+    // Anything between by and ':' is a comma-separated list of usernames
+    $value = preg_replace_callback('/by ([^:]+):/S',
+      function($matches) use ($format) {
+        $baseUrl = 'https://www.drupal.org/u/%1$s';
+        $out = [];
+        // Separate the different usernames
+        foreach (explode(',', $matches[1]) as $user) {
+          $user = trim($user);
+          $userAlias = str_replace(' ', '-', strtolower($user));
+
+          if (!isset($this->users[$user])) {
+            $this->users[$user] = 1;
+          } else {
+            $this->users[$user]++;
+          }
+
+          if ($format == 'html') {
+            $replacement = '<a href="' . $baseUrl . '">%2$s</a>';
+          } elseif ($format == 'markdown' || $format == 'md') {
+            $replacement = '[%2$s](' . $baseUrl . ')';
+          } else {
+            $replacement = '%2$s';
+          }
+
+          $out[] = sprintf($replacement, $userAlias, $user);
+        }
+
+        return 'by ' . implode(', ', $out) . ':';
+      }, $value);
+
     return $value;
   }
 
