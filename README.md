@@ -23,6 +23,7 @@ Available commands:
   issue:patch                  Generate a patch for the issue from committed local changes.
  maintainer
   maintainer:issues (mi)       Lists issues for a user, based on maintainer.
+  maintainer:release-notes     Generate release notes.
  project
   project:issues (pi)          Lists issues for a project.
   project:kanban               Opens project kanban
