@@ -78,10 +78,15 @@ class ReleaseNotes extends Command
       return 1;
     }
 
+    $format = $this->stdIn->getOption('format');
+
     // @todo sort these by issue type as well.
     $changes = array_filter(explode(PHP_EOL, trim($gitLog->getOutput())));
+    $changes = array_map(function ($value) use ($format) {
+      return $this->formatLine($value, $format);
+    }, $changes);
 
-    switch ($this->stdIn->getOption('format')) {
+    switch ($format) {
       case 'json':
         $this->stdOut->writeln(json_encode($changes, JSON_PRETTY_PRINT));
         break;
@@ -106,6 +111,23 @@ class ReleaseNotes extends Command
 
         break;
     }
+  }
+
+  protected function formatLine($value, $format) {
+    $value = preg_replace('/^(Patch |- |Issue ){0,3}/', '', $value);
+
+    $baseUrl = 'https://www.drupal.org/node/$1';
+
+    if ($format == 'html') {
+      $replacement = sprintf('<a href="%s">#$1</a>', $baseUrl);
+    } elseif ($format == 'markdown' || $format == 'md') {
+      $replacement = sprintf('[#$1](%s)', $baseUrl);
+    } else {
+      $replacement = '$1';
+    }
+
+    $value = preg_replace('/#(\d+)/S', $replacement, $value);
+    return $value;
   }
 
 }
