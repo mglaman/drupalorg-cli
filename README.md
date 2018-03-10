@@ -39,22 +39,18 @@ Available commands:
 
 ### Requirements
 
-* [git](https://git-scm.com/)
-* [composer](https://getcomposer.org/)
+* [git](https://git-scm.com/) - Currently required to apply and create patches. Very useful for contributing patches back to an issue.
+* [composer](https://getcomposer.org/) - Only required for installation. Composer is not further used by this tool once installed.
 
-### Installation
-
-After installing git and composer:
+Use the following command to install the command line tool via Composer:
 
 `composer global require mglaman/drupalorg-cli`
 
-### Use
+### Working with project issues
 
-Since this tool uses git for a significant amount of its operations, we must first clone a project from drupal.org:
+If you want to use this to generate patches that you can contribute back to a Drupal project, it's best to work within a cloned repo of that project. To get instructions for cloning a project's repo, visit the "Version Control" tab on the project page.
 
-`git clone --branch 8.x-1.x https://git.drupal.org/project/[project name].git && cd [project name]` 
-
-From within the directory of the project git repo we've cloned:
+From within the directory of the project we're working on:
 
 * `drupalorg issue:apply [issue number]` - Create a new branch for the given issue, apply the latest patch on the issue to the new branch, then commit the changes locally.
 * `drupalorg issue:patch [issue number]` - Create a new patch for the given issue from the changes committed locally.
