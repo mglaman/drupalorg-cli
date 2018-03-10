@@ -30,6 +30,14 @@ class ReleaseNotes extends Command
   protected $nids = [];
   protected $users = [];
 
+  protected $categoryLabelMap = [
+    1 => 'Bug',
+    2 => 'Task',
+    3 => 'Feature',
+    4 => 'Support',
+    5 => 'Plan',
+  ];
+
   protected function configure()
   {
     $this
@@ -65,15 +73,21 @@ class ReleaseNotes extends Command
 
     $ref1 = $this->stdIn->getArgument('ref1');
     $ref2 = $this->stdIn->getArgument('ref2');
+    $tags = $this->repository->getTags();
     if (!$this->stdIn->getArgument('ref1')) {
       // @todo
       $this->stdOut->writeln('Please provide both arguments, for now.');
       return 1;
 
     } else {
-      $tags = $this->repository->getTags();
       if (!in_array($ref1, $tags)) {
         $this->stdOut->writeln(sprintf('The %s tag is not valid.', $ref1));
+        return 1;
+      }
+    }
+    if ($ref2 != 'HEAD') {
+      if (!in_array($ref2, $tags)) {
+        $this->stdOut->writeln(sprintf('The %s tag is not valid.', $ref2));
         return 1;
       }
     }
@@ -88,15 +102,24 @@ class ReleaseNotes extends Command
 
     $format = $this->stdIn->getOption('format');
 
-    // @todo sort these by issue type as well.
     $changes = array_filter(explode(PHP_EOL, trim($gitLog->getOutput())));
-    $changes = array_map(function ($value) use ($format) {
-      return $this->formatLine($value, $format);
-    }, $changes);
+
+    $processedChanges = [];
+    foreach ($changes as $change) {
+      $nidsMatches = [];
+      preg_match('/#(\d+)/S', $change, $nidsMatches);
+      $this->nids[] = $nidsMatches[1];
+
+      $issue = $this->getNode($nidsMatches[1]);
+      $issueCategory = $issue->get('field_issue_category');
+      $issueCategoryLabel = $this->categoryLabelMap[$issueCategory];
+      $processedChanges[$issueCategoryLabel][$nidsMatches[1]] = $this->formatLine($change, $format);
+    }
+    ksort($processedChanges);
 
     switch ($format) {
       case 'json':
-        $this->stdOut->writeln(json_encode($changes, JSON_PRETTY_PRINT));
+        $this->stdOut->writeln(json_encode($processedChanges, JSON_PRETTY_PRINT));
         break;
 
       case 'markdown':
@@ -109,22 +132,31 @@ class ReleaseNotes extends Command
         $this->stdOut->writeln('');
         $this->stdOut->writeln(sprintf('Changes since %s: ', $ref1));
         $this->stdOut->writeln('');
-        foreach ($changes as $change) {
-          $this->stdOut->writeln(sprintf('* %s', $change));
+        foreach ($processedChanges as $changeCategory => $changeCategoryItems) {
+          $this->stdOut->writeln(sprintf('#### %s', $changeCategory));
+          $this->stdOut->writeln('');
+          foreach ($changeCategoryItems as $change) {
+            $this->stdOut->writeln(sprintf('* %s', $change));
+          }
+          $this->stdOut->writeln('');
         }
         break;
 
       case 'html':
       default:
         $this->stdOut->writeln(sprintf('<h3>Summary: %s</h3>', $ref2));
-        $this->stdOut->writeln(sprintf('<p><strong>Contributors:</strong> <abbr title="%s">%s</abbr></p>', implode(', ', array_keys($this->users)), count($this->users)));
+        $this->stdOut->writeln(sprintf('<p><strong>Contributors:</strong> (%s) %s</p>', count($this->users), implode(', ', array_keys($this->users))));
         $this->stdOut->writeln(sprintf('<p><strong>Issues:</strong> %s issues fixed.</p>', count($this->nids)));
         $this->stdOut->writeln(sprintf('<p>Changes since %s: </p>', $ref1));
-        $this->stdOut->writeln('<ul>');
-        foreach ($changes as $change) {
-          $this->stdOut->writeln(sprintf('<li>%s</li>', $change));
+
+        foreach ($processedChanges as $changeCategory => $changeCategoryItems) {
+          $this->stdOut->writeln(sprintf('<h4>%s</h4>', $changeCategory));
+          $this->stdOut->writeln('<ul>');
+          foreach ($changeCategoryItems as $change) {
+            $this->stdOut->writeln(sprintf('<li>%s</li>', $change));
+          }
+          $this->stdOut->writeln('</ul>');
         }
-        $this->stdOut->writeln('</ul>');
 
         break;
     }
@@ -142,10 +174,6 @@ class ReleaseNotes extends Command
     } else {
       $replacement = '#$1';
     }
-
-    $nidsMatches = [];
-    preg_match('/#(\d+)/S', $value, $nidsMatches);
-    $this->nids[] = $nidsMatches[1];
 
     $value = preg_replace('/#(\d+)/S', $replacement, $value);
 
