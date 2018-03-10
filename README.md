@@ -20,7 +20,7 @@ Available commands:
   issue:apply                  Applies the latest patch from an issue.
   issue:branch                 Creates a branch for the issue.
   issue:link                   Opens an issue
-  issue:patch                  Opens project kanban
+  issue:patch                  Generate a patch for the issue from committed local changes.
  maintainer
   maintainer:issues (mi)       Lists issues for a user, based on maintainer.
  project
