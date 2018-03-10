@@ -99,11 +99,6 @@ class ProjectIssues extends Command
         $table->render();
     }
 
-    protected function getIssueValue(\DOMXPath $xpath, $class) {
-        $nodes = $xpath->query("//div[contains(@class,\"$class\")]//div");
-        return $nodes->item(2)->nodeValue;
-    }
-
     protected function getIssueStatus($value) {
         switch ($value) {
             case 1:
