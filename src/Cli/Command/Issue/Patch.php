@@ -23,7 +23,7 @@ class Patch extends IssueCommandBase {
     $this
       ->setName('issue:patch')
       ->addArgument('nid', InputArgument::REQUIRED, 'The issue node ID')
-      ->setDescription('Opens project kanban');
+      ->setDescription('Generate a patch for the issue from committed local changes.');
   }
 
   protected function initialize(InputInterface $input, OutputInterface $output) {
