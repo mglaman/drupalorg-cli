@@ -101,8 +101,14 @@ class ReleaseNotes extends Command
 
       case 'markdown':
       case 'md':
-      $this->stdOut->writeln(sprintf('Changes since %s: ', $ref1));
-      $this->stdOut->writeln('');
+        $this->stdOut->writeln(sprintf('### Summary: %s', $ref2));
+        $this->stdOut->writeln('');
+        $this->stdOut->writeln(sprintf('**Contributors**: (%s) %s', count($this->users), implode(', ', array_keys($this->users))));
+        $this->stdOut->writeln('');
+        $this->stdOut->writeln(sprintf('**Issues**: %s issues fixed.', count($this->nids)));
+        $this->stdOut->writeln('');
+        $this->stdOut->writeln(sprintf('Changes since %s: ', $ref1));
+        $this->stdOut->writeln('');
         foreach ($changes as $change) {
           $this->stdOut->writeln(sprintf('* %s', $change));
         }
@@ -110,6 +116,9 @@ class ReleaseNotes extends Command
 
       case 'html':
       default:
+        $this->stdOut->writeln(sprintf('<h3>Summary: %s</h3>', $ref2));
+        $this->stdOut->writeln(sprintf('<p><strong>Contributors:</strong> <abbr title="%s">%s</abbr></p>', implode(', ', array_keys($this->users)), count($this->users)));
+        $this->stdOut->writeln(sprintf('<p><strong>Issues:</strong> %s issues fixed.</p>', count($this->nids)));
         $this->stdOut->writeln(sprintf('<p>Changes since %s: </p>', $ref1));
         $this->stdOut->writeln('<ul>');
         foreach ($changes as $change) {
@@ -131,18 +140,21 @@ class ReleaseNotes extends Command
     } elseif ($format == 'markdown' || $format == 'md') {
       $replacement = sprintf('[#$1](%s)', $baseUrl);
     } else {
-      $replacement = '$1';
+      $replacement = '#$1';
     }
 
-    preg_match('/\d+/S', $value, $this->nids);
+    $nidsMatches = [];
+    preg_match('/#(\d+)/S', $value, $nidsMatches);
+    $this->nids[] = $nidsMatches[1];
+
     $value = preg_replace('/#(\d+)/S', $replacement, $value);
 
-    // Anything between by and ':' is a comma-separated list of usernames
+    // Anything between by and ':' is a comma-separated list of usernames.
     $value = preg_replace_callback('/by ([^:]+):/S',
       function($matches) use ($format) {
         $baseUrl = 'https://www.drupal.org/u/%1$s';
         $out = [];
-        // Separate the different usernames
+        // Separate the different usernames.
         foreach (explode(',', $matches[1]) as $user) {
           $user = trim($user);
           $userAlias = str_replace(' ', '-', strtolower($user));
