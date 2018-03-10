@@ -17,6 +17,8 @@ Available commands:
   drupalci:list (ci:l)         Lists test results for an issue
   drupalci:watch (ci:w)        Watches a Drupal CI job
  issue
+  issue:apply                  Applies the latest patch from an issue.
+  issue:branch                 Creates a branch for the issue.
   issue:link                   Opens an issue
   issue:patch                  Opens project kanban
  maintainer

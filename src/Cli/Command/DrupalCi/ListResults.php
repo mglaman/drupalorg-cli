@@ -39,10 +39,12 @@ class ListResults extends Command
 
         $table = new Table($this->stdOut);
         $table->setHeaders([
+            'Updated',
             'Job ID',
             'Patch',
             'Status',
             'Result',
+            'CI URL',
         ]);
 
         $jobRunning = null;
@@ -63,10 +65,12 @@ class ListResults extends Command
             }
 
             $table->addRow([
+                date('M j, Y - H:i:s', $job->updated),
                 $job->job_id,
                 $patch->get('name'),
                 $job->status,
                 "<$style>" . $job->message . "</$style>",
+                $job->ci_url,
             ]);
         }
         $table->render();
