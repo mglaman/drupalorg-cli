@@ -2,3 +2,7 @@
 vendor
 cache
 .DS_Store
+
+# Binaries
+/box.phar
+/drupalorg.phar

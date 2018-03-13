@@ -1,0 +1,24 @@
+{
+  "chmod": "0755",
+  "directories": [
+    "src"
+  ],
+  "files": [
+    "vendor/autoload.php",
+    "vendor/symfony/console/Resources/bin/hiddeninput.exe"
+  ],
+  "finder": [
+    {
+      "name": "/(\\.php|\\.json|\\.yml|\\.twig)$/",
+      "exclude": ["Tests","tests", "docs"],
+      "in": "vendor"
+    }
+  ],
+  "compactors": [
+    "Herrera\\Box\\Compactor\\Php"
+  ],
+  "compression": "GZ",
+  "main": "drupalorg",
+  "output": "drupalorg.phar",
+  "stub": true
+}
