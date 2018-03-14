@@ -108,12 +108,15 @@ class ReleaseNotes extends Command
     foreach ($changes as $change) {
       $nidsMatches = [];
       preg_match('/#(\d+)/S', $change, $nidsMatches);
-      $this->nids[] = $nidsMatches[1];
 
-      $issue = $this->getNode($nidsMatches[1]);
-      $issueCategory = $issue->get('field_issue_category');
-      $issueCategoryLabel = $this->categoryLabelMap[$issueCategory];
-      $processedChanges[$issueCategoryLabel][$nidsMatches[1]] = $this->formatLine($change, $format);
+      if(isset($nidsMatches[1])) {
+        $this->nids[] = $nidsMatches[1];
+
+        $issue = $this->getNode($nidsMatches[1]);
+        $issueCategory = $issue->get('field_issue_category');
+        $issueCategoryLabel = $this->categoryLabelMap[$issueCategory];
+        $processedChanges[$issueCategoryLabel][$nidsMatches[1]] = $this->formatLine($change, $format);
+      }
     }
     ksort($processedChanges);
 
