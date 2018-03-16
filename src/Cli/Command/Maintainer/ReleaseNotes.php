@@ -131,7 +131,7 @@ class ReleaseNotes extends Command
         $this->stdOut->writeln('');
         $this->stdOut->writeln(sprintf('**Contributors**: (%s) %s', count($this->users), implode(', ', array_keys($this->users))));
         $this->stdOut->writeln('');
-        $this->stdOut->writeln(sprintf('**Issues**: %s issues fixed.', count($this->nids)));
+        $this->stdOut->writeln(sprintf('**Issues**: %s issues resolved.', count($this->nids)));
         $this->stdOut->writeln('');
         $this->stdOut->writeln(sprintf('Changes since %s: ', $ref1));
         $this->stdOut->writeln('');
@@ -149,7 +149,7 @@ class ReleaseNotes extends Command
       default:
         $this->stdOut->writeln(sprintf('<h3>Summary: %s</h3>', $ref2));
         $this->stdOut->writeln(sprintf('<p><strong>Contributors:</strong> (%s) %s</p>', count($this->users), implode(', ', array_keys($this->users))));
-        $this->stdOut->writeln(sprintf('<p><strong>Issues:</strong> %s issues fixed.</p>', count($this->nids)));
+        $this->stdOut->writeln(sprintf('<p><strong>Issues:</strong> %s issues resolved.</p>', count($this->nids)));
         $this->stdOut->writeln(sprintf('<p>Changes since %s: </p>', $ref1));
 
         foreach ($processedChanges as $changeCategory => $changeCategoryItems) {
