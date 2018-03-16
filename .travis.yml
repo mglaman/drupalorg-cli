@@ -1,0 +1,22 @@
+language: php
+dist: trusty
+sudo: false
+
+php:
+  - 7.0
+  - 7.1
+  - 7.2
+
+matrix:
+  fast_finish: true
+
+cache:
+  directories:
+    - $HOME/.composer/cache
+    - $HOME/.drush/cache
+
+install:
+  - composer install --no-interaction
+
+script:
+  - 'curl -H "Accept: text/plain" https://security.sensiolabs.org/check_lock -F lock=@./composer.lock'
