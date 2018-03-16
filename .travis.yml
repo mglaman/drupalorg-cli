@@ -21,3 +21,5 @@ install:
 
 script:
   - 'curl -H "Accept: text/plain" https://security.sensiolabs.org/check_lock -F lock=@./composer.lock'
+  - composer run box-install
+  - composer run box-build
