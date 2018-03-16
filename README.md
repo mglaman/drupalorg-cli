@@ -4,6 +4,39 @@ Drupal.org CLI
 
 A command line tool for interfacing with Drupal.org. Uses the Drupal.org REST API.
 
+## Requirements
+
+* PHP 5.6 or higher, with cURL support
+* [Git](https://git-scm.com/) - Currently required to apply and create patches. Very useful for contributing patches back to an issue.
+
+## Installation
+
+### Installing manually
+
+1. Download the `drupalorg.phar` file from the [latest release](https://github.com/mglaman/drupalorg-cli/releases/latest).
+
+2. Rename the file to `drupalorg`, ensure it is executable, and move it into a directory in your PATH (use `echo $PATH` to see your options).
+
+3. Run `drupalorg` and verify you can see the list of available commands.
+
+### Installing via Composer (deprecated)
+
+Use the following command to install the command line tool via Composer:
+
+`composer global require mglaman/drupalorg-cli`
+
+## Updating
+
+Automatic updating is not yet supported. You will need to manually download new releases.
+
+## Usage
+
+Use the 'list' command to see available commands. 
+
+```
+drupalorg list
+```
+
 ## Commands
 
 ````
@@ -37,15 +70,6 @@ Available commands:
 ````
 
 ## Getting Started
-
-### Requirements
-
-* [git](https://git-scm.com/) - Currently required to apply and create patches. Very useful for contributing patches back to an issue.
-* [composer](https://getcomposer.org/) - Only required for installation. Composer is not further used by this tool once installed.
-
-Use the following command to install the command line tool via Composer:
-
-`composer global require mglaman/drupalorg-cli`
 
 ### Working with project issues
 
