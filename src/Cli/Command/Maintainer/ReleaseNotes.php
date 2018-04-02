@@ -120,6 +120,9 @@ class ReleaseNotes extends Command
     }
     ksort($processedChanges);
 
+    // Work out what the project name is.
+    $project = $this->get_project_name();
+
     switch ($format) {
       case 'json':
         $this->stdOut->writeln(json_encode($processedChanges, JSON_PRETTY_PRINT));
@@ -127,13 +130,14 @@ class ReleaseNotes extends Command
 
       case 'markdown':
       case 'md':
+        $ref1url = "https://www.drupal.org/project/{$project}/releases/$ref1";
         $this->stdOut->writeln(sprintf('### Summary: %s', $ref2));
         $this->stdOut->writeln('');
         $this->stdOut->writeln(sprintf('**Contributors**: (%s) %s', count($this->users), implode(', ', array_keys($this->users))));
         $this->stdOut->writeln('');
         $this->stdOut->writeln(sprintf('**Issues**: %s issues resolved.', count($this->nids)));
         $this->stdOut->writeln('');
-        $this->stdOut->writeln(sprintf('Changes since %s: ', $ref1));
+        $this->stdOut->writeln(sprintf('Changes since [%s](%s):', $ref1));
         $this->stdOut->writeln('');
         foreach ($processedChanges as $changeCategory => $changeCategoryItems) {
           $this->stdOut->writeln(sprintf('#### %s', $changeCategory));
@@ -147,10 +151,11 @@ class ReleaseNotes extends Command
 
       case 'html':
       default:
+        $ref1url = "https://www.drupal.org/project/{$project}/releases/$ref1";
         $this->stdOut->writeln(sprintf('<h3>Summary: %s</h3>', $ref2));
         $this->stdOut->writeln(sprintf('<p><strong>Contributors:</strong> (%s) %s</p>', count($this->users), implode(', ', array_keys($this->users))));
         $this->stdOut->writeln(sprintf('<p><strong>Issues:</strong> %s issues resolved.</p>', count($this->nids)));
-        $this->stdOut->writeln(sprintf('<p>Changes since %s: </p>', $ref1));
+        $this->stdOut->writeln(sprintf('<p>Changes since <a href="%s">%s</a>:</p>', $ref1url, $ref1));
 
         foreach ($processedChanges as $changeCategory => $changeCategoryItems) {
           $this->stdOut->writeln(sprintf('<h4>%s</h4>', $changeCategory));
@@ -211,6 +216,46 @@ class ReleaseNotes extends Command
       }, $value);
 
     return $value;
+  }
+
+  /**
+   * Extract the project name from the current git repository.
+   *
+   * @return string
+   *   The d.o project name.
+   */
+  function get_project_name() {
+    // Execute the command "git config --get remote.origin.url".
+    $gitCmd = $this->runProcess('git config --get remote.origin.url');
+    if ($gitCmd->getExitCode() != 0) {
+      $this->stdOut->writeln("The 'git config' command returned an error.");
+      return 1;
+    }
+
+    // Check to see if this is a drupal.org project.
+    if (!strpos($gitCmd->getOutput(), 'drupal.org')) {
+      $this->stdOut->writeln("The commits URL is not on drupal.org.");
+      return 1;
+    }
+
+    // Sandbox projects cannot have releases.
+    if (strpos($gitCmd->getOutput(), 'drupal.org/sandbox')) {
+      $this->stdOut->writeln("Sandbox projects cannot have releases.");
+      return 1;
+    }
+
+    // The URL will be in one of these formats:
+    // * [username]@git.drupal.org:project/[projectname].git
+    // * https://git.drupal.org/project/[projectname].git
+    $path = str_replace('.git', '', $gitCmd->getOutput());
+    $path = explode('/', $path);
+    if (!count($path)) {
+      $this->stdOut->writeln("The commits URL could not be discovered.");
+      return 1;
+    }
+
+    // Done.
+    return array_pop($path);
   }
 
 }
