@@ -132,11 +132,13 @@ class ReleaseNotes extends Command
 
       case 'markdown':
       case 'md':
-        $this->stdOut->writeln(sprintf('### Summary: %s', $ref2));
+        $this->stdOut->writeln(sprintf('/Add a summary here/'));
         $this->stdOut->writeln('');
         $this->stdOut->writeln(sprintf('**Contributors**: (%s) %s', count($this->users), implode(', ', array_keys($this->users))));
         $this->stdOut->writeln('');
         $this->stdOut->writeln(sprintf('**Issues**: %s issues resolved.', count($this->nids)));
+        $this->stdOut->writeln('');
+        $this->stdOut->writeln(sprintf('### Full changelog'));
         $this->stdOut->writeln('');
         $this->stdOut->writeln(sprintf('Changes since [%s](%s):', $ref1, $ref1url));
         $this->stdOut->writeln('');
@@ -152,16 +154,17 @@ class ReleaseNotes extends Command
 
       case 'html':
       default:
-        $this->stdOut->writeln(sprintf('<h3>Summary: %s</h3>', $ref2));
+        $this->stdOut->writeln(sprintf('<p><em>Add a summary here</em></p>'));
         $this->stdOut->writeln(sprintf('<p><strong>Contributors:</strong> (%s) %s</p>', count($this->users), implode(', ', array_keys($this->users))));
         $this->stdOut->writeln(sprintf('<p><strong>Issues:</strong> %s issues resolved.</p>', count($this->nids)));
+        $this->stdOut->writeln(sprintf('<h3>Full changelog</h3>'));
         $this->stdOut->writeln(sprintf('<p>Changes since <a href="%s">%s</a>:</p>', $ref1url, $ref1));
 
         foreach ($processedChanges as $changeCategory => $changeCategoryItems) {
           $this->stdOut->writeln(sprintf('<h4>%s</h4>', $changeCategory));
           $this->stdOut->writeln('<ul>');
           foreach ($changeCategoryItems as $change) {
-            $this->stdOut->writeln(sprintf('<li>%s</li>', $change));
+            $this->stdOut->writeln(sprintf('  <li>%s</li>', $change));
           }
           $this->stdOut->writeln('</ul>');
         }
