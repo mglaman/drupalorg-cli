@@ -42,6 +42,7 @@ class ReleaseNotes extends Command
   {
     $this
       ->setName('maintainer:release-notes')
+      ->setAliases(['mrn'])
       ->addArgument('ref1', InputArgument::OPTIONAL, 'Git tag, branch, or SHA')
       ->addArgument('ref2', InputArgument::OPTIONAL, 'Git tag, branch, or SHA', 'HEAD')
       ->addOption('format', 'f', InputOption::VALUE_OPTIONAL, 'Output options: json, markdown (md), html. Defaults to HTML.', 'html')
