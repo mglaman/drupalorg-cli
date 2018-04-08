@@ -121,7 +121,8 @@ class ReleaseNotes extends Command
     ksort($processedChanges);
 
     // Work out what the project name is.
-    $project = $this->get_project_name();
+    $project = $this->getProjectName();
+    $ref1url = "https://www.drupal.org/project/{$project}/releases/$ref1";
 
     switch ($format) {
       case 'json':
@@ -130,14 +131,13 @@ class ReleaseNotes extends Command
 
       case 'markdown':
       case 'md':
-        $ref1url = "https://www.drupal.org/project/{$project}/releases/$ref1";
         $this->stdOut->writeln(sprintf('### Summary: %s', $ref2));
         $this->stdOut->writeln('');
         $this->stdOut->writeln(sprintf('**Contributors**: (%s) %s', count($this->users), implode(', ', array_keys($this->users))));
         $this->stdOut->writeln('');
         $this->stdOut->writeln(sprintf('**Issues**: %s issues resolved.', count($this->nids)));
         $this->stdOut->writeln('');
-        $this->stdOut->writeln(sprintf('Changes since [%s](%s):', $ref1));
+        $this->stdOut->writeln(sprintf('Changes since [%s](%s):', $ref1, $ref1url));
         $this->stdOut->writeln('');
         foreach ($processedChanges as $changeCategory => $changeCategoryItems) {
           $this->stdOut->writeln(sprintf('#### %s', $changeCategory));
@@ -151,7 +151,6 @@ class ReleaseNotes extends Command
 
       case 'html':
       default:
-        $ref1url = "https://www.drupal.org/project/{$project}/releases/$ref1";
         $this->stdOut->writeln(sprintf('<h3>Summary: %s</h3>', $ref2));
         $this->stdOut->writeln(sprintf('<p><strong>Contributors:</strong> (%s) %s</p>', count($this->users), implode(', ', array_keys($this->users))));
         $this->stdOut->writeln(sprintf('<p><strong>Issues:</strong> %s issues resolved.</p>', count($this->nids)));
@@ -224,7 +223,7 @@ class ReleaseNotes extends Command
    * @return string
    *   The d.o project name.
    */
-  function get_project_name() {
+  function getProjectName() {
     // Execute the command "git config --get remote.origin.url".
     $gitCmd = $this->runProcess('git config --get remote.origin.url');
     if ($gitCmd->getExitCode() != 0) {
