@@ -231,10 +231,11 @@ class ReleaseNotes extends Command
       return 1;
     }
 
-    // Check to see if this is a drupal.org project.
+    // Check to see if this is a drupal.org project. If not, the remote origin
+    // may be on GitHub. So just use the directory name.
     if (!strpos($gitCmd->getOutput(), 'drupal.org')) {
-      $this->stdOut->writeln("The commits URL is not on drupal.org.");
-      return 1;
+      $parts = explode(DIRECTORY_SEPARATOR, getcwd());
+      return end($parts);
     }
 
     // Sandbox projects cannot have releases.
