@@ -138,11 +138,11 @@ class ReleaseNotes extends Command
         $this->stdOut->writeln('');
         $this->stdOut->writeln(implode(', ', array_keys($this->users)));
         $this->stdOut->writeln('');
-        $this->stdOut->writeln('### Full changelog');
+        $this->stdOut->writeln('### Changelog');
         $this->stdOut->writeln('');
         $this->stdOut->writeln(sprintf('**Issues**: %s issues resolved.', count($this->nids)));
         $this->stdOut->writeln('');
-        $this->stdOut->writeln(sprintf('Changes since [v%s](%s):', $ref1, $ref1url));
+        $this->stdOut->writeln(sprintf('Changes since [%s](%s):', $ref1, $ref1url));
         $this->stdOut->writeln('');
         foreach ($processedChanges as $changeCategory => $changeCategoryItems) {
           $this->stdOut->writeln(sprintf('#### %s', $changeCategory));
@@ -159,9 +159,9 @@ class ReleaseNotes extends Command
         $this->stdOut->writeln('<p><em>Add a summary here</em></p>');
         $this->stdOut->writeln(sprintf('<h3>Contributors (%s)</h3>', count($this->users)));
         $this->stdOut->writeln(sprintf('<p>%s</p>', implode(', ', array_keys($this->users))));
-        $this->stdOut->writeln('<h3>Full changelog</h3>');
+        $this->stdOut->writeln('<h3>Changelog</h3>');
         $this->stdOut->writeln(sprintf('<p><strong>Issues:</strong> %s issues resolved.</p>', count($this->nids)));
-        $this->stdOut->writeln(sprintf('<p>Changes since <a href="%s">v%s</a>:</p>', $ref1url, $ref1));
+        $this->stdOut->writeln(sprintf('<p>Changes since <a href="%s">%s</a>:</p>', $ref1url, $ref1));
 
         foreach ($processedChanges as $changeCategory => $changeCategoryItems) {
           $this->stdOut->writeln(sprintf('<h4>%s</h4>', $changeCategory));
