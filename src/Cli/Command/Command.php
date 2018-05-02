@@ -24,13 +24,6 @@ abstract class Command extends BaseCommand
      */
     protected $client;
 
-    public function __construct($name = null)
-    {
-        parent::__construct($name);
-
-        Cache::setCacheDir(CLI_ROOT . '/cache');
-    }
-
     /**
      * @inheritdoc
      */

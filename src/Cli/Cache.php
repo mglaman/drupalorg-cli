@@ -6,17 +6,8 @@ use Doctrine\Common\Cache\FilesystemCache;
 
 class Cache
 {
-    protected static $cacheDir;
+
     protected static $cache;
-
-
-    /**
-     * @param string $cacheDir
-     */
-    public static function setCacheDir($cacheDir)
-    {
-        self::$cacheDir = $cacheDir;
-    }
 
     /**
      * @return \Doctrine\Common\Cache\CacheProvider
@@ -24,7 +15,9 @@ class Cache
     public static function getCache()
     {
         if (!isset(self::$cache)) {
-            self::$cache = new FilesystemCache(self::$cacheDir, FilesystemCache::EXTENSION, 0077);
+            $tmpPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . '/drupalorg-cli-cache';
+            @mkdir($tmpPath);
+            self::$cache = new FilesystemCache($tmpPath, FilesystemCache::EXTENSION, 0077);
         }
         return self::$cache;
     }
