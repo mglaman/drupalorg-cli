@@ -122,7 +122,7 @@ class ReleaseNotes extends Command
     ksort($processedChanges);
 
     // Work out what the project name is.
-    $project = $this->getProjectName();
+    $project = trim($this->getProjectName());
     $ref1url = "https://www.drupal.org/project/{$project}/releases/$ref1";
 
     switch ($format) {
@@ -132,9 +132,13 @@ class ReleaseNotes extends Command
 
       case 'markdown':
       case 'md':
-        $this->stdOut->writeln(sprintf('### Summary: %s', $ref2));
+        $this->stdOut->writeln('/Add a summary here/');
         $this->stdOut->writeln('');
-        $this->stdOut->writeln(sprintf('**Contributors**: (%s) %s', count($this->users), implode(', ', array_keys($this->users))));
+        $this->stdOut->writeln(sprintf('### Contributors (%s)', count($this->users)));
+        $this->stdOut->writeln('');
+        $this->stdOut->writeln(implode(', ', array_keys($this->users)));
+        $this->stdOut->writeln('');
+        $this->stdOut->writeln('### Changelog');
         $this->stdOut->writeln('');
         $this->stdOut->writeln(sprintf('**Issues**: %s issues resolved.', count($this->nids)));
         $this->stdOut->writeln('');
@@ -152,8 +156,10 @@ class ReleaseNotes extends Command
 
       case 'html':
       default:
-        $this->stdOut->writeln(sprintf('<h3>Summary: %s</h3>', $ref2));
-        $this->stdOut->writeln(sprintf('<p><strong>Contributors:</strong> (%s) %s</p>', count($this->users), implode(', ', array_keys($this->users))));
+        $this->stdOut->writeln('<p><em>Add a summary here</em></p>');
+        $this->stdOut->writeln(sprintf('<h3>Contributors (%s)</h3>', count($this->users)));
+        $this->stdOut->writeln(sprintf('<p>%s</p>', implode(', ', array_keys($this->users))));
+        $this->stdOut->writeln('<h3>Changelog</h3>');
         $this->stdOut->writeln(sprintf('<p><strong>Issues:</strong> %s issues resolved.</p>', count($this->nids)));
         $this->stdOut->writeln(sprintf('<p>Changes since <a href="%s">%s</a>:</p>', $ref1url, $ref1));
 
@@ -161,7 +167,7 @@ class ReleaseNotes extends Command
           $this->stdOut->writeln(sprintf('<h4>%s</h4>', $changeCategory));
           $this->stdOut->writeln('<ul>');
           foreach ($changeCategoryItems as $change) {
-            $this->stdOut->writeln(sprintf('<li>%s</li>', $change));
+            $this->stdOut->writeln(sprintf('  <li>%s</li>', $change));
           }
           $this->stdOut->writeln('</ul>');
         }
