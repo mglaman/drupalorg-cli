@@ -135,7 +135,9 @@ class ReleaseNotes extends Command
         $this->stdOut->writeln('');
         $this->stdOut->writeln(sprintf('### Contributors (%s)', count($this->users)));
         $this->stdOut->writeln('');
-        $this->stdOut->writeln(implode(', ', array_keys($this->users)));
+        $this->stdOut->writeln(implode(', ', array_map(function ($username) use ($format) {
+            return $this->formatUsername($username, $format);
+        }, array_keys($this->users))));
         $this->stdOut->writeln('');
         $this->stdOut->writeln('### Changelog');
         $this->stdOut->writeln('');
@@ -157,7 +159,9 @@ class ReleaseNotes extends Command
       default:
         $this->stdOut->writeln('<p><em>Add a summary here</em></p>');
         $this->stdOut->writeln(sprintf('<h3>Contributors (%s)</h3>', count($this->users)));
-        $this->stdOut->writeln(sprintf('<p>%s</p>', implode(', ', array_keys($this->users))));
+        $this->stdOut->writeln(sprintf('<p>%s</p>', implode(', ', array_map(function ($username) use ($format) {
+            return $this->formatUsername($username, $format);
+        }, array_keys($this->users)))));
         $this->stdOut->writeln('<h3>Changelog</h3>');
         $this->stdOut->writeln(sprintf('<p><strong>Issues:</strong> %s issues resolved.</p>', count($this->nids)));
         $this->stdOut->writeln(sprintf('<p>Changes since <a href="%s">%s</a>:</p>', $ref1url, $ref1));
@@ -173,6 +177,19 @@ class ReleaseNotes extends Command
 
         break;
     }
+  }
+
+  protected function formatUsername($user, $format) {
+      $baseUrl = 'https://www.drupal.org/u/%1$s';
+      $userAlias = str_replace(' ', '-', mb_strtolower($user));
+      if ($format == 'html') {
+          $replacement = '<a href="' . $baseUrl . '">%2$s</a>';
+      } elseif ($format == 'markdown' || $format == 'md') {
+          $replacement = '[%2$s](' . $baseUrl . ')';
+      } else {
+          $replacement = '%2$s';
+      }
+      return sprintf($replacement, $userAlias, $user);
   }
 
   protected function formatLine($value, $format) {
@@ -193,12 +210,10 @@ class ReleaseNotes extends Command
     // Anything between by and ':' is a comma-separated list of usernames.
     $value = preg_replace_callback('/by ([^:]+):/S',
       function($matches) use ($format) {
-        $baseUrl = 'https://www.drupal.org/u/%1$s';
         $out = [];
         // Separate the different usernames.
         foreach (explode(',', $matches[1]) as $user) {
           $user = trim($user);
-          $userAlias = str_replace(' ', '-', strtolower($user));
 
           if (!isset($this->users[$user])) {
             $this->users[$user] = 1;
@@ -206,15 +221,7 @@ class ReleaseNotes extends Command
             $this->users[$user]++;
           }
 
-          if ($format == 'html') {
-            $replacement = '<a href="' . $baseUrl . '">%2$s</a>';
-          } elseif ($format == 'markdown' || $format == 'md') {
-            $replacement = '[%2$s](' . $baseUrl . ')';
-          } else {
-            $replacement = '%2$s';
-          }
-
-          $out[] = sprintf($replacement, $userAlias, $user);
+          $out[] = $this->formatUsername($user, $format);
         }
 
         return 'by ' . implode(', ', $out) . ':';
