@@ -110,9 +110,8 @@ class ReleaseNotes extends Command
       $nidsMatches = [];
       preg_match('/#(\d+)/S', $change, $nidsMatches);
 
-      if(isset($nidsMatches[1])) {
-        $this->nids[] = $nidsMatches[1];
-
+      if(isset($nidsMatches[1]) && !isset($this->nids[$nidsMatches[1]])) {
+        $this->nids[$nidsMatches[1]] = $nidsMatches[1];
         $issue = $this->getNode($nidsMatches[1]);
         $issueCategory = $issue->get('field_issue_category');
         $issueCategoryLabel = $this->categoryLabelMap[$issueCategory];
