@@ -4,6 +4,7 @@ namespace mglaman\DrupalOrgCli\Command\Maintainer;
 
 
 use Gitter\Client;
+use mglaman\DrupalOrg\Request;
 use mglaman\DrupalOrgCli\Command\Command;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Helper\TableSeparator;
@@ -124,9 +125,27 @@ class ReleaseNotes extends Command
     $project = trim($this->getProjectName());
     $ref1url = "https://www.drupal.org/project/{$project}/releases/$ref1";
 
+    $projectInfo = $this->getProject($project)->getList()->offsetGet(0);
+    $changeRecords = $this->client->request(new Request('node.json', [
+        'type' => 'changenotice',
+        'field_project' => $projectInfo->nid,
+        'status' => 1,
+        'field_change_to' => $ref2
+    ]));
+    $changeRecords = array_map(function ($changeRecord) {
+        return [
+            'title' => $changeRecord->title,
+            'description' => $changeRecord->field_description->value,
+            'url' => $changeRecord->url,
+        ];
+    }, $changeRecords->getList()->getArrayCopy());
+
     switch ($format) {
       case 'json':
-        $this->stdOut->writeln(json_encode($processedChanges, JSON_PRETTY_PRINT));
+        $this->stdOut->writeln(json_encode([
+            'ChangeRecords' => $changeRecords,
+            'Issues' => $processedChanges,
+        ], JSON_PRETTY_PRINT));
         break;
 
       case 'markdown':
@@ -142,8 +161,21 @@ class ReleaseNotes extends Command
         $this->stdOut->writeln('### Changelog');
         $this->stdOut->writeln('');
         $this->stdOut->writeln(sprintf('**Issues**: %s issues resolved.', count($this->nids)));
+        $this->stdOut->writeln(sprintf('**Change records**: %s change records.', count($changeRecords)));
+        if (count($changeRecords) > 0) {
+            $this->stdOut->writeln('');
+            $this->stdOut->writeln('#### Change records');
+            foreach ($changeRecords as $changeRecord) {
+                $this->stdOut->writeln('');
+                $this->stdOut->writeln(sprintf('**%s**  ', $changeRecord['title']));
+                $this->stdOut->writeln($changeRecord['description']);
+                $this->stdOut->writeln('');
+                $this->stdOut->writeln(sprintf('[%s](%s)', $changeRecord['url'], $changeRecord['url']));
+            }
+            $this->stdOut->writeln('');
+        }
         $this->stdOut->writeln('');
-        $this->stdOut->writeln(sprintf('Changes since [%s](%s):', $ref1, $ref1url));
+        $this->stdOut->writeln(sprintf('All changes since [%s](%s):', $ref1, $ref1url));
         $this->stdOut->writeln('');
         foreach ($processedChanges as $changeCategory => $changeCategoryItems) {
           $this->stdOut->writeln(sprintf('#### %s', $changeCategory));
@@ -164,7 +196,16 @@ class ReleaseNotes extends Command
         }, array_keys($this->users)))));
         $this->stdOut->writeln('<h3>Changelog</h3>');
         $this->stdOut->writeln(sprintf('<p><strong>Issues:</strong> %s issues resolved.</p>', count($this->nids)));
-        $this->stdOut->writeln(sprintf('<p>Changes since <a href="%s">%s</a>:</p>', $ref1url, $ref1));
+        $this->stdOut->writeln(sprintf('<p><strong>Change records:</strong> %s change records.</p>', count($changeRecords)));
+        if (count($changeRecords) > 0) {
+            $this->stdOut->writeln('<h4>Change records</h4>');
+            foreach ($changeRecords as $changeRecord) {
+                $this->stdOut->writeln(sprintf('<p><strong>%s</strong></p>', $changeRecord['title']));
+                $this->stdOut->writeln($changeRecord['description']);
+                $this->stdOut->writeln(sprintf('<a href="%s">%s</a>', $changeRecord['url'], $changeRecord['url']));
+            }
+        }
+        $this->stdOut->writeln(sprintf('<p>All changes since <a href="%s">%s</a>:</p>', $ref1url, $ref1));
 
         foreach ($processedChanges as $changeCategory => $changeCategoryItems) {
           $this->stdOut->writeln(sprintf('<h4>%s</h4>', $changeCategory));
