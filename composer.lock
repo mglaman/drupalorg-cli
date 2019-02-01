@@ -1,7 +1,7 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
     "content-hash": "93d3f5e0732c072e2931ebc2e4d547ac",
@@ -64,19 +64,20 @@
         },
         {
             "name": "dg/rss-php",
-            "version": "v1.2",
+            "version": "v1.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dg/rss-php.git",
-                "reference": "b33661748d89d8c0c288e8d86feada6018d05031"
+                "reference": "08622f48dc249961f3d5af90932240c17608190e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dg/rss-php/zipball/b33661748d89d8c0c288e8d86feada6018d05031",
-                "reference": "b33661748d89d8c0c288e8d86feada6018d05031",
+                "url": "https://api.github.com/repos/dg/rss-php/zipball/08622f48dc249961f3d5af90932240c17608190e",
+                "reference": "08622f48dc249961f3d5af90932240c17608190e",
                 "shasum": ""
             },
             "require": {
+                "ext-simplexml": "*",
                 "php": ">=5.2.2"
             },
             "type": "library",
@@ -92,7 +93,7 @@
             "authors": [
                 {
                     "name": "David Grudl",
-                    "homepage": "http://davidgrudl.com"
+                    "homepage": "https://davidgrudl.com"
                 }
             ],
             "description": "RSS & Atom Feeds for PHP is a very small and easy-to-use library for consuming an RSS and Atom feed",
@@ -102,7 +103,7 @@
                 "feed",
                 "rss"
             ],
-            "time": "2015-07-02T11:54:05+00:00"
+            "time": "2018-06-22T10:02:40+00:00"
         },
         {
             "name": "doctrine/cache",
