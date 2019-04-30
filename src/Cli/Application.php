@@ -42,6 +42,7 @@ class Application extends ParentApplication
         $commands[] = new Command\Issue\Link();
         $commands[] = new Command\Issue\Branch();
         $commands[] = new Command\Issue\Patch();
+        $commands[] = new Command\Issue\Interdiff();
         $commands[] = new Command\Issue\Apply();
         $commands[] = new Command\Project\Link();
         $commands[] = new Command\Project\Kanban();
