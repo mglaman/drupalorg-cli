@@ -6,7 +6,7 @@ A command line tool for interfacing with Drupal.org. Uses the Drupal.org REST AP
 
 ## Requirements
 
-* PHP 7.1 or higher, with cURL support
+* PHP 7.2 or higher, with cURL support
 * [Git](https://git-scm.com/) - Currently required to apply and create patches. Very useful for contributing patches back to an issue.
 
 ## Installation
