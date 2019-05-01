@@ -14,6 +14,9 @@ class RawResponse {
     }
 
     public function get($key) {
-        return $this->response->{$key};
+        if (property_exists($this->response, $key)) {
+            return $this->response->{$key};
+        }
+        return null;
     }
 }

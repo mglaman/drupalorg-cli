@@ -31,6 +31,7 @@ class ReleaseNotes extends Command
   protected $users = [];
 
   protected $categoryLabelMap = [
+    0 => 'Misc',
     1 => 'Bug',
     2 => 'Task',
     3 => 'Feature',
@@ -113,7 +114,8 @@ class ReleaseNotes extends Command
       if(isset($nidsMatches[1]) && !isset($this->nids[$nidsMatches[1]])) {
         $this->nids[$nidsMatches[1]] = $nidsMatches[1];
         $issue = $this->getNode($nidsMatches[1]);
-        $issueCategory = $issue->get('field_issue_category');
+        // There should always be an issue category, but if not default to `Task.`
+        $issueCategory = $issue->get('field_issue_category') ?: 'Task';
         $issueCategoryLabel = $this->categoryLabelMap[$issueCategory];
         $processedChanges[$issueCategoryLabel][$nidsMatches[1]] = $this->formatLine($change, $format);
       }
