@@ -15,7 +15,7 @@ class ReleaseNotes extends Command
     {
         $this
           ->setName('project:release-notes')
-          ->setAliases(['rn'])
+          ->setAliases(['prn'])
           ->addArgument('project', InputArgument::REQUIRED, 'The project')
           ->addArgument('version', InputArgument::REQUIRED, 'The release version')
           ->setDescription('View release notes for a release');
