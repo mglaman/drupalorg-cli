@@ -34,28 +34,31 @@ class Issues extends Command
         $output->writeln("<info>{$feed->title}</info>");
 
         $table = new Table($this->stdOut);
+        $table->setStyle('symfony-style-guide');
         $table->setHeaders([
           'Project',
-          'Version',
-          'Status',
           'Title',
         ]);
 
+        $totalItems = count($feed->item);
+        $count = 0;
         foreach ($feed->item as $item) {
             $descriptionDom = new \DOMDocument();
             $descriptionDom->loadHTML($item->description);
 
             $descriptionXpath = new \DOMXPath($descriptionDom);
+            $linkParts = parse_url($item->link);
+            $pathPaths = array_values(array_filter(explode('/', $linkParts['path'])));
 
             $table->addRow([
-              $this->getIssueValue($descriptionXpath, 'field-name-field-project'),
-              $this->getIssueValue($descriptionXpath, 'field-name-field-issue-version'),
-              $this->getIssueStatus($descriptionXpath),
+              $pathPaths[1],
               $item->title . PHP_EOL . '<comment>' . $item->link . '</comment>',
             ]);
-            $table->addRow(new TableSeparator());
+            $count++;
+            if ($count < $totalItems) {
+                $table->addRow(new TableSeparator());
+            }
         }
-
         $table->render();
     }
 
