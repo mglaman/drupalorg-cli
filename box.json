@@ -1,5 +1,4 @@
 {
-  "chmod": "0755",
   "directories": [
     "src"
   ],
@@ -15,10 +14,7 @@
     }
   ],
   "compactors": [
-    "Herrera\\Box\\Compactor\\Php"
+    "KevinGH\\Box\\Compactor\\Php"
   ],
-  "compression": "GZ",
-  "main": "drupalorg",
-  "output": "drupalorg.phar",
-  "stub": true
+  "compression": "GZ"
 }

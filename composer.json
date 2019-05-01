@@ -34,8 +34,9 @@
           }
     },
     "scripts": {
-        "box-install": "curl -LSs https://box-project.github.io/box2/installer.php | php",
-        "box-build": "./box.phar build"
+        "box-install": "curl -O -L https://github.com/humbug/box/releases/latest/download/box.phar",
+        "box-build": "php box.phar compile",
+        "box-info": "php box.phar info drupalorg.phar"
     },
     "bin": [
       "drupalorg"

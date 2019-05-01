@@ -20,6 +20,7 @@ install:
 script:
   - composer run box-install
   - composer run box-build
+  - composer run box-info
 
 deploy:
   provider: releases
