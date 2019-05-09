@@ -5,6 +5,7 @@ namespace mglaman\DrupalOrgCli\Command\Project;
 use mglaman\DrupalOrg\RawResponse;
 use mglaman\DrupalOrgCli\BrowserTrait;
 use mglaman\DrupalOrgCli\Command\Command;
+use mglaman\DrupalOrgCli\Git;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -18,7 +19,7 @@ class Kanban extends Command
     {
         $this
           ->setName('project:kanban')
-          ->addArgument('project', InputArgument::REQUIRED, 'The project machine name')
+          ->addArgument('project', InputArgument::OPTIONAL, 'The project machine name')
           ->setDescription('Opens project kanban');
     }
 
@@ -26,10 +27,12 @@ class Kanban extends Command
      * {@inheritdoc}
      *
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $machineName = $this->stdIn->getArgument('project');
-        $this->openUrl('https://contribkanban.com/board/' . $machineName, $this->stdErr, $this->stdOut);
+        if ($machineName === null) {
+            $machineName = basename(getcwd());
+        }
+        return $this->openUrl('https://contribkanban.com/board/' . $machineName, $this->stdErr, $this->stdOut);
     }
-
 }

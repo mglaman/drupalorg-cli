@@ -18,7 +18,7 @@ class Link extends Command
     {
         $this
           ->setName('project:link')
-          ->addArgument('project', InputArgument::REQUIRED, 'The project machine name')
+          ->addArgument('project', InputArgument::OPTIONAL, 'The project machine name')
           ->setDescription('Opens project page');
     }
 
@@ -29,7 +29,9 @@ class Link extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $machineName = $this->stdIn->getArgument('project');
+        if ($machineName === null) {
+            $machineName = basename(getcwd());
+        }
         $this->openUrl('https://www.drupal.org/project/' . $machineName, $this->stdErr, $this->stdOut);
     }
-
 }

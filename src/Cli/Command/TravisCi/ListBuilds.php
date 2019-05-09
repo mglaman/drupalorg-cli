@@ -84,9 +84,9 @@ class ListBuilds extends Command
         if ($jobRunning) {
             $helper = $this->getHelper('question');
             $question = new ChoiceQuestion(
-              "Test #{$jobRunning} is running, do you want to watch it? [Yes]",
-              ['Yes', 'No'],
-              0
+                "Test #{$jobRunning} is running, do you want to watch it? [Yes]",
+                ['Yes', 'No'],
+                0
             );
             $answer = $helper->ask($this->stdIn, $this->stdOut, $question);
 
@@ -102,7 +102,8 @@ class ListBuilds extends Command
         }
     }
 
-    protected function slugMapping($project) {
+    protected function slugMapping($project)
+    {
         $maps = [
             'commerce' => 'drupalcommerce/commerce',
             'commerce_kickstart' => 'commerceguys/commerce_kickstart',

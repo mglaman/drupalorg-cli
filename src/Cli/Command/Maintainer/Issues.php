@@ -2,7 +2,6 @@
 
 namespace mglaman\DrupalOrgCli\Command\Maintainer;
 
-
 use mglaman\DrupalOrgCli\Command\Command;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Helper\TableSeparator;
@@ -46,7 +45,6 @@ class Issues extends Command
             $descriptionDom = new \DOMDocument();
             $descriptionDom->loadHTML($item->description);
 
-            $descriptionXpath = new \DOMXPath($descriptionDom);
             $linkParts = parse_url($item->link);
             $pathPaths = array_values(array_filter(explode('/', $linkParts['path'])));
 
@@ -62,12 +60,14 @@ class Issues extends Command
         $table->render();
     }
 
-    protected function getIssueValue(\DOMXPath $xpath, $class) {
+    protected function getIssueValue(\DOMXPath $xpath, $class)
+    {
         $nodes = $xpath->query("//div[contains(@class,\"$class\")]//div");
         return $nodes->item(2)->nodeValue;
     }
 
-    protected function getIssueStatus(\DOMXPath $xpath) {
+    protected function getIssueStatus(\DOMXPath $xpath)
+    {
         $value = $this->getIssueValue($xpath, 'field-name-field-issue-status');
 
         switch ($value) {
@@ -88,14 +88,15 @@ class Issues extends Command
         }
     }
 
-    protected function getFeedUrl() {
+    protected function getFeedUrl()
+    {
         $uid = $this->stdIn->getArgument('uid');
         switch ($this->stdIn->getArgument('type')) {
             case 'rtbc':
                 return "https://www.drupal.org/project/user/$uid/feed?status[0]=14";
             case 'all':
             default:
-            return "https://www.drupal.org/project/user/$uid/feed";
+                return "https://www.drupal.org/project/user/$uid/feed";
         }
     }
 }

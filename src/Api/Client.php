@@ -2,7 +2,8 @@
 
 namespace mglaman\DrupalOrg;
 
-class Client {
+class Client
+{
     /**
      * @var \GuzzleHttp\Client
      */
@@ -30,7 +31,8 @@ class Client {
      * @return \mglaman\DrupalOrg\Response
      * @throws \Exception
      */
-    public function request(Request $request) {
+    public function request(Request $request)
+    {
         $res = $this->client->request('GET', $request->getUrl());
         if ($res->getStatusCode() == 200) {
             return new Response($res->getBody()->getContents());
@@ -43,21 +45,25 @@ class Client {
      * @param $nid
      * @return \mglaman\DrupalOrg\RawResponse
      */
-    public function getNode($nid) {
+    public function getNode($nid)
+    {
         return $this->request(new Request('node/' . $nid));
     }
 
-    public function getFile($fid) {
+    public function getFile($fid)
+    {
         return $this->request(new Request('file/' . $fid));
     }
 
-    public function getPiftJob($jobId) {
+    public function getPiftJob($jobId)
+    {
         return $this->request(new Request('pift_ci_job/' . $jobId, [
             'time' => time(),
         ]));
     }
 
-    public function getPiftJobs(array $options) {
+    public function getPiftJobs(array $options)
+    {
         $options += [
           'sort' => 'job_id',
           'direction' => 'DESC',
@@ -70,14 +76,16 @@ class Client {
      * @param $machineName
      * @return \mglaman\DrupalOrg\Response
      */
-    public function getProject($machineName) {
+    public function getProject($machineName)
+    {
         $request = new Request('node.json', [
             'field_project_machine_name' => $machineName,
         ]);
         return $this->request($request);
     }
 
-    public function getProjectReleases($projectNid, array $options = []) {
+    public function getProjectReleases($projectNid, array $options = [])
+    {
         $options += [
           'field_release_project' => $projectNid,
           'type' => 'project_release',

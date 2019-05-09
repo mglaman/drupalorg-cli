@@ -49,8 +49,7 @@ class Watch extends Command
         $progress->start();
         if ($build->state == 'finished') {
             $progress->advance();
-        }
-        else {
+        } else {
             while ($build->state != 'finished') {
                 $progress->advance();
                 sleep(60);
@@ -89,7 +88,8 @@ class Watch extends Command
         $table->render();
     }
 
-    protected function getBuild(Client $client, $buildId) {
+    protected function getBuild(Client $client, $buildId)
+    {
         $response = $client->request('GET', "builds/$buildId");
         if ($response->getStatusCode() != 200) {
             exit(1);

@@ -11,17 +11,16 @@ trait BrowserTrait
      *
      * @return string|false
      */
-    protected function getDefaultBrowser()
+    protected function getDefaultBrowser(): ?string
     {
         $potential = array('xdg-open', 'open', 'start');
         foreach ($potential as $browser) {
-            // Check if command exists by executing help flag.
-
-            if (shell_exec("command -v $browser; echo $?") == 0) {
+            $exitCode = (int) trim(shell_exec("command -v $browser; echo $?"));
+            if ($exitCode === 0) {
                 return $browser;
             }
         }
-        return false;
+        return null;
     }
 
     /**
@@ -31,18 +30,23 @@ trait BrowserTrait
      * @param \Symfony\Component\Console\Output\OutputInterface $stdErr
      * @param \Symfony\Component\Console\Output\OutputInterface $stdOut
      */
-    protected function openUrl($url, OutputInterface $stdErr, OutputInterface $stdOut)
-    {
+    protected function openUrl(
+        $url,
+        OutputInterface $stdErr,
+        OutputInterface $stdOut
+    ): int {
         $browser = $this->getDefaultBrowser();
-        if ($browser) {
-            $opened = shell_exec("$browser $url 2>&1; echo $?");
-            if ($opened == 0) {
+        if ($browser !== null) {
+            $opened = (int) trim(shell_exec("$browser $url 2>&1; echo $?"));
+            if ($opened === 0) {
                 $stdErr->writeln("<info>Opened</info>: $url");
-                return;
+                return 0;
             }
         } else {
-            $stdErr->writeln("<error>Browser not found: $browser</error>");
+            $stdErr->writeln('<error>Browser command not found</error>');
+            return 1;
         }
         $stdOut->writeln($url);
+        return 0;
     }
 }

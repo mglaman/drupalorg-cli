@@ -33,15 +33,14 @@ class Watch extends Command
         $job = $this->client->getPiftJob($jobId);
         $issue = $this->client->getNode($job->get('issue_nid'));
 
-        $this->stdOut->writeln("<comment>" . $issue->get('title') . "</comment>");
+        $this->stdOut->writeln('<comment>' . $issue->get('title') . '</comment>');
 
         $progress = new ProgressBar($this->stdOut);
         $progress->start();
-        if ($job->get('status') == 'complete') {
+        if ($job->get('status') === 'complete') {
             $progress->advance();
-        }
-        else {
-            while ($job->get('status') != 'complete') {
+        } else {
+            while ($job->get('status') !== 'complete') {
                 $progress->advance();
                 sleep(60);
                 $job = $this->client->getPiftJob($jobId);
@@ -60,9 +59,9 @@ class Watch extends Command
         ]);
         $patch = $this->client->getFile($job->get('file_id'));
 
-        if ($job->get('result') == 'pass') {
+        if ($job->get('result') === 'pass') {
             $style = 'info';
-        } elseif ($job->get('result') == 'fail') {
+        } elseif ($job->get('result') === 'fail') {
             $style = 'error';
         } else {
             $style = 'comment';

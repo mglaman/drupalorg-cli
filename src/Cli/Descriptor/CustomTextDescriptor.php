@@ -59,12 +59,12 @@ class CustomTextDescriptor extends BaseTextDescriptor
 
                     $this->writeText("\n");
                     $this->writeText(
-                      sprintf(
-                        "  %-${width}s %s",
-                        "<info>$name</info>" . $this->formatAliases($aliases),
-                        $command->getDescription()
-                      ),
-                      $options
+                        sprintf(
+                            "  %-${width}s %s",
+                            "<info>$name</info>" . $this->formatAliases($aliases),
+                            $command->getDescription()
+                        ),
+                        $options
                     );
                 }
             }
@@ -91,8 +91,8 @@ class CustomTextDescriptor extends BaseTextDescriptor
     private function writeText($content, array $options = array())
     {
         $this->write(
-          isset($options['raw_text']) && $options['raw_text'] ? strip_tags($content) : $content,
-          isset($options['raw_output']) ? !$options['raw_output'] : true
+            isset($options['raw_text']) && $options['raw_text'] ? strip_tags($content) : $content,
+            isset($options['raw_output']) ? !$options['raw_output'] : true
         );
     }
 

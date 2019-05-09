@@ -36,7 +36,8 @@ abstract class Command extends BaseCommand
         $this->client = new Client();
     }
 
-    protected function debug($message) {
+    protected function debug($message)
+    {
         if ($this->stdOut->getVerbosity() > OutputInterface::VERBOSITY_NORMAL) {
             $this->stdOut->writeln('<comment>' . $message . '</comment>');
         }
@@ -48,7 +49,8 @@ abstract class Command extends BaseCommand
      * @param $cid
      * @return false|mixed
      */
-    protected function getCacheKey($cid) {
+    protected function getCacheKey($cid)
+    {
         return Cache::getCache()->fetch($cid);
     }
 
@@ -60,7 +62,8 @@ abstract class Command extends BaseCommand
      * @param int $ttl
      * @return bool
      */
-    protected function setCacheKey($cid, $value, $ttl = 3600) {
+    protected function setCacheKey($cid, $value, $ttl = 3600)
+    {
         return Cache::getCache()->save($cid, $value, $ttl);
     }
 
@@ -71,10 +74,11 @@ abstract class Command extends BaseCommand
      * @param bool $reset
      * @return false|\mglaman\DrupalOrg\RawResponse|mixed
      */
-    protected function getNode($nid, $reset = false) {
+    protected function getNode($nid, $reset = false)
+    {
         $cid = implode(':', ['node', $nid]);
         $cached = $this->getCacheKey($cid);
-        if ($cached === FALSE || $reset) {
+        if ($cached === false || $reset) {
             $this->debug("Cache MISS for $cid");
             $cached = $this->client->getNode($nid);
             $this->setCacheKey($cid, $cached, 600);
@@ -91,10 +95,11 @@ abstract class Command extends BaseCommand
      * @param bool $reset
      * @return \mglaman\DrupalOrg\Response
      */
-    protected function getProject($machineName, $reset = false) {
+    protected function getProject($machineName, $reset = false)
+    {
         $cid = implode(':', ['project', $machineName]);
         $cached = $this->getCacheKey($cid);
-        if ($cached === FALSE || $reset) {
+        if ($cached === false || $reset) {
             $this->debug("Cache MISS for $cid");
             $cached = $this->client->getProject($machineName);
             $this->setCacheKey($cid, $cached, 21600);
@@ -113,10 +118,11 @@ abstract class Command extends BaseCommand
      * @param bool $reset
      * @return false|\mglaman\DrupalOrg\RawResponse|mixed
      */
-    protected function getFile($fid, $reset = false) {
+    protected function getFile($fid, $reset = false)
+    {
         $cid = implode(':', ['file', $fid]);
         $cached = $this->getCacheKey($cid);
-        if ($cached === FALSE || $reset) {
+        if ($cached === false || $reset) {
             $this->debug("Cache MISS for $cid");
             $cached = $this->client->getFile($fid);
             $this->setCacheKey($cid, $cached, 0);
@@ -135,10 +141,11 @@ abstract class Command extends BaseCommand
      * @param bool $reset
      * @return false|\mglaman\DrupalOrg\RawResponse|mixed
      */
-    protected function getPiftJob($jobId, $reset = false) {
+    protected function getPiftJob($jobId, $reset = false)
+    {
         $cid = implode(':', ['pift', $jobId]);
         $cached = $this->getCacheKey($cid);
-        if ($cached === FALSE || $reset) {
+        if ($cached === false || $reset) {
             $this->debug("Cache MISS for $cid");
             $cached = $this->client->getPiftJob($jobId);
             $this->debug($cached->get('status'));
@@ -158,10 +165,11 @@ abstract class Command extends BaseCommand
      * @param bool $reset
      * @return false|\mglaman\DrupalOrg\RawResponse|mixed
      */
-    protected function getPiftJobs(array $options, $reset = false) {
+    protected function getPiftJobs(array $options, $reset = false)
+    {
         $cid = implode(':', ['pift:jobs:', implode(':', $options)]);
         $cached = $this->getCacheKey($cid);
-        if ($cached === FALSE || $reset) {
+        if ($cached === false || $reset) {
             $this->debug("Cache MISS for $cid");
             $cached = $this->client->getPiftJobs($options);
             $this->setCacheKey($cid, $cached, 60);
@@ -171,9 +179,10 @@ abstract class Command extends BaseCommand
         return $cached;
     }
 
-    protected function runProcess($cmd) {
-      $process = new Process($cmd);
-      $process->run();
-      return $process;
+    protected function runProcess($cmd)
+    {
+        $process = new Process($cmd);
+        $process->run();
+        return $process;
     }
 }
