@@ -2,15 +2,19 @@
 
 namespace mglaman\DrupalOrgCli\Command\Issue;
 
+use GitWrapper\GitException;
 use GitWrapper\GitWorkingCopy;
 use mglaman\DrupalOrg\RawResponse;
 use mglaman\DrupalOrgCli\Git;
+use mglaman\DrupalOrgCli\IssueNidArgumentTrait;
+use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Apply extends IssueCommandBase
 {
+    use IssueNidArgumentTrait;
 
     protected $cwd;
 
@@ -23,7 +27,7 @@ class Apply extends IssueCommandBase
     {
         $this
         ->setName('issue:apply')
-        ->addArgument('nid', InputArgument::REQUIRED, 'The issue node ID')
+        ->addArgument('nid', InputArgument::OPTIONAL, 'The issue node ID')
         ->setDescription('Applies the latest patch from an issue.');
     }
 
@@ -40,12 +44,16 @@ class Apply extends IssueCommandBase
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $nid = $this->stdIn->getArgument('nid');
+        $nid = $this->getNidArgument($this->stdIn);
+        if ($nid === null) {
+            $this->stdOut->writeln('Please provide an issue nid');
+            return 1;
+        }
         $issue = $this->getNode($nid);
 
         $patchFileUrl = $this->getPatchFileUrl($issue);
         $patchFileContents = file_get_contents($patchFileUrl);
-        $patchFileName = $this->getCleanIssueTitle($issue) . '.patch';
+        $patchFileName = basename($patchFileUrl);
         file_put_contents($patchFileName, $patchFileContents);
 
         $workingCopy = $this->git->getWorkingCopy($this->cwd);
@@ -66,7 +74,11 @@ class Apply extends IssueCommandBase
     {
         // Validate the issue versions branch, create or checkout issue branch.
         $issueBranchCommand = $this->getApplication()->find('issue:branch');
-        $issueBranchCommand->run($this->stdIn, $this->stdOut);
+        $issueBranchArguments = [
+          'command' => 'issue:branch',
+            'nid' => $issue->get('nid')
+        ];
+        $issueBranchCommand->run(new ArrayInput($issueBranchArguments), $this->stdOut);
 
         $branchName = $this->buildBranchName($issue);
         $tempBranchName = $branchName . '-patch-temp';
@@ -77,13 +89,18 @@ class Apply extends IssueCommandBase
         $issueVersionBranch = $this->getIssueVersionBranchName($issue);
         $workingCopy->checkout($issueVersionBranch);
         $this->stdOut->writeln(sprintf('<comment>%s</comment>', "Creating temp branch $tempBranchName"));
+        try {
+            $workingCopy->branch($tempBranchName, ['D' => true]);
+        } catch (GitException $e) {
+            // noop.
+        }
         $workingCopy->checkoutNewBranch($tempBranchName);
 
-        $applyPatchProcess = $this->runProcess(sprintf('git apply -v --index %s', $patchFileName));
-        $workingCopy->apply($patchFileName, ['index' => true, ['v' => true]]);
-        if ($applyPatchProcess->getExitCode() !== 0) {
+        try {
+            $workingCopy->apply($patchFileName, ['index' => true, 'v' => true]);
+        } catch (GitException $e) {
             $this->stdOut->writeln('<error>Failed to apply the patch</error>');
-            $this->stdOut->writeln($applyPatchProcess->getOutput());
+            $this->stdOut->writeln($e->getMessage());
             return 1;
         }
 
@@ -93,21 +110,22 @@ class Apply extends IssueCommandBase
         // Check out existing issue branch for three way merge.
         $this->stdOut->writeln(sprintf('<comment>%s</comment>', "Checking out $branchName and merging"));
         $workingCopy->checkout($branchName);
-        $merge = $this->runProcess(sprintf('git merge %s --strategy recursive -X theirs', $tempBranchName));
-
-        if ($merge->getExitCode() != 0) {
+        try {
+            $workingCopy->merge($tempBranchName, ['strategy' => 'recursive', 'X' => 'theirs']);
+        } catch (GitException $e) {
             $this->stdOut->writeln('<error>Failed to apply the patch</error>');
-            $this->stdOut->writeln($merge->getOutput());
+            $this->stdOut->writeln($e->getMessage());
             return 1;
         }
 
-        $this->runProcess(sprintf('git branch -D %s', $tempBranchName));
+
+        $workingCopy->branch($tempBranchName, ['D' => true]);
     }
 
     protected function applyWithPatch($patchFileName)
     {
         $process = $this->runProcess(sprintf('patch -p1 < %s', $patchFileName));
-        if ($process->getExitCode() != 0) {
+        if ($process->getExitCode() !== 0) {
             $this->stdOut->writeln('<error>Failed to apply the patch</error>');
             $this->stdOut->writeln($process->getOutput());
             return 1;

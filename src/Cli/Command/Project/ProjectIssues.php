@@ -18,8 +18,8 @@ class ProjectIssues extends Command
         $this
           ->setName('project:issues')
           ->setAliases(['pi'])
-          ->addArgument('project', InputArgument::REQUIRED, 'project ID')
-          ->addArgument('type', InputArgument::OPTIONAL, 'Type of issues: all, rtbc', 'all')
+          ->addArgument('project', InputArgument::OPTIONAL, 'project ID')
+          ->addOption('type', null, InputOption::VALUE_REQUIRED, 'Type of issues: all, rtbc, review', 'all')
           ->addOption('core', null, InputOption::VALUE_OPTIONAL, 'Core version', '8.x')
           ->addOption('limit', null, InputOption::VALUE_OPTIONAL, 'Limit', '10')
           ->setDescription('Lists issues for a project.');
@@ -32,6 +32,9 @@ class ProjectIssues extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $machineName = $this->stdIn->getArgument('project');
+        if ($machineName === null) {
+            $machineName = basename(getcwd());
+        }
         $project = $this->getProject($machineName)->getList()->offsetGet(0);
         $options = [
         'field_release_project' => $project->nid,
@@ -52,7 +55,7 @@ class ProjectIssues extends Command
         'limit' => $this->stdIn->getOption('limit')
         ];
 
-        switch ($this->stdIn->getArgument('type')) {
+        switch ($this->stdIn->getOption('type')) {
             case 'rtbc':
                 $api_params['field_issue_status[value]'] = [14];
                 break;

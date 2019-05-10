@@ -2,6 +2,7 @@
 vendor
 cache
 .DS_Store
+tests/fixtures
 
 # Binaries
 /box.phar

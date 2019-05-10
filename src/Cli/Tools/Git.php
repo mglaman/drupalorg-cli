@@ -19,6 +19,15 @@ final class Git
         }
     }
 
+    public function cloneRepository(string $repository, string $directory, ?string $branch = null): GitWorkingCopy
+    {
+        $options = [];
+        if ($branch !== null) {
+            $options['branch'] = $branch;
+        }
+        return $this->git->cloneRepository($repository, $directory, $options);
+    }
+
     public function getWorkingCopy(string $directory): ?GitWorkingCopy
     {
         $workingCopy = $this->git->workingCopy($directory);

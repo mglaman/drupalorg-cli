@@ -1,6 +1,6 @@
 Drupal.org CLI
 --------------
-[![Latest Stable Version](https://poser.pugx.org/mglaman/drupalorg-cli/v/stable)](https://packagist.org/packages/mglaman/drupalorg-cli) [![Total Downloads](https://poser.pugx.org/mglaman/drupalorg-cli/downloads)](https://packagist.org/packages/mglaman/drupalorg-cli) [![Latest Unstable Version](https://poser.pugx.org/mglaman/drupalorg-cli/v/unstable)](https://packagist.org/packages/mglaman/drupalorg-cli) [![License](https://poser.pugx.org/mglaman/drupalorg-cli/license)](https://packagist.org/packages/mglaman/drupalorg-cli)
+[![Build Status](https://travis-ci.org/mglaman/drupalorg-cli.svg?branch=master)](https://travis-ci.org/mglaman/drupalorg-cli) [![Latest Stable Version](https://poser.pugx.org/mglaman/drupalorg-cli/v/stable)](https://packagist.org/packages/mglaman/drupalorg-cli)[![License](https://poser.pugx.org/mglaman/drupalorg-cli/license)](https://packagist.org/packages/mglaman/drupalorg-cli)
 
 A command line tool for interfacing with Drupal.org. Uses the Drupal.org REST API.
 
@@ -31,7 +31,7 @@ Automatic updating is not yet supported. You will need to manually download new 
 
 ## Usage
 
-Use the 'list' command to see available commands. 
+Use the 'list' command to see available commands.
 
 ```
 drupalorg list
