@@ -23,19 +23,19 @@ class Apply extends IssueCommandBase
      */
     private $git;
 
+    public function __construct(Git $git)
+    {
+        parent::__construct();
+        $this->git = $git;
+        $this->cwd = getcwd();
+    }
+
     protected function configure()
     {
         $this
         ->setName('issue:apply')
         ->addArgument('nid', InputArgument::OPTIONAL, 'The issue node ID')
         ->setDescription('Applies the latest patch from an issue.');
-    }
-
-    protected function initialize(InputInterface $input, OutputInterface $output)
-    {
-        parent::initialize($input, $output);
-        $this->cwd = getcwd();
-        $this->git = new Git();
     }
 
     /**

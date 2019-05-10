@@ -23,19 +23,20 @@ class Patch extends IssueCommandBase
      */
     private $git;
 
+    public function __construct(Git $git)
+    {
+        parent::__construct();
+        $this->git = $git;
+        $this->cwd = getcwd();
+
+    }
+
     protected function configure()
     {
         $this
         ->setName('issue:patch')
         ->addArgument('nid', InputArgument::OPTIONAL, 'The issue node ID')
         ->setDescription('Generate a patch for the issue from committed local changes.');
-    }
-
-    protected function initialize(InputInterface $input, OutputInterface $output)
-    {
-        parent::initialize($input, $output);
-        $this->cwd = getcwd();
-        $this->git = new Git();
     }
 
     /**

@@ -1,0 +1,32 @@
+parameters: {  }
+services:
+  _defaults:
+    autowire: true
+    public: false
+  _instanceof:
+    Symfony\Component\Console\Command\Command:
+      tags: ['console.command']
+
+  mglaman\DrupalOrgCli\Command\DrupalCi\ListResults: ~
+  mglaman\DrupalOrgCli\Command\DrupalCi\Watch: ~
+
+  mglaman\DrupalOrgCli\Command\TravisCi\ListBuilds: ~
+  mglaman\DrupalOrgCli\Command\TravisCi\Watch: ~
+
+  mglaman\DrupalOrgCli\Command\Issue\Apply: ~
+  mglaman\DrupalOrgCli\Command\Issue\Branch: ~
+  mglaman\DrupalOrgCli\Command\Issue\Interdiff: ~
+  mglaman\DrupalOrgCli\Command\Issue\Link: ~
+  mglaman\DrupalOrgCli\Command\Issue\Patch: ~
+
+  mglaman\DrupalOrgCli\Command\Maintainer\Issues: ~
+  mglaman\DrupalOrgCli\Command\Maintainer\ReleaseNotes: ~
+
+  mglaman\DrupalOrgCli\Command\Project\CloneProject: ~
+  mglaman\DrupalOrgCli\Command\Project\Kanban: ~
+  mglaman\DrupalOrgCli\Command\Project\Link: ~
+  mglaman\DrupalOrgCli\Command\Project\ProjectIssues: ~
+  mglaman\DrupalOrgCli\Command\Project\ReleaseNotes: ~
+  mglaman\DrupalOrgCli\Command\Project\Releases: ~
+
+  mglaman\DrupalOrgCli\Git: ~

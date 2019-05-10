@@ -24,6 +24,13 @@ class Interdiff extends IssueCommandBase
      */
     private $git;
 
+    public function __construct(Git $git)
+    {
+        parent::__construct();
+        $this->git = $git;
+        $this->cwd = getcwd();
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -33,13 +40,6 @@ class Interdiff extends IssueCommandBase
         ->setName('issue:interdiff')
         ->addArgument('nid', InputArgument::OPTIONAL, 'The issue node ID')
         ->setDescription('Generate an interdiff for the issue from local changes.');
-    }
-
-    protected function initialize(InputInterface $input, OutputInterface $output)
-    {
-        parent::initialize($input, $output);
-        $this->cwd = getcwd();
-        $this->git = new Git();
     }
 
     /**

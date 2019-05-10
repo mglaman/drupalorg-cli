@@ -12,6 +12,17 @@ use Symfony\Component\Console\Output\OutputInterface;
 final class CloneProject extends Command
 {
 
+    /**
+     * @var \mglaman\DrupalOrgCli\Git
+     */
+    private $git;
+
+    public function __construct(Git $git)
+    {
+        parent::__construct();
+        $this->git = $git;
+    }
+
     protected function configure()
     {
         $this->setName('project:clone')
@@ -39,8 +50,7 @@ final class CloneProject extends Command
             $this->stdOut->writeln("$directory already exists and is not an empty directory.");
             return 1;
         }
-        $git = new Git();
-        $git->cloneRepository($gitUrl, $directory, $this->stdIn->getOption('branch'));
+        $this->git->cloneRepository($gitUrl, $directory, $this->stdIn->getOption('branch'));
         $this->stdOut->write("<info>$projectName</info> cloned to <info>$directory</info>");
         return 0;
     }

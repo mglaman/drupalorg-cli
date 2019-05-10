@@ -10,6 +10,19 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class Branch extends IssueCommandBase
 {
+    protected $cwd;
+
+    /**
+     * @var \mglaman\DrupalOrgCli\Git
+     */
+    private $git;
+
+    public function __construct(Git $git)
+    {
+        parent::__construct();
+        $this->git = $git;
+        $this->cwd = getcwd();
+    }
 
     protected function configure()
     {
@@ -25,8 +38,7 @@ class Branch extends IssueCommandBase
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $git = new Git();
-        $workingCopy = $git->getWorkingCopy(getcwd());
+        $workingCopy = $this->git->getWorkingCopy($this->cwd);
         if (!$workingCopy instanceof GitWorkingCopy) {
             $output->writeln('<info>You must be in a repository</info>');
             return 1;

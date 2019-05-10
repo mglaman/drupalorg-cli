@@ -4,6 +4,10 @@ namespace mglaman\DrupalOrgCli;
 
 use Symfony\Component\Console\Application as ParentApplication;
 use Symfony\Component\Console\Command\HelpCommand;
+use Symfony\Component\Config\FileLocator;
+use Symfony\Component\Console\DependencyInjection\AddConsoleCommandPass;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
 class Application extends ParentApplication
 {
@@ -15,7 +19,18 @@ class Application extends ParentApplication
     {
         parent::__construct('Drupal.org CLI', self::VERSION);
         $this->setDefaultTimezone();
-        $this->addCommands($this->getCommands());
+
+        $container = new ContainerBuilder();
+        $loader = new YamlFileLoader($container, new FileLocator(__DIR__ . '/../../'));
+        $loader->load('services.yaml');
+
+        $container->addCompilerPass(new AddConsoleCommandPass());
+        $container->compile();
+
+        foreach ($container->getParameter('console.command.ids') as $id) {
+            $this->add($container->get($id));
+        }
+
     }
 
     /**
@@ -24,37 +39,6 @@ class Application extends ParentApplication
     protected function getDefaultCommands()
     {
         return array(new HelpCommand(), new Command\ListCommand());
-    }
-
-    /**
-     * @return \Symfony\Component\Console\Command\Command[]
-     */
-    public function getCommands()
-    {
-        static $commands = array();
-        if (count($commands)) {
-            return $commands;
-        }
-
-        $commands[] = new Command\CacheClear();
-        $commands[] = new Command\DrupalCi\ListResults();
-        $commands[] = new Command\DrupalCi\Watch();
-        $commands[] = new Command\Issue\Link();
-        $commands[] = new Command\Issue\Branch();
-        $commands[] = new Command\Issue\Patch();
-        $commands[] = new Command\Issue\Interdiff();
-        $commands[] = new Command\Issue\Apply();
-        $commands[] = new Command\Project\CloneProject();
-        $commands[] = new Command\Project\Link();
-        $commands[] = new Command\Project\Kanban();
-        $commands[] = new Command\Project\ProjectIssues();
-        $commands[] = new Command\Project\Releases();
-        $commands[] = new Command\Project\ReleaseNotes();
-        $commands[] = new Command\TravisCi\ListBuilds();
-        $commands[] = new Command\TravisCi\Watch();
-        $commands[] = new Command\Maintainer\Issues();
-        $commands[] = new Command\Maintainer\ReleaseNotes();
-        return $commands;
     }
 
     /**

@@ -2,16 +2,19 @@
     "name": "mglaman/drupalorg-cli",
     "description": "Command line interface for interacting with Drupal.org",
     "require": {
-        "ext-dom": "*",
         "php": ">=7.2",
+        "ext-dom": "*",
         "cpliakas/git-wrapper": "^2.2",
         "dg/rss-php": "^1.2",
         "doctrine/cache": "^1.6",
         "guzzlehttp/guzzle": "^6.1",
         "padraic/phar-updater": "^1.0",
         "psr/log": "^1.0",
+        "symfony/config": "^4.2",
         "symfony/console": "^4.2",
-        "symfony/process": "^4.2"
+        "symfony/dependency-injection": "^4.2",
+        "symfony/process": "^4.2",
+        "symfony/yaml": "^4.2"
     },
     "license": "GPL-2.0-or-later",
     "autoload": {
