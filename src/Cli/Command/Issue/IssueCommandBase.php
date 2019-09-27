@@ -57,4 +57,25 @@ abstract class IssueCommandBase extends Command {
     return sprintf('%s-%s', $issue->get('nid'), $cleanTitle);
   }
 
+  /**
+   * Gets the latest patch file item from an issue.
+   */
+  protected function getLatestFile(RawResponse $issue) {
+    // Remove files hidden from display.
+    $files = array_filter($issue->get('field_issue_files'), function ($value) {
+      return (bool) $value->display;
+    });
+    // Reverse the array so we fetch latest files first.
+    $files = array_reverse($files);
+    $files = array_map(function ($value) {
+      return $this->getFile($value->file->id);
+    }, $files);
+    // Filter out non-patch files.
+    $files = array_filter($files, function (RawResponse $file) {
+      return strpos($file->get('name'), '.patch') !== FALSE && strpos($file->get('name'), 'do-not-test') === FALSE;
+    });
+    $patchFile = reset($files);
+    return $patchFile;
+  }
+
 }
