@@ -95,7 +95,61 @@ class Interdiff extends IssueCommandBase {
    */
   protected function buildInterdiffName(RawResponse $issue) {
     $comment_count = $issue->get('comment_count');
-    return sprintf('interdiff-%s-%s-%s.txt', $issue->get('nid'), $comment_count, $comment_count + 1);
+    $last_comment_with_patch = $this->getLastCommentWithPatch($issue);
+    return sprintf('interdiff-%s-%s-%s.txt', $issue->get('nid'), $last_comment_with_patch, $comment_count + 1);
+  }
+
+  /**
+   * Finds the last comment with a patch.
+   *
+   * @param \mglaman\DrupalOrg\RawResponse $issue
+   *   The issue raw response.
+   *
+   * @return int
+   *   The comment index number.
+   */
+  protected function getLastCommentWithPatch(RawResponse $issue) {
+    // Files have the relevant CID info, but we need to calculate the actual
+    // comment index based on that.
+    $comment_index = $this->getCommentIndex($issue);
+    $cid = $this->getLatestFileCid($issue);
+    return $comment_index[$cid] ?? 1;
+  }
+
+  /**
+   * Builds an index of comments, starting with 1, keyed by CID.
+   *
+   * @param \mglaman\DrupalOrg\RawResponse $issue
+   *   The issue raw response.
+   *
+   * @return array
+   *   Array of comment index numbers, indexed by comment ID.
+   */
+  protected function getCommentIndex(RawResponse $issue) {
+    $comment_index = [];
+    foreach ($issue->get('comments') as $index => $comment) {
+      $comment_index[$comment->id] = $index + 1;
+    }
+    return $comment_index;
+  }
+
+  /**
+   * Gets the most recent patch file from the issue.
+   *
+   * @param \mglaman\DrupalOrg\RawResponse $issue
+   *   The issue raw response.
+   *
+   * @return int
+   *   The most recent patch file's associated comment ID from the issue.
+   */
+  protected function getLatestFileCid(RawResponse $issue) {
+    $latestPatch = $this->getLatestFile($issue);
+    $fid = $latestPatch->get('fid');
+    $files = array_filter($issue->get('field_issue_files'), function (\stdClass $file) use ($fid) {
+      return $fid == $file->file->id;
+    });
+    $file = reset($files);
+    return $file->file->cid ?? 0;
   }
 
   /**
