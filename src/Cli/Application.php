@@ -7,7 +7,7 @@ use Symfony\Component\Console\Command\HelpCommand;
 
 class Application extends ParentApplication
 {
-    const VERSION = '0.0.9';
+    const VERSION = '0.1.1';
     /**
      * {@inheritdoc}
      */
