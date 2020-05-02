@@ -8,14 +8,13 @@
 
 namespace mglaman\DrupalOrgCli\Command\Issue;
 
-
 use mglaman\DrupalOrgCli\BrowserTrait;
 use mglaman\DrupalOrgCli\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class Link extends Command
+class Link extends IssueCommandBase
 {
     use BrowserTrait;
 
@@ -23,7 +22,7 @@ class Link extends Command
     {
         $this
           ->setName('issue:link')
-          ->addArgument('nid', InputArgument::REQUIRED, 'The issue node ID')
+          ->addArgument('nid', InputArgument::OPTIONAL, 'The issue node ID')
           ->setDescription('Opens an issue');
     }
 
@@ -33,7 +32,6 @@ class Link extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $nid = $this->stdIn->getArgument('nid');
-        $this->openUrl('https://www.drupal.org/node/' . $nid, $this->stdErr, $this->stdOut);
+        $this->openUrl('https://www.drupal.org/node/' . $this->nid, $this->stdErr, $this->stdOut);
     }
 }

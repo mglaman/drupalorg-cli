@@ -27,24 +27,15 @@ class Branch extends IssueCommandBase {
 
   protected function initialize(InputInterface $input, OutputInterface $output) {
     parent::initialize($input, $output);
-    $this->cwd = getcwd();
-    try {
-      $client = new Client();
-      $this->repository = $client->getRepository($this->cwd);
-    }
-    catch (\Exception $e) {
-      $this->repository = null;
-    }
+    $this->initRepo();
   }
 
-    /**
-     * {@inheritdoc}
-     *
-     */
-    protected function execute(InputInterface $input, OutputInterface $output)
-    {
-    $nid = $this->stdIn->getArgument('nid');
-    $issue = $this->getNode($nid);
+  /**
+   * {@inheritdoc}
+   *
+   */
+  protected function execute(InputInterface $input, OutputInterface $output) {
+    $issue = $this->getNode($this->nid);
     $branchName = $this->buildBranchName($issue);
 
     $issueVersionBranch = $this->getIssueVersionBranchName($issue);
