@@ -75,7 +75,7 @@ class Interdiff extends IssueCommandBase {
     $process = new Process(sprintf('git log -2 %s..HEAD --format=%%H', $issue_version_branch));
     $process->run();
     $last_issue_branch_commits = explode(PHP_EOL, $process->getOutput());
-    array_pop($last_issue_branch_commits); // Empty item because line breaks from "git log" output.
+    $last_issue_branch_commits = array_filter(array_map('trim', $last_issue_branch_commits));
     if (count($last_issue_branch_commits) != 2) {
       $this->stdErr->writeln("Too few commits on issue branch to create interdiff.");
       exit(1);
