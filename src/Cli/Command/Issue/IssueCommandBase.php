@@ -6,7 +6,6 @@ use Gitter\Repository;
 use Gitter\Client;
 use mglaman\DrupalOrg\RawResponse;
 use mglaman\DrupalOrgCli\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -35,11 +34,11 @@ abstract class IssueCommandBase extends Command {
 
   protected function initialize(InputInterface $input, OutputInterface $output) {
     parent::initialize($input, $output);
+    $this->initRepo();
 
     $this->nid = $this->stdIn->getArgument('nid');
     if (empty($this->nid)) {
       $this->debug("Argument nid not provided. Trying to get it from current branch name.");
-      $this->initRepo();
       $this->nid = $this->getNidFromBranch($this->repository);
     }
   }
@@ -48,7 +47,7 @@ abstract class IssueCommandBase extends Command {
    * Initializes repository for current directory.
    */
   protected function initRepo() {
-    if (!is_null($this->repository)) {
+    if (!$this->repository === null) {
       $this->debug("Repository already initialized.");
       return;
     }

@@ -25,11 +25,6 @@ class Branch extends IssueCommandBase {
       ->setDescription('Creates a branch for the issue.');
   }
 
-  protected function initialize(InputInterface $input, OutputInterface $output) {
-    parent::initialize($input, $output);
-    $this->initRepo();
-  }
-
   /**
    * {@inheritdoc}
    *

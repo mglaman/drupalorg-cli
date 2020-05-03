@@ -29,7 +29,6 @@ class Interdiff extends IssueCommandBase {
    */
   protected function initialize(InputInterface $input, OutputInterface $output) {
     parent::initialize($input, $output);
-    $this->initRepo();
     if ($this->nid != $this->getNidFromBranch($this->repository)) {
       $this->stdErr->writeln("NID from argument is different from NID in issue branch name.");
       exit(1);
