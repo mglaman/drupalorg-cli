@@ -53,6 +53,8 @@ class Patch extends IssueCommandBase {
       $issue_version_branch = $this->getIssueVersionBranchName($issue);
       if (!$this->repository->hasBranch($issue_version_branch)) {
         $this->stdErr->writeln("Issue branch $issue_version_branch does not exist locally.");
+      } else {
+        $this->debug("Using issue branch $issue_version_branch.");
       }
 
       // Create a diff from our merge-base commit.

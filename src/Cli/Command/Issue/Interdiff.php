@@ -67,18 +67,29 @@ class Interdiff extends IssueCommandBase {
     $issue_version_branch = $this->getIssueVersionBranchName($issue);
     if (!$this->repository->hasBranch($issue_version_branch)) {
       $this->stdErr->writeln("Issue branch $issue_version_branch does not exist locally.");
+    } else {
+      $this->debug("Using issue branch $issue_version_branch.");
     }
 
-    // Create a diff from the first commit of the issue branch.
-    $first_issue_branch_commit = sprintf('$(git log %s..HEAD --format=%%H)', $issue_version_branch);
-    $process = new Process(sprintf('git diff %s', $first_issue_branch_commit));
+    // Find the two last commits on the issue branch.
+    $process = new Process(sprintf('git log -2 %s..HEAD --format=%%H', $issue_version_branch));
     $process->run();
+    $last_issue_branch_commits = explode(PHP_EOL, $process->getOutput());
+    $last_issue_branch_commits = array_filter(array_map('trim', $last_issue_branch_commits));
+    if (count($last_issue_branch_commits) != 2) {
+      $this->stdErr->writeln("Too few commits on issue branch to create interdiff.");
+      exit(1);
+    }
 
+    // Create a diff between two last commits of the issue branch. (Reverse order of output from "git log".)
+    $diff_cmd = sprintf('git diff %s', implode(" ", array_reverse($last_issue_branch_commits)));
+    $process = new Process($diff_cmd);
+    $process->run();
     $filename = $this->cwd . DIRECTORY_SEPARATOR . $this->buildInterdiffName($issue);
     file_put_contents($filename, $process->getOutput());
     $this->stdOut->writeln("<comment>Interdiff written to {$filename}</comment>");
 
-    $process = new Process(sprintf('git diff %s --stat', $first_issue_branch_commit));
+    $process = new Process("$diff_cmd --stat");
     $process->setTty(TRUE);
     $process->run();
     $this->stdOut->write($process->getOutput());
