@@ -26,18 +26,6 @@ class Apply extends IssueCommandBase {
       ->setDescription('Applies the latest patch from an issue.');
   }
 
-  protected function initialize(InputInterface $input, OutputInterface $output) {
-    parent::initialize($input, $output);
-    $this->cwd = getcwd();
-    try {
-      $client = new Client();
-      $this->repository = $client->getRepository($this->cwd);
-    }
-    catch (\Exception $e) {
-      $this->repository = null;
-    }
-  }
-
   /**
    * {@inheritdoc}
    *

@@ -15,26 +15,12 @@ use Symfony\Component\Process\Process;
 class Interdiff extends IssueCommandBase {
 
   /**
-   * The git repository.
-   *
-   * @var \Gitter\Repository
-   */
-  protected $repository;
-
-  /**
-   * The current working directory.
-   *
-   * @var string
-   */
-  protected $cwd;
-
-  /**
    * {@inheritdoc}
    */
   protected function configure() {
     $this
       ->setName('issue:interdiff')
-      ->addArgument('nid', InputArgument::REQUIRED, 'The issue node ID')
+      ->addArgument('nid', InputArgument::OPTIONAL, 'The issue node ID')
       ->setDescription('Generate an interdiff for the issue from local changes.');
   }
 
@@ -43,13 +29,9 @@ class Interdiff extends IssueCommandBase {
    */
   protected function initialize(InputInterface $input, OutputInterface $output) {
     parent::initialize($input, $output);
-    $this->cwd = getcwd();
-    try {
-      $client = new Client();
-      $this->repository = $client->getRepository($this->cwd);
-    }
-    catch (\Exception $e) {
-      $this->repository = NULL;
+    if ($this->nid != $this->getNidFromBranch($this->repository)) {
+      $this->stdErr->writeln("NID from argument is different from NID in issue branch name.");
+      exit(1);
     }
   }
 
@@ -57,8 +39,7 @@ class Interdiff extends IssueCommandBase {
    * {@inheritdoc}
    */
   protected function execute(InputInterface $input, OutputInterface $output) {
-    $nid = $this->stdIn->getArgument('nid');
-    $issue = $this->getNode($nid);
+    $issue = $this->getNode($this->nid);
 
     if (!$this->checkBranch($issue)) {
       return;
@@ -67,8 +48,7 @@ class Interdiff extends IssueCommandBase {
     $issue_version_branch = $this->getIssueVersionBranchName($issue);
     if (!$this->repository->hasBranch($issue_version_branch)) {
       $this->stdErr->writeln("Issue branch $issue_version_branch does not exist locally.");
-    } else {
-      $this->debug("Using issue branch $issue_version_branch.");
+      exit(1);
     }
 
     // Find the two last commits on the issue branch.

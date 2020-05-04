@@ -2,10 +2,66 @@
 
 namespace mglaman\DrupalOrgCli\Command\Issue;
 
+use Gitter\Repository;
+use Gitter\Client;
 use mglaman\DrupalOrg\RawResponse;
 use mglaman\DrupalOrgCli\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 abstract class IssueCommandBase extends Command {
+
+  /**
+   * The git repository.
+   *
+   * @var \Gitter\Repository
+   */
+  protected $repository;
+
+  /**
+   * The current working directory.
+   *
+   * @var string
+   */
+  protected $cwd;
+
+  /**
+   * The issue node ID.
+   *
+   * @var string
+   */
+  protected $nid;
+
+  protected function initialize(InputInterface $input, OutputInterface $output) {
+    parent::initialize($input, $output);
+    $this->initRepo();
+
+    $this->nid = $this->stdIn->getArgument('nid');
+    if (empty($this->nid)) {
+      $this->debug("Argument nid not provided. Trying to get it from current branch name.");
+      $this->nid = $this->getNidFromBranch($this->repository);
+    }
+  }
+
+  /**
+   * Initializes repository for current directory.
+   */
+  protected function initRepo() {
+    if (!$this->repository === null) {
+      $this->debug("Repository already initialized.");
+      return;
+    }
+
+    $this->cwd = getcwd();
+    try {
+      $client = new Client();
+      $this->repository = $client->getRepository($this->cwd);
+    }
+    catch (\Exception $e) {
+      $this->stdErr->writeln("No repository found in current directory.");
+      exit(1);
+    }
+  }
 
   /**
    * Get the issue version's branch name.
@@ -76,6 +132,21 @@ abstract class IssueCommandBase extends Command {
     });
     $patchFile = reset($files);
     return $patchFile;
+  }
+
+  /**
+   * Gets nid from head / branch name.
+   *
+   * @param \Gitter\Repository $repo
+   *   The repository.
+   *
+   * @return string
+   *   The node id.
+   */
+  protected function getNidFromBranch(Repository $repo) {
+    $branch = $repo->getHead();
+    preg_match('/(\d+)-/', $branch, $matches);
+    return $matches[1];
   }
 
 }

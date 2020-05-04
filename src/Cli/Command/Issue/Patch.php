@@ -2,7 +2,6 @@
 
 namespace mglaman\DrupalOrgCli\Command\Issue;
 
-use Gitter\Client;
 use mglaman\DrupalOrg\RawResponse;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -22,19 +21,15 @@ class Patch extends IssueCommandBase {
   {
     $this
       ->setName('issue:patch')
-      ->addArgument('nid', InputArgument::REQUIRED, 'The issue node ID')
+      ->addArgument('nid', InputArgument::OPTIONAL, 'The issue node ID')
       ->setDescription('Generate a patch for the issue from committed local changes.');
   }
 
   protected function initialize(InputInterface $input, OutputInterface $output) {
     parent::initialize($input, $output);
-    $this->cwd = getcwd();
-    try {
-      $client = new Client();
-      $this->repository = $client->getRepository($this->cwd);
-    }
-    catch (\Exception $e) {
-      $this->repository = null;
+    if ($this->nid != $this->getNidFromBranch($this->repository)) {
+      $this->stdErr->writeln("NID from argument is different from NID in issue branch name.");
+      exit(1);
     }
   }
 
@@ -44,8 +39,7 @@ class Patch extends IssueCommandBase {
    */
   protected function execute(InputInterface $input, OutputInterface $output)
   {
-    $nid = $this->stdIn->getArgument('nid');
-    $issue = $this->getNode($nid);
+    $issue = $this->getNode($this->nid);
 
     $patchName = $this->buildPatchName($issue);
 
@@ -53,8 +47,7 @@ class Patch extends IssueCommandBase {
       $issue_version_branch = $this->getIssueVersionBranchName($issue);
       if (!$this->repository->hasBranch($issue_version_branch)) {
         $this->stdErr->writeln("Issue branch $issue_version_branch does not exist locally.");
-      } else {
-        $this->debug("Using issue branch $issue_version_branch.");
+        exit(1);
       }
 
       // Create a diff from our merge-base commit.
