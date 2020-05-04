@@ -12,14 +12,14 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class ProjectIssues extends Command
+class ProjectIssues extends ProjectCommandBase
 {
     protected function configure()
     {
         $this
           ->setName('project:issues')
           ->setAliases(['pi'])
-          ->addArgument('project', InputArgument::REQUIRED, 'project ID')
+          ->addArgument('project', InputArgument::OPTIONAL, 'project ID')
           ->addArgument('type', InputArgument::OPTIONAL, 'Type of issues: all, rtbc', 'all')
           ->addOption('core', null, InputOption::VALUE_OPTIONAL, 'Core version', '8.x')
           ->addOption('limit', null, InputOption::VALUE_OPTIONAL, 'Limit', '10')
@@ -32,8 +32,7 @@ class ProjectIssues extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-      $machineName = $this->stdIn->getArgument('project');
-      $project = $this->getProject($machineName)->getList()->offsetGet(0);
+      $project = $this->getProject($this->project_name)->getList()->offsetGet(0);
       $options = [
         'field_release_project' => $project->nid,
         'type' => 'project_release',
