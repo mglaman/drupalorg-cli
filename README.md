@@ -41,32 +41,33 @@ drupalorg list
 
 ````
 Available commands:
-  help                         Displays help for a command
-  list                         Lists commands
+  help                                 Displays help for a command
+  list                                 Lists commands
  cache
-  cache:clear (cc)             Clears caches
+  cache:clear (cc)                     Clears caches
  ci
  drupalci
-  drupalci:list (ci:l)         Lists test results for an issue
-  drupalci:watch (ci:w)        Watches a Drupal CI job
+  drupalci:list (ci:l)                 Lists test results for an issue
+  drupalci:watch (ci:w)                Watches a Drupal CI job
  issue
-  issue:apply                  Applies the latest patch from an issue.
-  issue:branch                 Creates a branch for the issue.
-  issue:link                   Opens an issue
-  issue:patch                  Generate a patch for the issue from committed local changes.
+  issue:apply                          Applies the latest patch from an issue.
+  issue:branch                         Creates a branch for the issue.
+  issue:interdiff                      Generate an interdiff for the issue from local changes.
+  issue:link                           Opens an issue
+  issue:patch                          Generate a patch for the issue from committed local changes.
  maintainer
-  maintainer:issues (mi)       Lists issues for a user, based on maintainer.
-  maintainer:release-notes     Generate release notes.
+  maintainer:issues (mi)               Lists issues for a user, based on maintainer.
+  maintainer:release-notes (rn, mrn)   Generate release notes.
  project
-  project:issues (pi)          Lists issues for a project.
-  project:kanban               Opens project kanban
-  project:link                 Opens project page
-  project:release-notes (rn)   View release notes for a release
-  project:releases             Lists available releases
+  project:issues (pi)                  Lists issues for a project.
+  project:kanban                       Opens project kanban
+  project:link                         Opens project page
+  project:release-notes (prn)          View release notes for a release
+  project:releases                     Lists available releases
  tci
  travisci
-  travisci:list (tci:l)        Lists Travis Ci builds for a Drupal project
-  travisci:watch (tci:w)       Watches a Travis CI job
+  travisci:list (tci:l)                Lists Travis Ci builds for a Drupal project
+  travisci:watch (tci:w)               Watches a Travis CI job
 ````
 
 ## Getting Started
