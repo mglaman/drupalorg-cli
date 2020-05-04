@@ -11,6 +11,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Process\Process;
 
 /**
  * Release note command
@@ -52,13 +53,17 @@ class ReleaseNotes extends Command
 
   protected function initialize(InputInterface $input, OutputInterface $output) {
     parent::initialize($input, $output);
-    $this->cwd = getcwd();
     try {
+      $process = new Process('git rev-parse --show-toplevel');
+      $process->run();
+      $repository_dir = trim($process->getOutput());
+      $this->cwd = $repository_dir;
       $client = new Client();
       $this->repository = $client->getRepository($this->cwd);
     }
     catch (\Exception $e) {
-      $this->repository = null;
+      $this->stdOut->writeln('You must run this from a Git repository');
+      exit(1);
     }
   }
 
@@ -68,11 +73,6 @@ class ReleaseNotes extends Command
    */
   protected function execute(InputInterface $input, OutputInterface $output)
   {
-    if (!$this->repository) {
-      $this->stdOut->writeln('You must run this from a Git repository');
-      return 1;
-    }
-
     $ref1 = $this->stdIn->getArgument('ref1');
     $ref2 = $this->stdIn->getArgument('ref2');
     $tags = $this->repository->getTags();
