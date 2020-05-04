@@ -8,6 +8,7 @@ use mglaman\DrupalOrg\RawResponse;
 use mglaman\DrupalOrgCli\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Process\Process;
 
 abstract class IssueCommandBase extends Command {
 
@@ -52,8 +53,12 @@ abstract class IssueCommandBase extends Command {
       return;
     }
 
-    $this->cwd = getcwd();
+
     try {
+      $process = new Process('git rev-parse --show-toplevel');
+      $process->run();
+      $repository_dir = trim($process->getOutput());
+      $this->cwd = $repository_dir;
       $client = new Client();
       $this->repository = $client->getRepository($this->cwd);
     }
