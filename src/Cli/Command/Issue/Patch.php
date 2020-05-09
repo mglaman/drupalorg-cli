@@ -52,9 +52,9 @@ class Patch extends IssueCommandBase
                 exit(1);
             }
 
-          // Create a diff from our merge-base commit.
+            // Create a diff from our merge-base commit.
             $merge_base_cmd = sprintf('$(git merge-base %s HEAD)', $issue_version_branch);
-            $process = new Process(sprintf('git diff --no-ext-diff %s HEAD', $merge_base_cmd));
+            $process = new Process(sprintf('git diff --no-renames --no-ext-diff %s HEAD', $merge_base_cmd));
             $process->run();
 
             $filename = $this->cwd . DIRECTORY_SEPARATOR . $patchName;
