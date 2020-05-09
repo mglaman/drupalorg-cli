@@ -49,20 +49,17 @@ class Releases extends ProjectCommandBase
             if ($difference->m <= 1) {
                 $format = 'info';
                 $message = "OK";
-            }
-            elseif ($difference->m >= 2 && $difference->m <= 4) {
+            } elseif ($difference->m >= 2 && $difference->m <= 4) {
                 $format = 'comment';
                 $message = "Release soon";
-            }
-            else {
+            } else {
                 $format = 'error';
                 $message = "Release due";
             }
 
-            if ($release->field_release_version_extra !== NULL) {
+            if ($release->field_release_version_extra !== null) {
                 $securty = '<error>✗ Not covered</error>';
-            }
-            else {
+            } else {
                 $securty = '<info>✓ Covered</info>';
             }
 
@@ -74,7 +71,7 @@ class Releases extends ProjectCommandBase
               $release->field_release_short_description ?: 'Needs short description',
               'https://www.drupal.org/project/' . $this->projectName,
             ]);
-          $release_versions[$release->field_release_version] = '';
+            $release_versions[$release->field_release_version] = '';
         }
         $table->render();
 
@@ -82,21 +79,20 @@ class Releases extends ProjectCommandBase
 
         $helper = $this->getHelper('question');
         $question = new ChoiceQuestion(
-          "View release notes? [cancel]",
-          $release_versions,
-          'cancel'
+            "View release notes? [cancel]",
+            $release_versions,
+            'cancel'
         );
-      $answer = $helper->ask($this->stdIn, $this->stdOut, $question);
-      if ($answer != 'cancel') {
-        $command = $this->getApplication()->find('project:release-notes');
-        $sub_input = new ArgvInput([
-          'application' => 'drupalorgcli',
-          'command' => 'drupalci:release-notes',
-          'project' => $this->projectName,
-          'version' => $answer,
-        ]);
-        $command->run($sub_input, $this->stdOut);
-      }
+        $answer = $helper->ask($this->stdIn, $this->stdOut, $question);
+        if ($answer != 'cancel') {
+            $command = $this->getApplication()->find('project:release-notes');
+            $sub_input = new ArgvInput([
+            'application' => 'drupalorgcli',
+            'command' => 'drupalci:release-notes',
+            'project' => $this->projectName,
+            'version' => $answer,
+            ]);
+            $command->run($sub_input, $this->stdOut);
+        }
     }
-
 }

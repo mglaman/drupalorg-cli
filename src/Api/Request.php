@@ -74,7 +74,8 @@ class Request
      * @param $key
      * @return \mglaman\DrupalOrg\Request
      */
-    public function setSort($key) {
+    public function setSort($key)
+    {
         return $this->setOption('sort', $key);
     }
 
@@ -84,7 +85,8 @@ class Request
      * @param $direction
      * @return \mglaman\DrupalOrg\Request
      */
-    public function setDirection($direction) {
+    public function setDirection($direction)
+    {
         return $this->setOption('direction', $direction);
     }
 }

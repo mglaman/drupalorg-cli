@@ -40,7 +40,8 @@ class ReleaseNotes extends ProjectCommandBase
         $this->stdOut->writeln($this->processReleaseNotes($release[0]->body->value));
     }
 
-    protected function processReleaseNotes($body) {
+    protected function processReleaseNotes($body)
+    {
         $body = html_entity_decode($body);
         $body = strip_tags($body, '<p><li>');
         $body = str_replace(['<p>', '</p>', '<li>', '</li>'], ['', PHP_EOL, '  <options=bold>*</> ', ''], $body);

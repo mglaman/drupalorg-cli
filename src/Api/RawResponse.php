@@ -2,7 +2,8 @@
 
 namespace mglaman\DrupalOrg;
 
-class RawResponse {
+class RawResponse
+{
     /**
      * @var \stdClass
      */
@@ -13,7 +14,8 @@ class RawResponse {
         $this->response = json_decode($response);
     }
 
-    public function get($key) {
+    public function get($key)
+    {
         if (property_exists($this->response, $key)) {
             return $this->response->{$key};
         }
