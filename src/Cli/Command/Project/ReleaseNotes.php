@@ -3,8 +3,6 @@
 namespace mglaman\DrupalOrgCli\Command\Project;
 
 use mglaman\DrupalOrg\Request;
-use mglaman\DrupalOrgCli\Command\Command;
-use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -40,7 +38,8 @@ class ReleaseNotes extends ProjectCommandBase
         $this->stdOut->writeln($this->processReleaseNotes($release[0]->body->value));
     }
 
-    protected function processReleaseNotes($body) {
+    protected function processReleaseNotes($body)
+    {
         $body = html_entity_decode($body);
         $body = strip_tags($body, '<p><li>');
         $body = str_replace(['<p>', '</p>', '<li>', '</li>'], ['', PHP_EOL, '  <options=bold>*</> ', ''], $body);

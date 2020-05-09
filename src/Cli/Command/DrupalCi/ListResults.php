@@ -78,9 +78,9 @@ class ListResults extends Command
         if ($jobRunning) {
             $helper = $this->getHelper('question');
             $question = new ChoiceQuestion(
-              "Test #{$jobRunning} is running, do you want to watch it? [Yes]",
-              ['Yes' => '', 'No' => ''],
-              0
+                "Test #{$jobRunning} is running, do you want to watch it? [Yes]",
+                ['Yes' => '', 'No' => ''],
+                0
             );
             $answer = $helper->ask($this->stdIn, $this->stdOut, $question);
 
@@ -95,5 +95,4 @@ class ListResults extends Command
             }
         }
     }
-
 }

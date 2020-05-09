@@ -86,7 +86,7 @@ class Application extends ParentApplication
         } elseif (file_exists('/etc/sysconfig/clock')) {
             // RHEL/CentOS
             $data = parse_ini_file('/etc/sysconfig/clock');
-            if (!empty($data['ZONE'])) {
+            if (isset($data['ZONE'])) {
                 $timezone = trim($data['ZONE']);
             }
         }

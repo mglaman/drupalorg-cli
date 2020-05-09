@@ -14,12 +14,14 @@ class ListCommand extends BaseListCommand
     {
         $helper = new DescriptorHelper();
         $helper->register('txt', new CustomTextDescriptor());
-        $helper->describe($output, $this->getApplication(),
-          array(
+        $helper->describe(
+            $output,
+            $this->getApplication(),
+            array(
             'format' => $input->getOption('format'),
             'raw_text' => $input->getOption('raw'),
             'namespace' => $input->getArgument('namespace'),
-          )
+            )
         );
     }
 }

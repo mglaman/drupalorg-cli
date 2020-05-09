@@ -2,7 +2,6 @@
 
 namespace mglaman\DrupalOrgCli\Command\Project;
 
-
 use mglaman\DrupalOrg\Request;
 use mglaman\DrupalOrgCli\Command\Command;
 use Symfony\Component\Console\Helper\Table;
@@ -32,46 +31,46 @@ class ProjectIssues extends ProjectCommandBase
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-      $project = $this->getProject($this->projectName)->getList()->offsetGet(0);
-      $options = [
+        $project = $this->getProject($this->projectName)->getList()->offsetGet(0);
+        $options = [
         'field_release_project' => $project->nid,
         'type' => 'project_release',
         'sort' => 'nid',
         'direction' => 'DESC',
         'limit' => 100,
-      ];
-      $releases = $this->client->request(new Request('node.json', $options))->getList();
+        ];
+        $releases = $this->client->request(new Request('node.json', $options))->getList();
 
 
-      $api_params = [
+        $api_params = [
         'type' => 'project_issue',
         'field_project' => $project->nid,
         'field_issue_status[value]' => [1,8,13,14,16],
         'sort' => 'field_issue_priority',
         'direction' => 'DESC',
         'limit' => $this->stdIn->getOption('limit')
-      ];
+        ];
 
-      switch ($this->stdIn->getArgument('type')) {
-        case 'rtbc':
-          $api_params['field_issue_status[value]'] = [14];
-          break;
-        case 'review':
-          $api_params['field_issue_status[value]'] = [8];
-          break;
-        default:
-          $api_params['field_issue_status[value]'] = [1,8,13,14,16];
-      }
-
-      foreach ($releases as $release) {
-        if (strpos($release->field_release_version, $this->stdIn->getOption('core')) === 0) {
-          $api_params['field_issue_version']['value'][] = $release->field_release_version;
+        switch ($this->stdIn->getArgument('type')) {
+            case 'rtbc':
+                $api_params['field_issue_status[value]'] = [14];
+                break;
+            case 'review':
+                $api_params['field_issue_status[value]'] = [8];
+                break;
+            default:
+                $api_params['field_issue_status[value]'] = [1,8,13,14,16];
         }
-      }
 
-      $issues = $this->client->request(new Request('node.json', $api_params));
+        foreach ($releases as $release) {
+            if (strpos($release->field_release_version, $this->stdIn->getOption('core')) === 0) {
+                $api_params['field_issue_version']['value'][] = $release->field_release_version;
+            }
+        }
 
-      $output->writeln("<info>{$project->title}</info>");
+        $issues = $this->client->request(new Request('node.json', $api_params));
+
+        $output->writeln("<info>{$project->title}</info>");
         $table = new Table($this->stdOut);
         $table->setHeaders([
           'ID',
@@ -81,24 +80,25 @@ class ProjectIssues extends ProjectCommandBase
 
         $list = $issues->getList();
         $iterator = $list->getIterator();
-        while($iterator->valid()) {
-          $item = $iterator->current();
-          $table->addRow([
+        while ($iterator->valid()) {
+            $item = $iterator->current();
+            $table->addRow([
             $item->nid,
             $this->getIssueStatus($item->field_issue_status),
             $item->title . PHP_EOL . '<comment>https://www.drupal.org/node/' . $item->nid . '</comment>',
-          ]);
-          $iterator->next();
+            ]);
+            $iterator->next();
 
-          if ($iterator->valid()) {
-            $table->addRow(new TableSeparator());
-          }
+            if ($iterator->valid()) {
+                $table->addRow(new TableSeparator());
+            }
         }
 
         $table->render();
     }
 
-    protected function getIssueStatus($value) {
+    protected function getIssueStatus($value)
+    {
         switch ($value) {
             case 1:
                 return '<comment>Active</comment>';

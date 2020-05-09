@@ -39,8 +39,7 @@ class Watch extends Command
         $progress->start();
         if ($job->get('status') == 'complete') {
             $progress->advance();
-        }
-        else {
+        } else {
             while ($job->get('status') != 'complete') {
                 $progress->advance();
                 sleep(60);

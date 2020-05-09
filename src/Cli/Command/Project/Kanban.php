@@ -30,5 +30,4 @@ class Kanban extends ProjectCommandBase
     {
         $this->openUrl('https://contribkanban.com/board/' . $this->projectName, $this->stdErr, $this->stdOut);
     }
-
 }

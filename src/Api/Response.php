@@ -2,20 +2,22 @@
 
 namespace mglaman\DrupalOrg;
 
-class Response extends RawResponse {
+class Response extends RawResponse
+{
 
-  protected $validLinks = ['self', 'first', 'last', 'next'];
+    protected $validLinks = ['self', 'first', 'last', 'next'];
 
-  public function getLink($link) {
-    if (!in_array($link, $this->validLinks)) {
-      throw new \InvalidArgumentException('Invalid link type');
+    public function getLink($link)
+    {
+        if (!in_array($link, $this->validLinks, true)) {
+            throw new \InvalidArgumentException('Invalid link type');
+        }
+
+        return $this->get($link);
     }
 
-    return $this->get($link);
-  }
-
-  public function getList() {
-    return new \ArrayObject($this->get('list'));
-  }
-
+    public function getList()
+    {
+        return new \ArrayObject($this->get('list'));
+    }
 }
