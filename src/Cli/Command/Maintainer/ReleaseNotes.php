@@ -74,17 +74,17 @@ class ReleaseNotes extends Command
         $ref2 = $this->stdIn->getArgument('ref2');
         $tags = $this->repository->getTags();
         if (!$this->stdIn->getArgument('ref1')) {
-          // @todo
+            // @todo
             $this->stdOut->writeln('Please provide both arguments, for now.');
             return 1;
         } else {
-            if (!in_array($ref1, $tags)) {
+            if (!in_array($ref1, $tags, true)) {
                 $this->stdOut->writeln(sprintf('The %s tag is not valid.', $ref1));
                 return 1;
             }
         }
         if ($ref2 != 'HEAD') {
-            if (!in_array($ref2, $tags)) {
+            if (!in_array($ref2, $tags, true)) {
                 $this->stdOut->writeln(sprintf('The %s tag is not valid.', $ref2));
                 return 1;
             }
@@ -110,8 +110,8 @@ class ReleaseNotes extends Command
             if (isset($nidsMatches[1]) && !isset($this->nids[$nidsMatches[1]])) {
                 $this->nids[$nidsMatches[1]] = $nidsMatches[1];
                 $issue = $this->getNode($nidsMatches[1]);
-              // There should always be an issue category, but if not default to `Task.`
-                $issueCategory = $issue->get('field_issue_category') ?: 'Task';
+                // There should always be an issue category, but if not default to `Task.`
+                $issueCategory = $issue->get('field_issue_category') ?? 'Task';
                 $issueCategoryLabel = $this->categoryLabelMap[$issueCategory];
                 $processedChanges[$issueCategoryLabel][$nidsMatches[1]] = $this->formatLine($change, $format);
             }
@@ -210,7 +210,7 @@ class ReleaseNotes extends Command
       // Anything between by and ':' is a comma-separated list of usernames.
         $value = preg_replace_callback(
             '/by ([^:]+):/S',
-            function ($matches) use ($format) {
+            function (array $matches) use ($format): string {
                 $out = [];
                 // Separate the different usernames.
                 foreach (explode(',', $matches[1]) as $user) {

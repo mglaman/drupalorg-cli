@@ -144,7 +144,7 @@ class Interdiff extends IssueCommandBase
     {
         $latestPatch = $this->getLatestFile($issue);
         $fid = $latestPatch->get('fid');
-        $files = array_filter($issue->get('field_issue_files'), function (\stdClass $file) use ($fid) {
+        $files = array_filter($issue->get('field_issue_files'), static function (\stdClass $file) use ($fid): bool {
             return $fid == $file->file->id;
         });
         $file = reset($files);

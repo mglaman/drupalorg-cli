@@ -22,10 +22,10 @@ abstract class ProjectCommandBase extends Command
         parent::initialize($input, $output);
 
         $this->projectName = $this->stdIn->getArgument('project');
-        if (empty($this->projectName)) {
+        if ($this->projectName === null) {
             $this->debug("Argument project not provided. Trying to get it from the remote URL of the current repository.");
             $this->projectName = $this->getProjectFromRemote();
-            if (empty($this->projectName)) {
+            if ($this->projectName === null) {
                 $this->stdErr->writeln("Failed to find project / machine name from current Git repository.");
                 exit(1);
             }
@@ -44,6 +44,6 @@ abstract class ProjectCommandBase extends Command
         $process->run();
         $remote_url = trim($process->getOutput());
         preg_match('#.*\/(.*)\.git$#', $remote_url, $matches);
-        return $matches[1];
+        return $matches[1] ?? null;
     }
 }

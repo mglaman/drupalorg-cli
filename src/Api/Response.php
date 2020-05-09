@@ -9,7 +9,7 @@ class Response extends RawResponse
 
     public function getLink($link)
     {
-        if (!in_array($link, $this->validLinks)) {
+        if (!in_array($link, $this->validLinks, true)) {
             throw new \InvalidArgumentException('Invalid link type');
         }
 

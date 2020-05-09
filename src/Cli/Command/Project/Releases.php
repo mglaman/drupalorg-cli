@@ -68,7 +68,7 @@ class Releases extends ProjectCommandBase
               $securty,
               $release->field_release_version,
               "<$format>" . date('M j, Y', $release->created) . " ($message)</$format>",
-              $release->field_release_short_description ?: 'Needs short description',
+              $release->field_release_short_description ?? 'Needs short description',
               'https://www.drupal.org/project/' . $this->projectName,
             ]);
             $release_versions[$release->field_release_version] = '';

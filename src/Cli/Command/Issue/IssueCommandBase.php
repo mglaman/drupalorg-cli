@@ -40,7 +40,7 @@ abstract class IssueCommandBase extends Command
         $this->initRepo();
 
         $this->nid = $this->stdIn->getArgument('nid');
-        if (empty($this->nid)) {
+        if ($this->nid === null) {
             $this->debug("Argument nid not provided. Trying to get it from current branch name.");
             $this->nid = $this->getNidFromBranch($this->repository);
         }
@@ -129,7 +129,7 @@ abstract class IssueCommandBase extends Command
     protected function getLatestFile(RawResponse $issue)
     {
       // Remove files hidden from display.
-        $files = array_filter($issue->get('field_issue_files'), function ($value) {
+        $files = array_filter($issue->get('field_issue_files'), static function ($value): bool {
             return (bool) $value->display;
         });
       // Reverse the array so we fetch latest files first.
@@ -138,7 +138,7 @@ abstract class IssueCommandBase extends Command
             return $this->getFile($value->file->id);
         }, $files);
       // Filter out non-patch files.
-        $files = array_filter($files, function (RawResponse $file) {
+        $files = array_filter($files, static function (RawResponse $file): bool {
             return strpos($file->get('name'), '.patch') !== false && strpos($file->get('name'), 'do-not-test') === false;
         });
         $patchFile = reset($files);

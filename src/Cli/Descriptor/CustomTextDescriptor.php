@@ -52,7 +52,7 @@ class CustomTextDescriptor extends BaseTextDescriptor
                 foreach ($namespace['commands'] as $name) {
                     $command = $description->getCommand($name);
                     $aliases = $command->getAliases();
-                    if ($aliases && in_array($name, $aliases)) {
+                    if ($aliases && in_array($name, $aliases, true)) {
                         // skip aliases
                         continue;
                     }
