@@ -10,7 +10,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class Kanban extends Command
+class Kanban extends ProjectCommandBase
 {
     use BrowserTrait;
 
@@ -18,7 +18,7 @@ class Kanban extends Command
     {
         $this
           ->setName('project:kanban')
-          ->addArgument('project', InputArgument::REQUIRED, 'The project machine name')
+          ->addArgument('project', InputArgument::OPTIONAL, 'The project machine name')
           ->setDescription('Opens project kanban');
     }
 
@@ -28,8 +28,7 @@ class Kanban extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $machineName = $this->stdIn->getArgument('project');
-        $this->openUrl('https://contribkanban.com/board/' . $machineName, $this->stdErr, $this->stdOut);
+        $this->openUrl('https://contribkanban.com/board/' . $this->projectName, $this->stdErr, $this->stdOut);
     }
 
 }

@@ -2,15 +2,13 @@
 
 namespace mglaman\DrupalOrgCli\Command\Project;
 
-use mglaman\DrupalOrg\RawResponse;
 use mglaman\DrupalOrgCli\BrowserTrait;
 use mglaman\DrupalOrgCli\Command\Command;
-use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class Link extends Command
+class Link extends ProjectCommandBase
 {
     use BrowserTrait;
 
@@ -18,7 +16,7 @@ class Link extends Command
     {
         $this
           ->setName('project:link')
-          ->addArgument('project', InputArgument::REQUIRED, 'The project machine name')
+          ->addArgument('project', InputArgument::OPTIONAL, 'The project machine name')
           ->setDescription('Opens project page');
     }
 
@@ -28,8 +26,6 @@ class Link extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $machineName = $this->stdIn->getArgument('project');
-        $this->openUrl('https://www.drupal.org/project/' . $machineName, $this->stdErr, $this->stdOut);
+        $this->openUrl('https://www.drupal.org/project/' . $this->projectName, $this->stdErr, $this->stdOut);
     }
-
 }
