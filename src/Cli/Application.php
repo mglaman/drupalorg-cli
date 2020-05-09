@@ -7,13 +7,17 @@ use Symfony\Component\Console\Command\HelpCommand;
 
 class Application extends ParentApplication
 {
-    const VERSION = '0.1.1';
     /**
      * {@inheritdoc}
      */
     public function __construct()
     {
-        parent::__construct('Drupal.org CLI', self::VERSION);
+        try {
+            $version = \Jean85\PrettyVersions::getVersion('mglaman/drupalorg-cli')->getPrettyVersion();
+        } catch (\OutOfBoundsException $e) {
+            $version = '0.0.0';
+        }
+        parent::__construct('Drupal.org CLI', $version);
         $this->setDefaultTimezone();
         $this->addCommands($this->getCommands());
     }
