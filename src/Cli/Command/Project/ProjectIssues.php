@@ -32,7 +32,7 @@ class ProjectIssues extends ProjectCommandBase
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-      $project = $this->getProject($this->project_name)->getList()->offsetGet(0);
+      $project = $this->getProject($this->projectName)->getList()->offsetGet(0);
       $options = [
         'field_release_project' => $project->nid,
         'type' => 'project_release',

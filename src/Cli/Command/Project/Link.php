@@ -26,6 +26,6 @@ class Link extends ProjectCommandBase
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->openUrl('https://www.drupal.org/project/' . $this->project_name, $this->stdErr, $this->stdOut);
+        $this->openUrl('https://www.drupal.org/project/' . $this->projectName, $this->stdErr, $this->stdOut);
     }
 }

@@ -27,7 +27,7 @@ class ReleaseNotes extends ProjectCommandBase
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $project = $this->getProject($this->project_name)->get('list')[0];
+        $project = $this->getProject($this->projectName)->get('list')[0];
         $version = $this->stdIn->getArgument('version');
         $release = $this->client->request(new Request('node.json', [
               'field_release_project' => $project->nid,
@@ -35,7 +35,7 @@ class ReleaseNotes extends ProjectCommandBase
           ]))
           ->get('list');
 
-        $this->stdOut->writeln("<options=bold>Release notes for $this->project_name $version</>");
+        $this->stdOut->writeln("<options=bold>Release notes for {$this->projectName} $version</>");
         $this->stdOut->writeln("");
         $this->stdOut->writeln($this->processReleaseNotes($release[0]->body->value));
     }

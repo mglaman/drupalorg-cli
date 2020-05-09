@@ -28,7 +28,7 @@ class Kanban extends ProjectCommandBase
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->openUrl('https://contribkanban.com/board/' . $this->project_name, $this->stdErr, $this->stdOut);
+        $this->openUrl('https://contribkanban.com/board/' . $this->projectName, $this->stdErr, $this->stdOut);
     }
 
 }

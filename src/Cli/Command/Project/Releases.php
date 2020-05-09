@@ -27,7 +27,7 @@ class Releases extends ProjectCommandBase
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $project = $this->getProject($this->project_name)->getList()->offsetGet(0);
+        $project = $this->getProject($this->projectName)->getList()->offsetGet(0);
         $releases = $this->client->getProjectReleases($project->nid, [
           'field_release_update_status' => 0,
         ])->get('list');
@@ -72,7 +72,7 @@ class Releases extends ProjectCommandBase
               $release->field_release_version,
               "<$format>" . date('M j, Y', $release->created) . " ($message)</$format>",
               $release->field_release_short_description ?: 'Needs short description',
-              'https://www.drupal.org/project/' . $this->project_name,
+              'https://www.drupal.org/project/' . $this->projectName,
             ]);
           $release_versions[$release->field_release_version] = '';
         }
@@ -92,7 +92,7 @@ class Releases extends ProjectCommandBase
         $sub_input = new ArgvInput([
           'application' => 'drupalorgcli',
           'command' => 'drupalci:release-notes',
-          'project' => $this->project_name,
+          'project' => $this->projectName,
           'version' => $answer,
         ]);
         $command->run($sub_input, $this->stdOut);
