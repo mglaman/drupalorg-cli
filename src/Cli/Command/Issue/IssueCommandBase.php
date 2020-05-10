@@ -43,6 +43,10 @@ abstract class IssueCommandBase extends Command
         if ($this->nid === null) {
             $this->debug("Argument nid not provided. Trying to get it from current branch name.");
             $this->nid = $this->getNidFromBranch($this->repository);
+            if ($this->nid === null) {
+                $this->stdErr->writeln("Argument nid not provided and not able to get it from current branch name - aborting.");
+                exit(1);
+            }
         }
     }
 
@@ -157,7 +161,6 @@ abstract class IssueCommandBase extends Command
     protected function getNidFromBranch(Repository $repo)
     {
         $branch = $repo->getHead();
-        preg_match('/(\d+)-/', $branch, $matches);
-        return $matches[1];
+        return (preg_match('/(\d+)-/', $branch, $matches) ?  $matches[1] : null);
     }
 }
