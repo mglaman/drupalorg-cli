@@ -23,22 +23,22 @@ class Completion extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-      $command = $this->getApplication()->find('list');
+        $command = $this->getApplication()->find('list');
 
-      $arguments = [
-        '--format' => 'json'
-      ];
-      $input = new ArrayInput($arguments);
-      $output = new BufferedOutput();
-      $returnCode = $command->run($input, $output);
-      $commandListArray = json_decode($output->fetch(), true);
-      $commandsToComplete = [];
-      foreach ($commandListArray['commands'] as $command) {
-          if ($command['name'] == $this->getName()) {
-              continue;
-          }
-          $commandsToComplete[] = $command['name'];
-      }
-      $this->stdOut->writeln(implode(' ', $commandsToComplete));
+        $arguments = [
+            '--format' => 'json'
+        ];
+        $input = new ArrayInput($arguments);
+        $output = new BufferedOutput();
+        $returnCode = $command->run($input, $output);
+        $commandListArray = json_decode($output->fetch(), true);
+        $commandsToComplete = [];
+        foreach ($commandListArray['commands'] as $commandToAdd) {
+            if ($commandToAdd['name'] == $this->getName()) {
+                continue;
+            }
+            $commandsToComplete[] = $commandToAdd['name'];
+        }
+        $this->stdOut->writeln(implode(' ', $commandsToComplete));
     }
 }
