@@ -12,9 +12,9 @@ use Symfony\Component\Process\Process;
 class Apply extends IssueCommandBase
 {
 
-  /**
-   * @var \Gitter\Repository
-   */
+    /**
+     * @var \Gitter\Repository
+     */
     protected $repository;
 
     protected $cwd;
@@ -24,13 +24,17 @@ class Apply extends IssueCommandBase
         $this
         ->setName('issue:apply')
         ->addArgument('nid', InputArgument::REQUIRED, 'The issue node ID')
-        ->setDescription('Applies the latest patch from an issue.');
+        ->setDescription('Applies the latest patch from an issue.')
+        ->setHelp(implode(PHP_EOL, [
+            'This command applies the latest patch from an issue.',
+            'Before applying the patch, an issue branch for the patch will be checked out.',
+            'If the branch doesn\'t exist, it will be created.',]));
     }
 
-  /**
-   * {@inheritdoc}
-   *
-   */
+    /**
+     * {@inheritdoc}
+     *
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $nid = $this->stdIn->getArgument('nid');
@@ -56,16 +60,16 @@ class Apply extends IssueCommandBase
 
     protected function applyWithGit($issue, $patchFileName)
     {
-      // Validate the issue versions branch, create or checkout issue branch.
+        // Validate the issue versions branch, create or checkout issue branch.
         $issueBranchCommand = $this->getApplication()->find('issue:branch');
         $issueBranchCommand->run($this->stdIn, $this->stdOut);
 
         $branchName = $this->buildBranchName($issue);
         $tempBranchName = $branchName . '-patch-temp';
 
-      // Check out the root development branch to create a temporary merge branch
-      // where we will apply the patch, and then three way merge to existing issue
-      // branch.
+        // Check out the root development branch to create a temporary merge branch
+        // where we will apply the patch, and then three way merge to existing issue
+        // branch.
         $issueVersionBranch = $this->getIssueVersionBranchName($issue);
         $this->repository->checkout($issueVersionBranch);
         $this->stdOut->writeln(sprintf('<comment>%s</comment>', "Creating temp branch $tempBranchName"));
@@ -81,7 +85,7 @@ class Apply extends IssueCommandBase
         $this->stdOut->writeln(sprintf('<comment>%s</comment>', "Committing $patchFileName"));
         $this->repository->commit($patchFileName);
 
-      // Check out existing issue branch for three way merge.
+        // Check out existing issue branch for three way merge.
         $this->stdOut->writeln(sprintf('<comment>%s</comment>', "Checking out $branchName and merging"));
         $this->repository->checkout($branchName);
         $merge = $this->runProcess(sprintf('git merge %s --strategy recursive -X theirs', $tempBranchName));
