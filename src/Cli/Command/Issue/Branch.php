@@ -11,9 +11,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 class Branch extends IssueCommandBase
 {
 
-  /**
-   * @var \Gitter\Repository
-   */
+    /**
+     * @var \Gitter\Repository
+     */
     protected $repository;
 
     protected $cwd;
@@ -23,13 +23,17 @@ class Branch extends IssueCommandBase
         $this
         ->setName('issue:branch')
         ->addArgument('nid', InputArgument::REQUIRED, 'The issue node ID')
-        ->setDescription('Creates a branch for the issue.');
+        ->setDescription('Creates a branch for the issue.')
+        ->setHelp(implode(PHP_EOL, [
+            'This command creates a branch for the issue.',
+            'If there is an existing patch in the issue queue, that you want to apply,',
+            'it is quicker to use the \'issue:apply\' command instead.']));
     }
 
-  /**
-   * {@inheritdoc}
-   *
-   */
+    /**
+     * {@inheritdoc}
+     *
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $issue = $this->getNode($this->nid);
