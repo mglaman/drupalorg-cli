@@ -6,6 +6,7 @@ use Gitter\Client;
 use mglaman\DrupalOrg\RawResponse;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
 
@@ -24,6 +25,7 @@ class Apply extends IssueCommandBase
         $this
         ->setName('issue:apply')
         ->addArgument('nid', InputArgument::REQUIRED, 'The issue node ID')
+        ->addOption('direct', 'd', InputOption::VALUE_OPTIONAL, 'Apply the patch directly on the current branch without committing', false)
         ->setDescription('Applies the latest patch from an issue.')
         ->setHelp(implode(PHP_EOL, [
             'This command applies the latest patch from an issue.',
@@ -40,13 +42,15 @@ class Apply extends IssueCommandBase
         $nid = $this->stdIn->getArgument('nid');
         $issue = $this->getNode($nid);
 
+        $direct = $this->stdIn->getOption('direct') !== false;
+
         $patchFileUrl = $this->getPatchFileUrl($issue);
         $patchFileContents = file_get_contents($patchFileUrl);
         $patchFileName = $this->getCleanIssueTitle($issue) . '.patch';
         file_put_contents($patchFileName, $patchFileContents);
 
         if ($this->repository) {
-            $exitCode = $this->applyWithGit($issue, $patchFileName);
+            $exitCode = $this->applyWithGit($issue, $patchFileName, $direct);
         } elseif (shell_exec("command -v patch; echo $?") == 0) {
             $exitCode = $this->applyWithPatch($patchFileName);
         } else {
@@ -58,23 +62,27 @@ class Apply extends IssueCommandBase
         return $exitCode;
     }
 
-    protected function applyWithGit($issue, $patchFileName)
+    protected function applyWithGit($issue, $patchFileName, $direct = FALSE)
     {
-        // Validate the issue versions branch, create or checkout issue branch.
-        $issueBranchCommand = $this->getApplication()->find('issue:branch');
-        $issueBranchCommand->run($this->stdIn, $this->stdOut);
 
-        $branchName = $this->buildBranchName($issue);
-        $tempBranchName = $branchName . '-patch-temp';
+        if (!$direct) {
+            // Validate the issue versions branch, create or checkout issue branch.
+            $issueBranchCommand = $this->getApplication()->find('issue:branch');
+            $this->stdIn->setOption('direct', null);
+            $issueBranchCommand->run($this->stdIn, $this->stdOut);
 
-        // Check out the root development branch to create a temporary merge branch
-        // where we will apply the patch, and then three way merge to existing issue
-        // branch.
-        $issueVersionBranch = $this->getIssueVersionBranchName($issue);
-        $this->repository->checkout($issueVersionBranch);
-        $this->stdOut->writeln(sprintf('<comment>%s</comment>', "Creating temp branch $tempBranchName"));
-        $this->repository->createBranch($tempBranchName);
-        $this->repository->checkout($tempBranchName);
+            $branchName = $this->buildBranchName($issue);
+            $tempBranchName = $branchName . '-patch-temp';
+
+            // Check out the root development branch to create a temporary merge branch
+            // where we will apply the patch, and then three way merge to existing issue
+            // branch.
+            $issueVersionBranch = $this->getIssueVersionBranchName($issue);
+            $this->repository->checkout($issueVersionBranch);
+            $this->stdOut->writeln(sprintf('<comment>%s</comment>', "Creating temp branch $tempBranchName"));
+            $this->repository->createBranch($tempBranchName);
+            $this->repository->checkout($tempBranchName);
+        }
 
         $applyPatchProcess = $this->runProcess(sprintf('git apply -v --index %s', $patchFileName));
         if ($applyPatchProcess->getExitCode() != 0) {
@@ -82,21 +90,24 @@ class Apply extends IssueCommandBase
             $this->stdOut->writeln($applyPatchProcess->getOutput());
             return 1;
         }
-        $this->stdOut->writeln(sprintf('<comment>%s</comment>', "Committing $patchFileName"));
-        $this->repository->commit($patchFileName);
+        $this->stdOut->writeln(sprintf('Applied patch %s', $patchFileName));
+        if (!$direct) {
+            $this->stdOut->writeln(sprintf('<comment>%s</comment>', "Committing $patchFileName"));
+            $this->repository->commit($patchFileName);
 
-        // Check out existing issue branch for three way merge.
-        $this->stdOut->writeln(sprintf('<comment>%s</comment>', "Checking out $branchName and merging"));
-        $this->repository->checkout($branchName);
-        $merge = $this->runProcess(sprintf('git merge %s --strategy recursive -X theirs', $tempBranchName));
+            // Check out existing issue branch for three way merge.
+            $this->stdOut->writeln(sprintf('<comment>%s</comment>', "Checking out $branchName and merging"));
+            $this->repository->checkout($branchName);
+            $merge = $this->runProcess(sprintf('git merge %s --strategy recursive -X theirs', $tempBranchName));
 
-        if ($merge->getExitCode() != 0) {
-            $this->stdOut->writeln('<error>Failed to apply the patch</error>');
-            $this->stdOut->writeln($merge->getOutput());
-            return 1;
+            if ($merge->getExitCode() != 0) {
+                $this->stdOut->writeln('<error>Failed to apply the patch</error>');
+                $this->stdOut->writeln($merge->getOutput());
+                return 1;
+            }
+
+            $this->runProcess(sprintf('git branch -D %s', $tempBranchName));
         }
-
-        $this->runProcess(sprintf('git branch -D %s', $tempBranchName));
     }
 
     protected function applyWithPatch($patchFileName)
