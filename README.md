@@ -83,7 +83,7 @@ From within the directory of the project we're working on:
 
 ## Contributing
 
-### Installing from source (e.g. for contributing)
+### Installing and running from source
 
 1. Clone the repository
 2. In the drupalorg-cli directory, run `composer install`
