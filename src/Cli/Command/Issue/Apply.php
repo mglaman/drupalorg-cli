@@ -6,6 +6,7 @@ use Gitter\Client;
 use mglaman\DrupalOrg\RawResponse;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
 
@@ -24,6 +25,7 @@ class Apply extends IssueCommandBase
         $this
         ->setName('issue:apply')
         ->addArgument('nid', InputArgument::REQUIRED, 'The issue node ID')
+        ->addOption('direct', 'd', InputOption::VALUE_NONE, 'Apply the patch directly without creating issue branch')
         ->setDescription('Applies the latest patch from an issue.')
         ->setHelp(implode(PHP_EOL, [
             'This command applies the latest patch from an issue.',
@@ -38,6 +40,7 @@ class Apply extends IssueCommandBase
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $nid = $this->stdIn->getArgument('nid');
+        $direct = $this->stdIn->getOption('direct');
         $issue = $this->getNode($nid);
 
         $patchFileUrl = $this->getPatchFileUrl($issue);
@@ -46,7 +49,11 @@ class Apply extends IssueCommandBase
         file_put_contents($patchFileName, $patchFileContents);
 
         if ($this->repository) {
-            $exitCode = $this->applyWithGit($issue, $patchFileName);
+            if ($direct) {
+                $exitCode = $this->applyWithGit($issue, $patchFileName);
+            } else {
+                $exitCode = $this->branchAndApplyWithGit($issue, $patchFileName);
+            }
         } elseif (shell_exec("command -v patch; echo $?") == 0) {
             $exitCode = $this->applyWithPatch($patchFileName);
         } else {
@@ -59,6 +66,16 @@ class Apply extends IssueCommandBase
     }
 
     protected function applyWithGit($issue, $patchFileName)
+    {
+        $applyPatchProcess = $this->runProcess(sprintf('git apply -v --index %s', $patchFileName));
+        if ($applyPatchProcess->getExitCode() != 0) {
+            $this->stdOut->writeln('<error>Failed to apply the patch</error>');
+            $this->stdOut->writeln($applyPatchProcess->getOutput());
+            return 1;
+        }
+    }
+
+    protected function branchAndApplyWithGit($issue, $patchFileName)
     {
         // Validate the issue versions branch, create or checkout issue branch.
         $issueBranchCommand = $this->getApplication()->find('issue:branch');
