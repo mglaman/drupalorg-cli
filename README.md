@@ -25,6 +25,18 @@ Use the following command to install the command line tool via Composer:
 
 `composer global require mglaman/drupalorg-cli`
 
+### Installing (Bash) completion
+
+`drupalorg` comes with completion support for all commands, excluding options.
+
+To activate it, either source the completion file or add it to the system-wide completion directory, normally `/etc/bash_completion.d/`.
+
+In your `.bashrc` (or `.profile`) add
+
+```
+source [...]/vendor/mglaman/drupalorg-cli/drupalorg-cli-completion.sh
+```
+
 ## Updating
 
 Automatic updating is not yet supported. You will need to manually download new releases.
