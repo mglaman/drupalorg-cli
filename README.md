@@ -80,3 +80,11 @@ From within the directory of the project we're working on:
 
 * `drupalorg issue:apply [issue number]` - Create a new branch for the given issue, apply the latest patch on the issue to the new branch, then commit the changes locally.
 * `drupalorg issue:patch [issue number]` - Create a new patch for the given issue from the changes committed locally.
+
+## Contributing
+
+### Installing and running from source
+
+1. Clone the repository
+2. In the drupalorg-cli directory, run `composer install`
+3. Run the script with `./drupalorg`
