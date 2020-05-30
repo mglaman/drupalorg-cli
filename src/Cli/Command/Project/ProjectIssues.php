@@ -31,9 +31,8 @@ class ProjectIssues extends ProjectCommandBase
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $project = $this->getProject($this->projectName)->getList()->offsetGet(0);
         $options = [
-        'field_release_project' => $project->nid,
+        'field_release_project' => $this->projectData->nid,
         'type' => 'project_release',
         'sort' => 'nid',
         'direction' => 'DESC',
@@ -41,10 +40,9 @@ class ProjectIssues extends ProjectCommandBase
         ];
         $releases = $this->client->request(new Request('node.json', $options))->getList();
 
-
         $api_params = [
         'type' => 'project_issue',
-        'field_project' => $project->nid,
+        'field_project' => $this->projectData->nid,
         'field_issue_status[value]' => [1,8,13,14,16],
         'sort' => 'field_issue_priority',
         'direction' => 'DESC',
@@ -70,7 +68,7 @@ class ProjectIssues extends ProjectCommandBase
 
         $issues = $this->client->request(new Request('node.json', $api_params));
 
-        $output->writeln("<info>{$project->title}</info>");
+        $output->writeln("<info>{$this->projectData->title}</info>");
         $table = new Table($this->stdOut);
         $table->setHeaders([
           'ID',

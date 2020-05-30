@@ -27,8 +27,7 @@ class Releases extends ProjectCommandBase
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $project = $this->getProject($this->projectName)->getList()->offsetGet(0);
-        $releases = $this->client->getProjectReleases($project->nid, [
+        $releases = $this->client->getProjectReleases($this->projectData->nid, [
           'field_release_update_status' => 0,
         ])->get('list');
         $table = new Table($this->stdOut);
@@ -64,7 +63,7 @@ class Releases extends ProjectCommandBase
             }
 
             $table->addRow([
-              $project->title,
+              $this->projectData->title,
               $securty,
               $release->field_release_version,
               "<$format>" . date('M j, Y', $release->created) . " ($message)</$format>",
