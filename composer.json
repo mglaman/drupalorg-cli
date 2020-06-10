@@ -10,8 +10,8 @@
         "klaussilveira/gitter": "^0.3.0",
         "padraic/phar-updater": "^1.0",
         "psr/log": "^1.0",
-        "symfony/console": "^3.0",
-        "symfony/process": "^3.0"
+        "symfony/console": "^3.0 || ^4.0",
+        "symfony/process": "^3.0 || ^4.0"
     },
     "license": "GPL-2.0-or-later",
     "autoload": {
