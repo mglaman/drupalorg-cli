@@ -17,6 +17,7 @@ class Releases extends ProjectCommandBase
     {
         $this
           ->setName('project:releases')
+          ->setAliases(['pr'])
           ->addArgument('project', InputArgument::OPTIONAL, 'The project machine name')
           ->setDescription('Lists available releases');
     }

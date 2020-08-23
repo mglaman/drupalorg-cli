@@ -18,6 +18,7 @@ class Kanban extends ProjectCommandBase
     {
         $this
           ->setName('project:kanban')
+          ->setAliases(['pk'])
           ->addArgument('project', InputArgument::OPTIONAL, 'The project machine name')
           ->setDescription('Opens project kanban');
     }

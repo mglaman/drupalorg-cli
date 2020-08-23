@@ -22,6 +22,7 @@ class Branch extends IssueCommandBase
     {
         $this
         ->setName('issue:branch')
+        ->setAliases(['ib'])
         ->addArgument('nid', InputArgument::REQUIRED, 'The issue node ID')
         ->setDescription('Creates a branch for the issue.')
         ->setHelp(implode(PHP_EOL, [

@@ -23,6 +23,7 @@ class Apply extends IssueCommandBase
     {
         $this
         ->setName('issue:apply')
+        ->setAliases(['ia'])
         ->addArgument('nid', InputArgument::REQUIRED, 'The issue node ID')
         ->setDescription('Applies the latest patch from an issue.')
         ->setHelp(implode(PHP_EOL, [

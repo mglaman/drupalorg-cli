@@ -22,6 +22,7 @@ class Interdiff extends IssueCommandBase
     {
         $this
         ->setName('issue:interdiff')
+        ->setAliases(['ii'])
         ->addArgument('nid', InputArgument::OPTIONAL, 'The issue node ID')
         ->setDescription('Generate an interdiff for the issue from committed local changes.');
     }
