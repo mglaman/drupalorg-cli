@@ -16,6 +16,7 @@ class Link extends ProjectCommandBase
     {
         $this
           ->setName('project:link')
+          ->setAliases(['pl'])
           ->addArgument('project', InputArgument::OPTIONAL, 'The project machine name')
           ->setDescription('Opens project page');
     }

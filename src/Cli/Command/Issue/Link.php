@@ -21,6 +21,7 @@ class Link extends IssueCommandBase
     {
         $this
           ->setName('issue:link')
+          ->setAliases(['il'])
           ->addArgument('nid', InputArgument::OPTIONAL, 'The issue node ID')
           ->setDescription('Opens an issue');
     }

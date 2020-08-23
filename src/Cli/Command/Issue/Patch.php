@@ -22,6 +22,7 @@ class Patch extends IssueCommandBase
     {
         $this
         ->setName('issue:patch')
+        ->setAliases(['ip'])
         ->addArgument('nid', InputArgument::OPTIONAL, 'The issue node ID')
         ->setDescription('Generate a patch for the issue from committed local changes.');
     }
