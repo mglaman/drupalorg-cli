@@ -2,10 +2,10 @@
     "name": "mglaman/drupalorg-cli",
     "description": "Command line interface for interacting with Drupal.org",
     "require": {
-        "php": ">=7.2",
+        "php": ">=7.2.5",
         "dg/rss-php": "^1.2",
         "doctrine/cache": "^1.6",
-        "guzzlehttp/guzzle": "^6.1",
+        "guzzlehttp/guzzle": "^6.1 || ^7.3",
         "jean85/pretty-package-versions": "~1.2",
         "klaussilveira/gitter": "^0.3.0",
         "padraic/phar-updater": "^1.0",
@@ -31,7 +31,7 @@
         "optimize-autoloader": true,
         "preferred-install": "dist",
         "platform": {
-            "php": "7.2"
+            "php": "7.2.5"
           }
     },
     "scripts": {
