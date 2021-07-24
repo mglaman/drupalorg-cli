@@ -43,10 +43,10 @@ class Releases extends ProjectCommandBase
             $releaseDate = (new \DateTime())->setTimestamp($release->created);
             $now = new \DateTime();
             $difference = $now->diff($releaseDate);
-            if ($difference->m <= 1) {
+            if ($difference->m <= 2) {
                 $format = 'info';
                 $message = "OK";
-            } elseif ($difference->m >= 2 && $difference->m <= 4) {
+            } elseif ($difference->m < 5) {
                 $format = 'comment';
                 $message = "Release soon";
             } else {

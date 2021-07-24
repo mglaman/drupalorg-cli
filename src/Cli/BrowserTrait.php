@@ -12,7 +12,8 @@ trait BrowserTrait
         $potential = array('xdg-open', 'open', 'start');
         foreach ($potential as $browser) {
             // Check if command exists by executing help flag.
-            if (shell_exec("command -v $browser; echo $?") === 0) {
+            $output = (int) shell_exec("command -v $browser; echo $?");
+            if ($output === 0) {
                 return $browser;
             }
         }
@@ -23,7 +24,7 @@ trait BrowserTrait
     {
         $browser = $this->getDefaultBrowser();
         if ($browser !== null) {
-            $opened = shell_exec("$browser $url 2>&1; echo $?");
+            $opened = (int) shell_exec("$browser $url 2>&1; echo $?");
             if ($opened === 0) {
                 $stdErr->writeln("<info>Opened</info>: $url");
                 return;

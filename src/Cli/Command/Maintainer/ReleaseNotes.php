@@ -117,6 +117,9 @@ class ReleaseNotes extends Command
 
       // Work out what the project name is.
         $project = trim($this->getProjectName());
+        if ($project === '') {
+            return 1;
+        }
         $ref1url = "https://www.drupal.org/project/{$project}/releases/$ref1";
 
         switch ($format) {
@@ -236,13 +239,13 @@ class ReleaseNotes extends Command
    * @return string
    *   The d.o project name.
    */
-    protected function getProjectName()
+    protected function getProjectName(): string
     {
       // Execute the command "git config --get remote.origin.url".
         $gitCmd = $this->runProcess('git config --get remote.origin.url');
         if ($gitCmd->getExitCode() != 0) {
             $this->stdOut->writeln("The 'git config' command returned an error.");
-            return 1;
+            return '';
         }
 
       // Check to see if this is a drupal.org project. If not, the remote origin
@@ -255,20 +258,19 @@ class ReleaseNotes extends Command
       // Sandbox projects cannot have releases.
         if (strpos($gitCmd->getOutput(), 'drupal.org/sandbox')) {
             $this->stdOut->writeln("Sandbox projects cannot have releases.");
-            return 1;
+            return '';
         }
 
       // The URL will be in one of these formats:
       // * [username]@git.drupal.org:project/[projectname].git
       // * https://git.drupal.org/project/[projectname].git
         $path = str_replace('.git', '', $gitCmd->getOutput());
-        $path = explode('/', $path);
-        if (count($path) === 0) {
+        if ($path === '') {
             $this->stdOut->writeln("The commits URL could not be discovered.");
-            return 1;
+            return '';
         }
-
-      // Done.
-        return array_pop($path);
+        $path = explode('/', $path);
+        $path = array_pop($path);
+        return $path ?? '';
     }
 }

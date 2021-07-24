@@ -28,14 +28,17 @@ abstract class ProjectCommandBase extends Command
     {
         parent::initialize($input, $output);
 
-        $this->projectName = (string) $this->stdIn->getArgument('project');
-        if ($this->projectName === null) {
+        if (!$this->stdIn->hasArgument('project')) {
             $this->debug("Argument project not provided. Trying to get it from the remote URL of the current repository.");
             $this->projectName = $this->getProjectFromRemote();
-            if ($this->projectName === null) {
+            if ($this->projectName === '') {
                 $this->stdErr->writeln("Failed to find project / machine name from current Git repository.");
                 exit(1);
             }
+        } else {
+            $projectName = $this->stdIn->getArgument('project');
+            assert(is_string($projectName));
+            $this->projectName = $projectName;
         }
 
         // The kanban and link command doesn't need the project data from drupal.org,
