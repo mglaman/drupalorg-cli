@@ -4,10 +4,14 @@ namespace mglaman\DrupalOrgCli;
 
 trait NotificationTrait
 {
-    protected function sendNotification(string $title, string $message): void {
+
+    protected function sendNotification(string $title, string $message): void
+    {
         switch (PHP_OS) {
             case 'Darwin':
-                exec("osascript -e 'display notification \"$message\" with title \"$title\"'");
+                exec(
+                    "osascript -e 'display notification \"$message\" with title \"$title\"'"
+                );
                 break;
 
             case 'Linux':

@@ -18,9 +18,9 @@ use Symfony\Component\Process\Process;
 class ReleaseNotes extends Command
 {
 
-  /**
-   * @var \Gitter\Repository
-   */
+    /**
+     * @var \Gitter\Repository
+     */
     protected \Gitter\Repository $repository;
 
     protected string $cwd;
@@ -50,16 +50,33 @@ class ReleaseNotes extends Command
     protected function configure(): void
     {
         $this
-        ->setName('maintainer:release-notes')
-        ->setAliases(['rn', 'mrn'])
-        ->addArgument('ref1', InputArgument::OPTIONAL, 'Git tag, branch, or SHA')
-        ->addArgument('ref2', InputArgument::OPTIONAL, 'Git tag, branch, or SHA', 'HEAD')
-        ->addOption('format', 'f', InputOption::VALUE_OPTIONAL, 'Output options: json, markdown (md), html. Defaults to HTML.', 'html')
-        ->setDescription('Generate release notes.');
+            ->setName('maintainer:release-notes')
+            ->setAliases(['rn', 'mrn'])
+            ->addArgument(
+                'ref1',
+                InputArgument::OPTIONAL,
+                'Git tag, branch, or SHA'
+            )
+            ->addArgument(
+                'ref2',
+                InputArgument::OPTIONAL,
+                'Git tag, branch, or SHA',
+                'HEAD'
+            )
+            ->addOption(
+                'format',
+                'f',
+                InputOption::VALUE_OPTIONAL,
+                'Output options: json, markdown (md), html. Defaults to HTML.',
+                'html'
+            )
+            ->setDescription('Generate release notes.');
     }
 
-    protected function initialize(InputInterface $input, OutputInterface $output): void
-    {
+    protected function initialize(
+        InputInterface $input,
+        OutputInterface $output
+    ): void {
         parent::initialize($input, $output);
         try {
             $process = new Process(['git', 'rev-parse', '--show-toplevel']);
@@ -74,7 +91,10 @@ class ReleaseNotes extends Command
         }
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output): int {
+    protected function execute(
+        InputInterface $input,
+        OutputInterface $output
+    ): int {
         $ref1 = $this->stdIn->getArgument('ref1');
         $ref2 = $this->stdIn->getArgument('ref2');
         $tags = $this->repository->getTags();
@@ -88,12 +108,17 @@ class ReleaseNotes extends Command
             $this->stdOut->writeln(sprintf('The %s tag is not valid.', $ref1));
             return 1;
         }
-        if (($ref2 !== 'HEAD') && !in_array($ref2, $tags, TRUE)) {
+        if (($ref2 !== 'HEAD') && !in_array($ref2, $tags, true)) {
             $this->stdOut->writeln(sprintf('The %s tag is not valid.', $ref2));
             return 1;
         }
 
-        $gitLogCommand = sprintf('git log -s --pretty=format:%s %s..%s', '%s', $ref1, $ref2);
+        $gitLogCommand = sprintf(
+            'git log -s --pretty=format:%s %s..%s',
+            '%s',
+            $ref1,
+            $ref2
+        );
 
         $gitLog = $this->runProcess([$gitLogCommand]);
         if ($gitLog->getExitCode() !== 0) {
@@ -116,12 +141,15 @@ class ReleaseNotes extends Command
                 // There should always be an issue category, but if not default to `Task.`
                 $issueCategory = $issue->get('field_issue_category') ?? 'Task';
                 $issueCategoryLabel = $this->categoryLabelMap[$issueCategory];
-                $processedChanges[$issueCategoryLabel][$nidsMatches[1]] = $this->formatLine($change, $format);
+                $processedChanges[$issueCategoryLabel][$nidsMatches[1]] = $this->formatLine(
+                    $change,
+                    $format
+                );
             }
         }
         ksort($processedChanges);
 
-      // Work out what the project name is.
+        // Work out what the project name is.
         $project = trim($this->getProjectName());
         if ($project === '') {
             return 1;
@@ -130,53 +158,106 @@ class ReleaseNotes extends Command
 
         switch ($format) {
             case 'json':
-                $this->stdOut->writeln(json_encode($processedChanges, JSON_PRETTY_PRINT));
+                $this->stdOut->writeln(
+                    json_encode($processedChanges, JSON_PRETTY_PRINT)
+                );
                 break;
 
             case 'markdown':
             case 'md':
                 $this->stdOut->writeln('/Add a summary here/');
                 $this->stdOut->writeln('');
-                $this->stdOut->writeln(sprintf('### Contributors (%s)', count($this->users)));
+                $this->stdOut->writeln(
+                    sprintf('### Contributors (%s)', count($this->users))
+                );
                 $this->stdOut->writeln('');
-                $this->stdOut->writeln(implode(', ', array_map(function ($username) use ($format): string {
-                    return $this->formatUsername($username, $format);
-                }, array_keys($this->users))));
+                $this->stdOut->writeln(
+                    implode(
+                        ', ',
+                        array_map(
+                            function ($username) use ($format): string {
+                                return $this->formatUsername(
+                                    $username,
+                                    $format
+                                );
+                            },
+                            array_keys($this->users)
+                        )
+                    )
+                );
                 $this->stdOut->writeln('');
                 $this->stdOut->writeln('### Changelog');
                 $this->stdOut->writeln('');
-                $this->stdOut->writeln(sprintf('**Issues**: %s issues resolved.', count($this->nids)));
+                $this->stdOut->writeln(
+                    sprintf(
+                        '**Issues**: %s issues resolved.',
+                        count($this->nids)
+                    )
+                );
                 $this->stdOut->writeln('');
-                $this->stdOut->writeln(sprintf('Changes since [%s](%s):', $ref1, $ref1url));
+                $this->stdOut->writeln(
+                    sprintf('Changes since [%s](%s):', $ref1, $ref1url)
+                );
                 $this->stdOut->writeln('');
                 foreach ($processedChanges as $changeCategory => $changeCategoryItems) {
-                      $this->stdOut->writeln(sprintf('#### %s', $changeCategory));
-                      $this->stdOut->writeln('');
+                    $this->stdOut->writeln(sprintf('#### %s', $changeCategory));
+                    $this->stdOut->writeln('');
                     foreach ($changeCategoryItems as $change) {
                         $this->stdOut->writeln(sprintf('* %s', $change));
                     }
-                      $this->stdOut->writeln('');
+                    $this->stdOut->writeln('');
                 }
                 break;
 
             case 'html':
             default:
                 $this->stdOut->writeln('<p><em>Add a summary here</em></p>');
-                $this->stdOut->writeln(sprintf('<h3>Contributors (%s)</h3>', count($this->users)));
-                $this->stdOut->writeln(sprintf('<p>%s</p>', implode(', ', array_map(function ($username) use ($format): string {
-                    return $this->formatUsername($username, $format);
-                }, array_keys($this->users)))));
+                $this->stdOut->writeln(
+                    sprintf('<h3>Contributors (%s)</h3>', count($this->users))
+                );
+                $this->stdOut->writeln(
+                    sprintf(
+                        '<p>%s</p>',
+                        implode(
+                            ', ',
+                            array_map(
+                                function ($username) use ($format): string {
+                                    return $this->formatUsername(
+                                        $username,
+                                        $format
+                                    );
+                                },
+                                array_keys($this->users)
+                            )
+                        )
+                    )
+                );
                 $this->stdOut->writeln('<h3>Changelog</h3>');
-                $this->stdOut->writeln(sprintf('<p><strong>Issues:</strong> %s issues resolved.</p>', count($this->nids)));
-                $this->stdOut->writeln(sprintf('<p>Changes since <a href="%s">%s</a>:</p>', $ref1url, $ref1));
+                $this->stdOut->writeln(
+                    sprintf(
+                        '<p><strong>Issues:</strong> %s issues resolved.</p>',
+                        count($this->nids)
+                    )
+                );
+                $this->stdOut->writeln(
+                    sprintf(
+                        '<p>Changes since <a href="%s">%s</a>:</p>',
+                        $ref1url,
+                        $ref1
+                    )
+                );
 
                 foreach ($processedChanges as $changeCategory => $changeCategoryItems) {
-                      $this->stdOut->writeln(sprintf('<h4>%s</h4>', $changeCategory));
-                      $this->stdOut->writeln('<ul>');
+                    $this->stdOut->writeln(
+                        sprintf('<h4>%s</h4>', $changeCategory)
+                    );
+                    $this->stdOut->writeln('<ul>');
                     foreach ($changeCategoryItems as $change) {
-                        $this->stdOut->writeln(sprintf('  <li>%s</li>', $change));
+                        $this->stdOut->writeln(
+                            sprintf('  <li>%s</li>', $change)
+                        );
                     }
-                      $this->stdOut->writeln('</ul>');
+                    $this->stdOut->writeln('</ul>');
                 }
 
                 break;
@@ -184,7 +265,8 @@ class ReleaseNotes extends Command
         return 0;
     }
 
-    protected function formatUsername(string $user, string $format): string {
+    protected function formatUsername(string $user, string $format): string
+    {
         $baseUrl = 'https://www.drupal.org/u/%1$s';
         $userAlias = str_replace(' ', '-', mb_strtolower($user));
         if ($format === 'html') {
@@ -213,7 +295,7 @@ class ReleaseNotes extends Command
 
         $value = preg_replace('/#(\d+)/S', $replacement, $value);
 
-      // Anything between by and ':' is a comma-separated list of usernames.
+        // Anything between by and ':' is a comma-separated list of usernames.
         $value = preg_replace_callback(
             '/by ([^:]+):/S',
             function (array $matches) use ($format): string {
@@ -239,37 +321,39 @@ class ReleaseNotes extends Command
         return $value;
     }
 
-  /**
-   * Extract the project name from the current git repository.
-   *
-   * @return string
-   *   The d.o project name.
-   */
+    /**
+     * Extract the project name from the current git repository.
+     *
+     * @return string
+     *   The d.o project name.
+     */
     protected function getProjectName(): string
     {
-      // Execute the command "git config --get remote.origin.url".
+        // Execute the command "git config --get remote.origin.url".
         $gitCmd = $this->runProcess(['git config --get remote.origin.url']);
         if ($gitCmd->getExitCode() != 0) {
-            $this->stdOut->writeln("The 'git config' command returned an error.");
+            $this->stdOut->writeln(
+                "The 'git config' command returned an error."
+            );
             return '';
         }
 
-      // Check to see if this is a drupal.org project. If not, the remote origin
-      // may be on GitHub. So just use the directory name.
+        // Check to see if this is a drupal.org project. If not, the remote origin
+        // may be on GitHub. So just use the directory name.
         if (!strpos($gitCmd->getOutput(), 'drupal.org')) {
             $parts = explode(DIRECTORY_SEPARATOR, getcwd());
             return end($parts);
         }
 
-      // Sandbox projects cannot have releases.
+        // Sandbox projects cannot have releases.
         if (strpos($gitCmd->getOutput(), 'drupal.org/sandbox')) {
             $this->stdOut->writeln("Sandbox projects cannot have releases.");
             return '';
         }
 
-      // The URL will be in one of these formats:
-      // * [username]@git.drupal.org:project/[projectname].git
-      // * https://git.drupal.org/project/[projectname].git
+        // The URL will be in one of these formats:
+        // * [username]@git.drupal.org:project/[projectname].git
+        // * https://git.drupal.org/project/[projectname].git
         $path = str_replace('.git', '', $gitCmd->getOutput());
         if ($path === '') {
             $this->stdOut->writeln("The commits URL could not be discovered.");

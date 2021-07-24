@@ -16,26 +16,34 @@ class Patch extends IssueCommandBase
     protected function configure(): void
     {
         $this
-        ->setName('issue:patch')
-        ->addArgument('nid', InputArgument::OPTIONAL, 'The issue node ID')
-        ->setDescription('Generate a patch for the issue from committed local changes.');
+            ->setName('issue:patch')
+            ->addArgument('nid', InputArgument::OPTIONAL, 'The issue node ID')
+            ->setDescription(
+                'Generate a patch for the issue from committed local changes.'
+            );
     }
 
-    protected function initialize(InputInterface $input, OutputInterface $output): void
-    {
+    protected function initialize(
+        InputInterface $input,
+        OutputInterface $output
+    ): void {
         parent::initialize($input, $output);
         if ($this->nid !== $this->getNidFromBranch($this->repository)) {
-            $this->stdErr->writeln("NID from argument is different from NID in issue branch name.");
+            $this->stdErr->writeln(
+                "NID from argument is different from NID in issue branch name."
+            );
             exit(1);
         }
     }
 
-  /**
-   * {@inheritdoc}
-   *
-   */
-    protected function execute(InputInterface $input, OutputInterface $output): int
-    {
+    /**
+     * {@inheritdoc}
+     *
+     */
+    protected function execute(
+        InputInterface $input,
+        OutputInterface $output
+    ): int {
         $issue = $this->getNode($this->nid);
 
         $patchName = $this->buildPatchName($issue);
@@ -43,18 +51,27 @@ class Patch extends IssueCommandBase
         if ($this->checkBranch($issue)) {
             $issue_version_branch = $this->getIssueVersionBranchName($issue);
             if (!$this->repository->hasBranch($issue_version_branch)) {
-                $this->stdErr->writeln("Issue branch $issue_version_branch does not exist locally.");
+                $this->stdErr->writeln(
+                    "Issue branch $issue_version_branch does not exist locally."
+                );
                 exit(1);
             }
 
-          // Create a diff from our merge-base commit.
-            $merge_base_cmd = sprintf('$(git merge-base %s HEAD)', $issue_version_branch);
-            $process = new Process(['git', 'diff', '--no-ext-diff', $merge_base_cmd, 'HEAD']);
+            // Create a diff from our merge-base commit.
+            $merge_base_cmd = sprintf(
+                '$(git merge-base %s HEAD)',
+                $issue_version_branch
+            );
+            $process = new Process(
+                ['git', 'diff', '--no-ext-diff', $merge_base_cmd, 'HEAD']
+            );
             $process->run();
 
             $filename = $this->cwd . DIRECTORY_SEPARATOR . $patchName;
             file_put_contents($filename, $process->getOutput());
-            $this->stdOut->writeln("<comment>Patch written to {$filename}</comment>");
+            $this->stdOut->writeln(
+                "<comment>Patch written to {$filename}</comment>"
+            );
 
             $process = new Process(['git', 'diff', $merge_base_cmd, '--stat']);
             $process->setTty(true);
@@ -64,15 +81,27 @@ class Patch extends IssueCommandBase
         return 0;
     }
 
-    protected function buildPatchName(RawResponse $issue): string {
+    protected function buildPatchName(RawResponse $issue): string
+    {
         $cleanTitle = $this->getCleanIssueTitle($issue);
-        return sprintf('%s-%s-%s.patch', $cleanTitle, $issue->get('nid'), ($issue->get('comment_count') + 1));
+        return sprintf(
+            '%s-%s-%s.patch',
+            $cleanTitle,
+            $issue->get('nid'),
+            ($issue->get('comment_count') + 1)
+        );
     }
 
-    protected function checkBranch(RawResponse $issue): bool {
+    protected function checkBranch(RawResponse $issue): bool
+    {
         $issueVersion = $issue->get('field_issue_version');
-        if (strpos($issueVersion, $this->repository->getCurrentBranch()) !== false) {
-            $this->stdOut->writeln("<comment>You do not appear to be working on an issue branch.</comment>");
+        if (strpos(
+            $issueVersion,
+            $this->repository->getCurrentBranch()
+        ) !== false) {
+            $this->stdOut->writeln(
+                "<comment>You do not appear to be working on an issue branch.</comment>"
+            );
             return false;
         }
         return true;

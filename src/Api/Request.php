@@ -4,10 +4,13 @@ namespace mglaman\DrupalOrg;
 
 class Request
 {
+
     public const ASC = 'ASC';
+
     public const DESC = 'DESC';
 
     protected string $baseUri = Client::API_URL;
+
     protected string $endpoint;
 
     /**
@@ -30,11 +33,15 @@ class Request
      *
      * @return string
      */
-    public function getUrl(): string {
-        return $this->baseUri . $this->endpoint . '?' . urldecode(http_build_query($this->getOptions()));
+    public function getUrl(): string
+    {
+        return $this->baseUri . $this->endpoint . '?' . urldecode(
+            http_build_query($this->getOptions())
+        );
     }
 
-    public function setEndpoint(string $endpoint): self {
+    public function setEndpoint(string $endpoint): self
+    {
         $this->endpoint = $endpoint;
         return $this;
     }
@@ -44,23 +51,27 @@ class Request
      *
      * @return array<string, mixed>
      */
-    public function getOptions(): array {
+    public function getOptions(): array
+    {
         return $this->options;
     }
 
     /**
      * @param mixed $value
      */
-    public function setOption(string $key, $value): self {
+    public function setOption(string $key, $value): self
+    {
         $this->options[$key] = $value;
         return $this;
     }
 
-    public function setSort(string $key): self {
+    public function setSort(string $key): self
+    {
         return $this->setOption('sort', $key);
     }
 
-    public function setDirection(string $direction): self {
+    public function setDirection(string $direction): self
+    {
         assert($direction === self::ASC || $direction === self::DESC);
         return $this->setOption('direction', $direction);
     }

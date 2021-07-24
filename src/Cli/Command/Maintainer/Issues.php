@@ -11,21 +11,33 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class Issues extends Command
 {
+
     protected function configure(): void
     {
         $this
-          ->setName('maintainer:issues')
-          ->setAliases(['mi'])
-          ->addArgument('user', InputArgument::REQUIRED, 'The username or uid')
-          ->addArgument('type', InputArgument::OPTIONAL, 'Type of issues: all, rtbc', 'all')
-          ->setDescription('Lists issues for a user, based on maintainer.');
+            ->setName('maintainer:issues')
+            ->setAliases(['mi'])
+            ->addArgument(
+                'user',
+                InputArgument::REQUIRED,
+                'The username or uid'
+            )
+            ->addArgument(
+                'type',
+                InputArgument::OPTIONAL,
+                'Type of issues: all, rtbc',
+                'all'
+            )
+            ->setDescription('Lists issues for a user, based on maintainer.');
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function execute(InputInterface $input, OutputInterface $output): int
-    {
+    protected function execute(
+        InputInterface $input,
+        OutputInterface $output
+    ): int {
         $feed = \Feed::load($this->getFeedUrl());
         /** @var array{'title': string, 'link': string, 'description': string, 'language': string, 'item': array<int, mixed>} $feedArray */
         $feedArray = $feed->toArray();
@@ -34,10 +46,12 @@ class Issues extends Command
 
         $table = new Table($this->stdOut);
         $table->setStyle('symfony-style-guide');
-        $table->setHeaders([
-          'Project',
-          'Title',
-        ]);
+        $table->setHeaders(
+            [
+                'Project',
+                'Title',
+            ]
+        );
 
         $totalItems = count($feedArray['item']);
         $count = 0;
@@ -46,12 +60,16 @@ class Issues extends Command
             $descriptionDom->loadHTML($item['description']);
 
             $linkParts = parse_url($item['link']);
-            $pathPaths = array_values(array_filter(explode('/', $linkParts['path'])));
+            $pathPaths = array_values(
+                array_filter(explode('/', $linkParts['path']))
+            );
 
-            $table->addRow([
-              $pathPaths[1],
-              $item['title'] . PHP_EOL . '<comment>' . $item['link'] . '</comment>',
-            ]);
+            $table->addRow(
+                [
+                    $pathPaths[1],
+                    $item['title'] . PHP_EOL . '<comment>' . $item['link'] . '</comment>',
+                ]
+            );
             $count++;
             if ($count < $totalItems) {
                 $table->addRow(new TableSeparator());
@@ -62,12 +80,14 @@ class Issues extends Command
         return 0;
     }
 
-    protected function getIssueValue(\DOMXPath $xpath, string $class): string {
+    protected function getIssueValue(\DOMXPath $xpath, string $class): string
+    {
         $nodes = $xpath->query("//div[contains(@class,\"$class\")]//div");
         return $nodes->item(2)->nodeValue;
     }
 
-    protected function getIssueStatus(\DOMXPath $xpath): string {
+    protected function getIssueStatus(\DOMXPath $xpath): string
+    {
         $value = $this->getIssueValue($xpath, 'field-name-field-issue-status');
 
         switch ($value) {
@@ -88,7 +108,8 @@ class Issues extends Command
         }
     }
 
-    protected function getFeedUrl(): string {
+    protected function getFeedUrl(): string
+    {
         $uid = $this->stdIn->getArgument('user');
         switch ($this->stdIn->getArgument('type')) {
             case 'rtbc':

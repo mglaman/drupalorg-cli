@@ -1,28 +1,33 @@
 <?php
+
 namespace mglaman\DrupalOrgCli\Command;
 
+use mglaman\DrupalOrg\Client;
 use mglaman\DrupalOrg\RawResponse;
 use mglaman\DrupalOrg\Response;
 use mglaman\DrupalOrgCli\Cache;
-use mglaman\DrupalOrg\Client;
 use Psr\Cache\CacheItemInterface;
-use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\Console\Command\Command as BaseCommand;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
 
 abstract class Command extends BaseCommand
 {
+
     /** @var OutputInterface|null */
     protected ?OutputInterface $stdOut;
+
     /** @var OutputInterface|null */
     protected ?OutputInterface $stdErr;
+
     /** @var  InputInterface|null */
     protected ?InputInterface $stdIn;
+
     /** @var bool */
     protected static bool $interactive = false;
+
     /**
      * @var \mglaman\DrupalOrg\Client
      */
@@ -31,10 +36,13 @@ abstract class Command extends BaseCommand
     /**
      * @inheritdoc
      */
-    protected function initialize(InputInterface $input, OutputInterface $output): void
-    {
+    protected function initialize(
+        InputInterface $input,
+        OutputInterface $output
+    ): void {
         $this->stdOut = $output;
-        $this->stdErr = $output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output;
+        $this->stdErr = $output instanceof ConsoleOutputInterface ? $output->getErrorOutput(
+        ) : $output;
         $this->stdIn = $input;
         self::$interactive = $input->isInteractive();
         $this->client = new Client();
@@ -66,7 +74,10 @@ abstract class Command extends BaseCommand
         return $cached->get();
     }
 
-    protected function getProject(string $machineName, bool $reset = false): Response {
+    protected function getProject(
+        string $machineName,
+        bool $reset = false
+    ): Response {
         $cid = implode('--', ['project', $machineName]);
         $cached = $this->getCacheItem($cid);
         if (!$cached->isHit() || $reset) {
@@ -92,8 +103,10 @@ abstract class Command extends BaseCommand
         return $cached->get();
     }
 
-    protected function getPiftJob(string $jobId, bool $reset = false): RawResponse
-    {
+    protected function getPiftJob(
+        string $jobId,
+        bool $reset = false
+    ): RawResponse {
         $cid = implode('--', ['pift', $jobId]);
         $cached = $this->getCacheItem($cid);
         if (!$cached->isHit() || $reset) {
@@ -134,9 +147,11 @@ abstract class Command extends BaseCommand
 
     /**
      * @param array<int, string> $cmd
+     *
      * @todo most callers need a refactor.
      */
-    protected function runProcess(array $cmd): Process {
+    protected function runProcess(array $cmd): Process
+    {
         $process = new Process($cmd);
         $process->run();
         return $process;

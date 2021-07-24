@@ -9,30 +9,33 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class Completion extends Command
 {
+
     protected function configure(): void
     {
         $this
-          ->setName('complete')
-          ->setDescription('List commands for (Bash) completion');
+            ->setName('complete')
+            ->setDescription('List commands for (Bash) completion');
     }
 
     /**
      * {@inheritdoc}
      *
      */
-    protected function execute(InputInterface $input, OutputInterface $output): int
-    {
+    protected function execute(
+        InputInterface $input,
+        OutputInterface $output
+    ): int {
         $command = $this->getApplication()->find('list');
 
         $arguments = [
-            '--format' => 'json'
+            '--format' => 'json',
         ];
 
         $buffered_output = new BufferedOutput();
         $command->run(new ArrayInput($arguments), $buffered_output);
         $commandListArray = json_decode(
             $buffered_output->fetch(),
-            TRUE,
+            true,
             512,
             JSON_THROW_ON_ERROR
         );

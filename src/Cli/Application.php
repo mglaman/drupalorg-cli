@@ -7,13 +7,16 @@ use Symfony\Component\Console\Command\HelpCommand;
 
 class Application extends ParentApplication
 {
+
     /**
      * {@inheritdoc}
      */
     public function __construct()
     {
         try {
-            $version = \Jean85\PrettyVersions::getVersion('mglaman/drupalorg-cli')->getPrettyVersion();
+            $version = \Jean85\PrettyVersions::getVersion(
+                'mglaman/drupalorg-cli'
+            )->getPrettyVersion();
         } catch (\OutOfBoundsException $e) {
             $version = '0.0.0';
         }
@@ -25,14 +28,16 @@ class Application extends ParentApplication
     /**
      * @inheritdoc
      */
-    protected function getDefaultCommands(): array {
-        return array(new HelpCommand(), new Command\ListCommand());
+    protected function getDefaultCommands(): array
+    {
+        return [new HelpCommand(), new Command\ListCommand()];
     }
 
     /**
      * @return \Symfony\Component\Console\Command\Command[]
      */
-    public function getCommands(): array {
+    public function getCommands(): array
+    {
         static $commands = [];
         if (count($commands) > 0) {
             return $commands;
@@ -73,7 +78,10 @@ class Application extends ParentApplication
             // Mac OS X (and older Linuxes)
             // /etc/localtime is a symlink to the timezone in /usr/share/zoneinfo.
             $filename = readlink('/etc/localtime');
-            if ($filename !== false && strpos($filename, '/usr/share/zoneinfo/') === 0) {
+            if ($filename !== false && strpos(
+                $filename,
+                '/usr/share/zoneinfo/'
+            ) === 0) {
                 $timezone = substr($filename, 20);
             }
         } elseif (file_exists('/etc/timezone')) {

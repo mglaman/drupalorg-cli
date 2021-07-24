@@ -58,7 +58,8 @@ abstract class ProjectCommandBase extends Command
      * @return string
      *   The project name.
      */
-    protected function getProjectFromRemote(): string {
+    protected function getProjectFromRemote(): string
+    {
         $process = new Process((array) 'git config --get remote.origin.url');
         $process->run();
         $remote_url = trim($process->getOutput());
