@@ -15,7 +15,7 @@ class Watch extends Command
 {
     use NotificationTrait;
 
-    protected function configure()
+    protected function configure(): void
     {
         $this
           ->setName('travisci:watch')
@@ -47,10 +47,10 @@ class Watch extends Command
 
         $progress = new ProgressBar($this->stdOut);
         $progress->start();
-        if ($build->state == 'finished') {
+        if ($build->state === 'finished') {
             $progress->advance();
         } else {
-            while ($build->state != 'finished') {
+            while ($build->state !== 'finished') {
                 $progress->advance();
                 sleep(60);
                 $build = $this->getBuild($client, $buildId);
@@ -89,12 +89,12 @@ class Watch extends Command
         return 0;
     }
 
-    protected function getBuild(Client $client, $buildId)
+    protected function getBuild(Client $client, string $buildId): object
     {
         $response = $client->request('GET', "builds/$buildId");
-        if ($response->getStatusCode() != 200) {
+        if ($response->getStatusCode() !== 200) {
             exit(1);
         }
-        return json_decode((string) $response->getBody());
+        return json_decode((string) $response->getBody(), false, 512, JSON_THROW_ON_ERROR);
     }
 }

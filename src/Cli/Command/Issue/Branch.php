@@ -9,7 +9,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 class Branch extends IssueCommandBase
 {
 
-    protected function configure()
+    protected function configure(): void
     {
         $this
         ->setName('issue:branch')

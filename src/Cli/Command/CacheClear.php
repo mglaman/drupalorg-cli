@@ -8,7 +8,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class CacheClear extends Command
 {
-    protected function configure()
+    protected function configure(): void
     {
         $this
           ->setName('cache:clear')

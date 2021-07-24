@@ -9,12 +9,15 @@ class RawResponse
      */
     protected $response;
 
-    public function __construct($response)
+    public function __construct(string $response)
     {
-        $this->response = json_decode($response);
+        $this->response = json_decode($response, false, 512, JSON_THROW_ON_ERROR);
     }
 
-    public function get($key)
+    /**
+     * @return mixed|null
+     */
+    public function get(string $key)
     {
         if (property_exists($this->response, $key)) {
             return $this->response->{$key};

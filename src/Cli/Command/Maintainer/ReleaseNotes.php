@@ -25,19 +25,29 @@ class ReleaseNotes extends Command
 
     protected string $cwd;
 
+    /**
+     * @var array<string, string>
+     */
     protected array $nids = [];
+
+    /**
+     * @var array<string, int>
+     */
     protected array $users = [];
 
+    /**
+     * @var array<int, string>
+     */
     protected array $categoryLabelMap = [
-    0 => 'Misc',
-    1 => 'Bug',
-    2 => 'Task',
-    3 => 'Feature',
-    4 => 'Support',
-    5 => 'Plan',
+        0 => 'Misc',
+        1 => 'Bug',
+        2 => 'Task',
+        3 => 'Feature',
+        4 => 'Support',
+        5 => 'Plan',
     ];
 
-    protected function configure()
+    protected function configure(): void
     {
         $this
         ->setName('maintainer:release-notes')
@@ -48,11 +58,11 @@ class ReleaseNotes extends Command
         ->setDescription('Generate release notes.');
     }
 
-    protected function initialize(InputInterface $input, OutputInterface $output)
+    protected function initialize(InputInterface $input, OutputInterface $output): void
     {
         parent::initialize($input, $output);
         try {
-            $process = new Process('git rev-parse --show-toplevel');
+            $process = new Process(['git', 'rev-parse', '--show-toplevel']);
             $process->run();
             $repository_dir = trim($process->getOutput());
             $this->cwd = $repository_dir;
@@ -64,10 +74,6 @@ class ReleaseNotes extends Command
         }
     }
 
-  /**
-   * {@inheritdoc}
-   *
-   */
     protected function execute(InputInterface $input, OutputInterface $output): int {
         $ref1 = $this->stdIn->getArgument('ref1');
         $ref2 = $this->stdIn->getArgument('ref2');
@@ -89,8 +95,8 @@ class ReleaseNotes extends Command
 
         $gitLogCommand = sprintf('git log -s --pretty=format:%s %s..%s', '%s', $ref1, $ref2);
 
-        $gitLog = $this->runProcess($gitLogCommand);
-        if ($gitLog->getExitCode() != 0) {
+        $gitLog = $this->runProcess([$gitLogCommand]);
+        if ($gitLog->getExitCode() !== 0) {
             $this->stdOut->writeln('Error getting commit log');
             return 1;
         }
@@ -178,12 +184,12 @@ class ReleaseNotes extends Command
         return 0;
     }
 
-    protected function formatUsername($user, $format): string {
+    protected function formatUsername(string $user, string $format): string {
         $baseUrl = 'https://www.drupal.org/u/%1$s';
         $userAlias = str_replace(' ', '-', mb_strtolower($user));
-        if ($format == 'html') {
+        if ($format === 'html') {
             $replacement = '<a href="' . $baseUrl . '">%2$s</a>';
-        } elseif ($format == 'markdown' || $format == 'md') {
+        } elseif ($format === 'markdown' || $format === 'md') {
             $replacement = '[%2$s](' . $baseUrl . ')';
         } else {
             $replacement = '%2$s';
@@ -191,15 +197,15 @@ class ReleaseNotes extends Command
         return sprintf($replacement, $userAlias, $user);
     }
 
-    protected function formatLine($value, $format)
+    protected function formatLine(string $value, string $format): string
     {
         $value = preg_replace('/^(Patch |- |Issue ){0,3}/', '', $value);
 
         $baseUrl = 'https://www.drupal.org/node/$1';
 
-        if ($format == 'html') {
+        if ($format === 'html') {
             $replacement = sprintf('<a href="%s">#$1</a>', $baseUrl);
-        } elseif ($format == 'markdown' || $format == 'md') {
+        } elseif ($format === 'markdown' || $format === 'md') {
             $replacement = sprintf('[#$1](%s)', $baseUrl);
         } else {
             $replacement = '#$1';
@@ -242,7 +248,7 @@ class ReleaseNotes extends Command
     protected function getProjectName(): string
     {
       // Execute the command "git config --get remote.origin.url".
-        $gitCmd = $this->runProcess('git config --get remote.origin.url');
+        $gitCmd = $this->runProcess(['git config --get remote.origin.url']);
         if ($gitCmd->getExitCode() != 0) {
             $this->stdOut->writeln("The 'git config' command returned an error.");
             return '';

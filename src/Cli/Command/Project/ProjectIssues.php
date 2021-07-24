@@ -12,7 +12,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class ProjectIssues extends ProjectCommandBase
 {
-    protected function configure()
+    protected function configure(): void
     {
         $this
           ->setName('project:issues')
@@ -81,7 +81,7 @@ class ProjectIssues extends ProjectCommandBase
             $item = $iterator->current();
             $table->addRow([
             $item->nid,
-            $this->getIssueStatus($item->field_issue_status),
+            $this->getIssueStatus((int) $item->field_issue_status),
             $item->title . PHP_EOL . '<comment>https://www.drupal.org/node/' . $item->nid . '</comment>',
             ]);
             $iterator->next();
@@ -95,7 +95,7 @@ class ProjectIssues extends ProjectCommandBase
         return 0;
     }
 
-    protected function getIssueStatus($value): string {
+    protected function getIssueStatus(int $value): string {
         switch ($value) {
             case 1:
                 return '<comment>Active</comment>';
@@ -110,7 +110,7 @@ class ProjectIssues extends ProjectCommandBase
             case 14:
                 return '<info>RTBC</info>';
             default:
-                return $value;
+                return (string) $value;
         }
     }
 }

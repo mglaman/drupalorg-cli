@@ -13,7 +13,7 @@ use Symfony\Component\Console\Question\ChoiceQuestion;
 
 class ListBuilds extends Command
 {
-    protected function configure()
+    protected function configure(): void
     {
         $this
           ->setName('travisci:list')
@@ -28,7 +28,9 @@ class ListBuilds extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $project = $this->slugMapping($this->stdIn->getArgument('slug'));
+        $slug = $this->stdIn->getArgument('slug');
+        assert(is_string($slug));
+        $project = $this->slugMapping($slug);
         $this->debug("TravisCI slug: $project");
 
         $client = new Client([
@@ -104,7 +106,7 @@ class ListBuilds extends Command
         return 0;
     }
 
-    protected function slugMapping($project)
+    protected function slugMapping(string $project): string
     {
         $maps = [
             'commerce' => 'drupalcommerce/commerce',

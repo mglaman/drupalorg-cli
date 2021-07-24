@@ -11,7 +11,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class Issues extends Command
 {
-    protected function configure()
+    protected function configure(): void
     {
         $this
           ->setName('maintainer:issues')
@@ -62,7 +62,7 @@ class Issues extends Command
         return 0;
     }
 
-    protected function getIssueValue(\DOMXPath $xpath, $class): string {
+    protected function getIssueValue(\DOMXPath $xpath, string $class): string {
         $nodes = $xpath->query("//div[contains(@class,\"$class\")]//div");
         return $nodes->item(2)->nodeValue;
     }

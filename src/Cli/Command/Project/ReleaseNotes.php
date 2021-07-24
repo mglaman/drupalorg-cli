@@ -9,7 +9,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class ReleaseNotes extends ProjectCommandBase
 {
-    protected function configure()
+    protected function configure(): void
     {
         $this
           ->setName('project:release-notes')
@@ -55,11 +55,10 @@ class ReleaseNotes extends ProjectCommandBase
         return 0;
     }
 
-    protected function processReleaseNotes($body)
+    protected function processReleaseNotes(string $body): string
     {
         $body = html_entity_decode($body);
         $body = strip_tags($body, '<p><li>');
-        $body = str_replace(['<p>', '</p>', '<li>', '</li>'], ['', PHP_EOL, '  <options=bold>*</> ', ''], $body);
-        return $body;
+        return str_replace(['<p>', '</p>', '<li>', '</li>'], ['', PHP_EOL, '  <options=bold>*</> ', ''], $body);
     }
 }

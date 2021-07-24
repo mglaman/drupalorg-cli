@@ -10,7 +10,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 class Apply extends IssueCommandBase
 {
 
-    protected function configure()
+    protected function configure(): void
     {
         $this
         ->setName('issue:apply')
@@ -37,7 +37,7 @@ class Apply extends IssueCommandBase
 
         if ($this->repository !== null) {
             $exitCode = $this->applyWithGit($issue, $patchFileName);
-        } elseif (shell_exec("command -v patch; echo $?") == 0) {
+        } elseif ((int) shell_exec("command -v patch; echo $?") === 0) {
             $exitCode = $this->applyWithPatch($patchFileName);
         } else {
             $this->stdErr->writeln('This is not a Git repository and the `patch` command is not available.');
@@ -48,7 +48,7 @@ class Apply extends IssueCommandBase
         return $exitCode;
     }
 
-    protected function applyWithGit($issue, $patchFileName): int {
+    protected function applyWithGit(RawResponse $issue, string $patchFileName): int {
         // Validate the issue versions branch, create or checkout issue branch.
         $issueBranchCommand = $this->getApplication()->find('issue:branch');
         $issueBranchCommand->run($this->stdIn, $this->stdOut);
@@ -65,8 +65,8 @@ class Apply extends IssueCommandBase
         $this->repository->createBranch($tempBranchName);
         $this->repository->checkout($tempBranchName);
 
-        $applyPatchProcess = $this->runProcess(sprintf('git apply -v --index %s', $patchFileName));
-        if ($applyPatchProcess->getExitCode() != 0) {
+        $applyPatchProcess = $this->runProcess([sprintf('git apply -v --index %s', $patchFileName)]);
+        if ($applyPatchProcess->getExitCode() !== 0) {
             $this->stdOut->writeln('<error>Failed to apply the patch</error>');
             $this->stdOut->writeln($applyPatchProcess->getOutput());
             return 1;
@@ -77,7 +77,7 @@ class Apply extends IssueCommandBase
         // Check out existing issue branch for three way merge.
         $this->stdOut->writeln(sprintf('<comment>%s</comment>', "Checking out $branchName and merging"));
         $this->repository->checkout($branchName);
-        $merge = $this->runProcess(sprintf('git merge %s --strategy recursive -X theirs', $tempBranchName));
+        $merge = $this->runProcess([sprintf('git merge %s --strategy recursive -X theirs', $tempBranchName)]);
 
         if ($merge->getExitCode() != 0) {
             $this->stdOut->writeln('<error>Failed to apply the patch</error>');
@@ -85,19 +85,19 @@ class Apply extends IssueCommandBase
             return 1;
         }
 
-        $process = $this->runProcess(sprintf('git branch -D %s', $tempBranchName));
+        $process = $this->runProcess([sprintf('git branch -D %s', $tempBranchName)]);
         return $process->getExitCode();
     }
 
-    protected function applyWithPatch($patchFileName): int
+    protected function applyWithPatch(string $patchFileName): int
     {
-        $process = $this->runProcess(sprintf('patch -p1 < %s', $patchFileName));
+        $process = $this->runProcess([sprintf('patch -p1 < %s', $patchFileName)]);
         if ($process->getExitCode() !== 0) {
             $this->stdOut->writeln('<error>Failed to apply the patch</error>');
             $this->stdOut->writeln($process->getOutput());
             return 1;
         }
-        return 0;
+        return $process->getExitCode();
     }
 
     protected function getPatchFileUrl(RawResponse $issue): string

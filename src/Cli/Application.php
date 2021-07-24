@@ -66,26 +66,26 @@ class Application extends ParentApplication
      * so it needs to be done manually.
      * UTC is the fallback in case autodetection fails.
      */
-    protected function setDefaultTimezone()
+    protected function setDefaultTimezone(): void
     {
         $timezone = 'UTC';
         if (is_link('/etc/localtime')) {
             // Mac OS X (and older Linuxes)
             // /etc/localtime is a symlink to the timezone in /usr/share/zoneinfo.
             $filename = readlink('/etc/localtime');
-            if (strpos($filename, '/usr/share/zoneinfo/') === 0) {
+            if ($filename !== false && strpos($filename, '/usr/share/zoneinfo/') === 0) {
                 $timezone = substr($filename, 20);
             }
         } elseif (file_exists('/etc/timezone')) {
             // Ubuntu / Debian.
             $data = file_get_contents('/etc/timezone');
-            if ($data) {
+            if ($data !== false && $data !== '') {
                 $timezone = trim($data);
             }
         } elseif (file_exists('/etc/sysconfig/clock')) {
             // RHEL/CentOS
             $data = parse_ini_file('/etc/sysconfig/clock');
-            if (isset($data['ZONE'])) {
+            if ($data !== false && isset($data['ZONE'])) {
                 $timezone = trim($data['ZONE']);
             }
         }

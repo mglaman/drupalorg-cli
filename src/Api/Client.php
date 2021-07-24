@@ -45,16 +45,19 @@ class Client
         return $this->request(new Request('node/' . $nid));
     }
 
-    public function getFile($fid): Response {
+    public function getFile(string $fid): Response {
         return $this->request(new Request('file/' . $fid));
     }
 
-    public function getPiftJob($jobId): Response {
+    public function getPiftJob(string $jobId): Response {
         return $this->request(new Request('pift_ci_job/' . $jobId, [
             'time' => time(),
         ]));
     }
 
+    /**
+     * @param array<string, mixed> $options
+     */
     public function getPiftJobs(array $options): Response {
         $options += [
           'sort' => 'job_id',
@@ -71,11 +74,14 @@ class Client
         return $this->request($request);
     }
 
-    public function getProjectReleases($projectNid, array $options = []): Response {
+    /**
+     * @param array<string, mixed> $options
+     */
+    public function getProjectReleases(string $projectNid, array $options = []): Response {
         $options += [
           'field_release_project' => $projectNid,
           'type' => 'project_release',
-            // No Dec by default.
+            // No `dev` by default.
           'field_release_build_type' => 'static',
           'sort' => 'nid',
           'direction' => 'DESC',

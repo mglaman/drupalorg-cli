@@ -9,13 +9,15 @@ class Request
 
     protected string $baseUri = Client::API_URL;
     protected string $endpoint;
+
+    /**
+     * @var array<string, mixed>
+     */
     protected array $options = [];
 
     /**
-     * Request constructor.
-     *
      * @param string $endpoint
-     * @param array $options
+     * @param array<string, mixed> $options
      */
     public function __construct(string $endpoint = '', array $options = [])
     {
@@ -40,13 +42,16 @@ class Request
     /**
      * Get the request options.
      *
-     * @return array
+     * @return array<string, mixed>
      */
     public function getOptions(): array {
         return $this->options;
     }
 
-    public function setOption($key, $value): self {
+    /**
+     * @param mixed $value
+     */
+    public function setOption(string $key, $value): self {
         $this->options[$key] = $value;
         return $this;
     }

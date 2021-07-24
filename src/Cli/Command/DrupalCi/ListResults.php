@@ -12,7 +12,7 @@ use Symfony\Component\Console\Question\ChoiceQuestion;
 
 class ListResults extends Command
 {
-    protected function configure()
+    protected function configure(): void
     {
         $this
           ->setName('drupalci:list')

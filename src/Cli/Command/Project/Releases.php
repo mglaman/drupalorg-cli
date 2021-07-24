@@ -11,7 +11,7 @@ use Symfony\Component\Console\Question\ChoiceQuestion;
 
 class Releases extends ProjectCommandBase
 {
-    protected function configure()
+    protected function configure(): void
     {
         $this
           ->setName('project:releases')

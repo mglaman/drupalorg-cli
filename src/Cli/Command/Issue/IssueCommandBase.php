@@ -29,16 +29,16 @@ abstract class IssueCommandBase extends Command
    */
     protected string $nid;
 
-    protected function initialize(InputInterface $input, OutputInterface $output)
+    protected function initialize(InputInterface $input, OutputInterface $output): void
     {
         parent::initialize($input, $output);
         $this->initRepo();
 
-        $this->nid = $this->stdIn->getArgument('nid');
+        $this->nid = (string) $this->stdIn->getArgument('nid');
         if ($this->nid === null) {
             $this->debug("Argument nid not provided. Trying to get it from current branch name.");
             $this->nid = $this->getNidFromBranch($this->repository);
-            if ($this->nid === null) {
+            if ($this->nid === '') {
                 $this->stdErr->writeln("Argument nid not provided and not able to get it from current branch name - aborting.");
                 exit(1);
             }
@@ -48,7 +48,7 @@ abstract class IssueCommandBase extends Command
   /**
    * Initializes repository for current directory.
    */
-    protected function initRepo()
+    protected function initRepo(): void
     {
         if ($this->repository !== null) {
             $this->debug("Repository already initialized.");
@@ -57,7 +57,7 @@ abstract class IssueCommandBase extends Command
 
 
         try {
-            $process = new Process('git rev-parse --show-toplevel');
+            $process = new Process(['git', 'rev-parse', '--show-toplevel']);
             $process->run();
             $repository_dir = trim($process->getOutput());
             $this->cwd = $repository_dir;
@@ -149,8 +149,8 @@ abstract class IssueCommandBase extends Command
    * @return string
    *   The node id.
    */
-    protected function getNidFromBranch(Repository $repo): ?string {
+    protected function getNidFromBranch(Repository $repo): string {
         $branch = $repo->getHead();
-        return (preg_match('/(\d+)-/', $branch, $matches) ?  $matches[1] : null);
+        return (preg_match('/(\d+)-/', $branch, $matches) ?  $matches[1] : '');
     }
 }

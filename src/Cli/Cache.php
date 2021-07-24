@@ -8,7 +8,7 @@ use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 class Cache
 {
 
-    protected static $cache;
+    protected static FilesystemAdapter $cache;
 
     public static function getCache(): FilesystemAdapter
     {
@@ -17,7 +17,6 @@ class Cache
             if (!is_dir($tmpPath) && !mkdir($tmpPath) && !is_dir($tmpPath)) {
                 throw new \RuntimeException(sprintf('Directory "%s" was not created', $tmpPath));
             }
-            // @todo doctrine/cache is deprecated for PHP-FIG PSR-16.
             self::$cache = new FilesystemAdapter(
               '',
               0,

@@ -11,7 +11,7 @@ class Kanban extends ProjectCommandBase
 {
     use BrowserTrait;
 
-    protected function configure()
+    protected function configure(): void
     {
         $this
           ->setName('project:kanban')
@@ -19,10 +19,6 @@ class Kanban extends ProjectCommandBase
           ->setDescription('Opens project kanban');
     }
 
-    /**
-     * {@inheritdoc}
-     *
-     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->openUrl('https://contribkanban.com/board/' . $this->projectName, $this->stdErr, $this->stdOut);

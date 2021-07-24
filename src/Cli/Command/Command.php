@@ -31,7 +31,7 @@ abstract class Command extends BaseCommand
     /**
      * @inheritdoc
      */
-    protected function initialize(InputInterface $input, OutputInterface $output)
+    protected function initialize(InputInterface $input, OutputInterface $output): void
     {
         $this->stdOut = $output;
         $this->stdErr = $output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output;
@@ -40,7 +40,7 @@ abstract class Command extends BaseCommand
         $this->client = new Client();
     }
 
-    protected function debug($message)
+    protected function debug(string $message): void
     {
         if ($this->stdOut->getVerbosity() > OutputInterface::VERBOSITY_NORMAL) {
             $this->stdOut->writeln('<comment>' . $message . '</comment>');
@@ -113,14 +113,14 @@ abstract class Command extends BaseCommand
     /**
      * Wrapper method to get PIFT jobs, using cache.
      *
-     * @param array $options
+     * @param array<string, mixed> $options
      * @param bool $reset
      *
      * @return false|\mglaman\DrupalOrg\RawResponse|mixed
      */
     protected function getPiftJobs(array $options, bool $reset = false)
     {
-        $cid = implode('--', ['pift:jobs:', implode(':', $options)]);
+        $cid = implode('--', ['pift--jobs:', implode('--', $options)]);
         $cached = $this->getCacheItem($cid);
         if (!$cached->isHit() || $reset) {
             $this->debug("Cache MISS for $cid");
@@ -132,7 +132,11 @@ abstract class Command extends BaseCommand
         return $cached->get();
     }
 
-    protected function runProcess($cmd): Process {
+    /**
+     * @param array<int, string> $cmd
+     * @todo most callers need a refactor.
+     */
+    protected function runProcess(array $cmd): Process {
         $process = new Process($cmd);
         $process->run();
         return $process;

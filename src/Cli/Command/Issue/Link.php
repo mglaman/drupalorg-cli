@@ -17,7 +17,7 @@ class Link extends IssueCommandBase
 {
     use BrowserTrait;
 
-    protected function configure()
+    protected function configure(): void
     {
         $this
           ->setName('issue:link')

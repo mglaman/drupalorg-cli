@@ -14,7 +14,7 @@ class Watch extends Command
 {
     use NotificationTrait;
 
-    protected function configure()
+    protected function configure(): void
     {
         $this
           ->setName('drupalci:watch')

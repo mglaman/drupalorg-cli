@@ -17,7 +17,7 @@ class Interdiff extends IssueCommandBase
     /**
      * {@inheritdoc}
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this
         ->setName('issue:interdiff')
@@ -28,10 +28,10 @@ class Interdiff extends IssueCommandBase
     /**
      * {@inheritdoc}
      */
-    protected function initialize(InputInterface $input, OutputInterface $output)
+    protected function initialize(InputInterface $input, OutputInterface $output): void
     {
         parent::initialize($input, $output);
-        if ($this->nid != $this->getNidFromBranch($this->repository)) {
+        if ($this->nid !== $this->getNidFromBranch($this->repository)) {
             $this->stdErr->writeln("NID from argument is different from NID in issue branch name.");
             exit(1);
         }
@@ -55,7 +55,7 @@ class Interdiff extends IssueCommandBase
         }
 
         // Find the two last commits on the issue branch.
-        $process = new Process(sprintf('git log -2 %s..HEAD --format=%%H', $issue_version_branch));
+        $process = new Process(['git', 'log', '-2', "$issue_version_branch..HEAD", '--format=%%H']);
         $process->run();
         $last_issue_branch_commits = explode(PHP_EOL, $process->getOutput());
         $last_issue_branch_commits = array_filter(array_map('trim', $last_issue_branch_commits));
@@ -66,13 +66,13 @@ class Interdiff extends IssueCommandBase
 
         // Create a diff between two last commits of the issue branch. (Reverse order of output from "git log".)
         $diff_cmd = sprintf('git diff %s', implode(" ", array_reverse($last_issue_branch_commits)));
-        $process = new Process($diff_cmd);
+        $process = new Process([$diff_cmd]);
         $process->run();
         $filename = $this->cwd . DIRECTORY_SEPARATOR . $this->buildInterdiffName($issue);
         file_put_contents($filename, $process->getOutput());
         $this->stdOut->writeln("<comment>Interdiff written to {$filename}</comment>");
 
-        $process = new Process("$diff_cmd --stat");
+        $process = new Process([$diff_cmd, '--stat']);
         $process->setTty(true);
         $process->run();
         $this->stdOut->write($process->getOutput());
@@ -117,7 +117,7 @@ class Interdiff extends IssueCommandBase
      * @param \mglaman\DrupalOrg\RawResponse $issue
      *   The issue raw response.
      *
-     * @return array
+     * @return array<string, int>
      *   Array of comment index numbers, indexed by comment ID.
      */
     protected function getCommentIndex(RawResponse $issue): array {

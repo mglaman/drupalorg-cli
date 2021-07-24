@@ -13,7 +13,7 @@ class Patch extends IssueCommandBase
 
     protected string $cwd;
 
-    protected function configure()
+    protected function configure(): void
     {
         $this
         ->setName('issue:patch')
@@ -21,10 +21,10 @@ class Patch extends IssueCommandBase
         ->setDescription('Generate a patch for the issue from committed local changes.');
     }
 
-    protected function initialize(InputInterface $input, OutputInterface $output)
+    protected function initialize(InputInterface $input, OutputInterface $output): void
     {
         parent::initialize($input, $output);
-        if ($this->nid != $this->getNidFromBranch($this->repository)) {
+        if ($this->nid !== $this->getNidFromBranch($this->repository)) {
             $this->stdErr->writeln("NID from argument is different from NID in issue branch name.");
             exit(1);
         }
@@ -49,14 +49,14 @@ class Patch extends IssueCommandBase
 
           // Create a diff from our merge-base commit.
             $merge_base_cmd = sprintf('$(git merge-base %s HEAD)', $issue_version_branch);
-            $process = new Process(sprintf('git diff --no-ext-diff %s HEAD', $merge_base_cmd));
+            $process = new Process(['git', 'diff', '--no-ext-diff', $merge_base_cmd, 'HEAD']);
             $process->run();
 
             $filename = $this->cwd . DIRECTORY_SEPARATOR . $patchName;
             file_put_contents($filename, $process->getOutput());
             $this->stdOut->writeln("<comment>Patch written to {$filename}</comment>");
 
-            $process = new Process(sprintf('git diff %s --stat', $merge_base_cmd));
+            $process = new Process(['git', 'diff', $merge_base_cmd, '--stat']);
             $process->setTty(true);
             $process->run();
             $this->stdOut->write($process->getOutput());
