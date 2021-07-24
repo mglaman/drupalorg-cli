@@ -2,22 +2,20 @@
 
 namespace mglaman\DrupalOrgCli;
 
+use Joli\JoliNotif\Notification;
+use Joli\JoliNotif\NotifierFactory;
+
 trait NotificationTrait
 {
 
-    protected function sendNotification(string $title, string $message): void
+    protected function sendNotification(string $title, string $message, string $icon = ''): void
     {
-        switch (PHP_OS) {
-            case 'Darwin':
-                exec(
-                    "osascript -e 'display notification \"$message\" with title \"$title\"'"
-                );
-                break;
-
-            case 'Linux':
-                // This is actually only Ubuntu.
-                exec("notify-send $message");
-                break;
+        $notification = (new Notification())
+            ->setTitle($title)
+            ->setBody($message);
+        if ($icon !== '') {
+            $notification->setIcon($icon);
         }
+        NotifierFactory::create()->send($notification);
     }
 }

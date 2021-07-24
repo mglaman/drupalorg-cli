@@ -47,7 +47,20 @@ class Watch extends Command
             }
         }
         $progress->finish();
-        $this->sendNotification('DrupalCI', "DrupalCI test {$jobId} completed");
+
+        $result = $job->get('result');
+
+        if ($result === 'pass') {
+            $suffix = 'passed';
+            $icon = '';
+        } elseif ($result === 'fail') {
+            $suffix = 'failed';
+            $icon = '';
+        } else {
+            $suffix = 'completed';
+            $icon = '';
+        }
+        $this->sendNotification('DrupalCI', "Job #{$jobId} {$suffix}", $icon);
         $this->stdOut->writeln('');
 
         $table = new Table($this->stdOut);
@@ -59,9 +72,9 @@ class Watch extends Command
         ]);
         $patch = $this->client->getFile($job->get('file_id'));
 
-        if ($job->get('result') === 'pass') {
+        if ($result === 'pass') {
             $style = 'info';
-        } elseif ($job->get('result') === 'fail') {
+        } elseif ($result === 'fail') {
             $style = 'error';
         } else {
             $style = 'comment';

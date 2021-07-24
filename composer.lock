@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "12388f22235bb8628d5711413a327aed",
+    "content-hash": "bea7f86c69b4c4a0f417bba3618440d1",
     "packages": [
         {
             "name": "composer/ca-bundle",
@@ -592,6 +592,73 @@
                 "source": "https://github.com/Jean85/pretty-package-versions/tree/1.6.0"
             },
             "time": "2021-02-04T16:20:16+00:00"
+        },
+        {
+            "name": "jolicode/jolinotif",
+            "version": "v2.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jolicode/JoliNotif.git",
+                "reference": "9cca717bbc47aa2ffeca51d77daa13b824a489ee"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jolicode/JoliNotif/zipball/9cca717bbc47aa2ffeca51d77daa13b824a489ee",
+                "reference": "9cca717bbc47aa2ffeca51d77daa13b824a489ee",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.0",
+                "symfony/process": "^3.3|^4.0|^5.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^2.0",
+                "symfony/finder": "^3.3|^4.0|^5.0",
+                "symfony/phpunit-bridge": "^3.4.26|^4.0|^5.0"
+            },
+            "bin": [
+                "jolinotif"
+            ],
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.3.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Joli\\JoliNotif\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Loïck Piera",
+                    "email": "pyrech@gmail.com"
+                }
+            ],
+            "description": "Send desktop notifications on Windows, Linux, MacOS.",
+            "keywords": [
+                "MAC",
+                "growl",
+                "linux",
+                "notification",
+                "windows"
+            ],
+            "support": {
+                "issues": "https://github.com/jolicode/JoliNotif/issues",
+                "source": "https://github.com/jolicode/JoliNotif/tree/v2.3.0"
+            },
+            "funding": [
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/jolicode/jolinotif",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2021-03-07T12:30:00+00:00"
         },
         {
             "name": "klaussilveira/gitter",
