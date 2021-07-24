@@ -23,6 +23,11 @@
             "mglaman\\DrupalOrg\\": "src/Api"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "mglaman\\DrupalOrg\\Tests\\": "tests/src"
+        }
+    },
     "authors": [
         {
             "name": "Matt Glaman",
@@ -51,6 +56,7 @@
         "phpstan/phpstan-deprecation-rules": "^0.12.2",
         "phpstan/phpstan-strict-rules": "^0.12.2",
         "phpstan/phpstan-symfony": "^0.12.6",
+        "phpunit/phpunit": "^9.5",
         "squizlabs/php_codesniffer": "^3.5"
     }
 }

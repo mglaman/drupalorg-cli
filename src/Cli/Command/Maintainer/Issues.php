@@ -16,7 +16,7 @@ class Issues extends Command
         $this
           ->setName('maintainer:issues')
           ->setAliases(['mi'])
-          ->addArgument('uid', InputArgument::REQUIRED, 'The user ID')
+          ->addArgument('user', InputArgument::REQUIRED, 'The username or uid')
           ->addArgument('type', InputArgument::OPTIONAL, 'Type of issues: all, rtbc', 'all')
           ->setDescription('Lists issues for a user, based on maintainer.');
     }
@@ -27,10 +27,10 @@ class Issues extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $feed = \Feed::load($this->getFeedUrl());
-        assert(property_exists($feed, 'title'));
-        assert(property_exists($feed, 'item'));
+        /** @var array{'title': string, 'link': string, 'description': string, 'language': string, 'item': array<int, mixed>} $feedArray */
+        $feedArray = $feed->toArray();
 
-        $output->writeln("<info>{$feed->title}</info>");
+        $output->writeln("<info>{$feedArray['title']}</info>");
 
         $table = new Table($this->stdOut);
         $table->setStyle('symfony-style-guide');
@@ -39,18 +39,18 @@ class Issues extends Command
           'Title',
         ]);
 
-        $totalItems = count($feed->item);
+        $totalItems = count($feedArray['item']);
         $count = 0;
-        foreach ($feed->item as $item) {
+        foreach ($feedArray['item'] as $item) {
             $descriptionDom = new \DOMDocument();
-            $descriptionDom->loadHTML($item->description);
+            $descriptionDom->loadHTML($item['description']);
 
-            $linkParts = parse_url($item->link);
+            $linkParts = parse_url($item['link']);
             $pathPaths = array_values(array_filter(explode('/', $linkParts['path'])));
 
             $table->addRow([
               $pathPaths[1],
-              $item->title . PHP_EOL . '<comment>' . $item->link . '</comment>',
+              $item['title'] . PHP_EOL . '<comment>' . $item['link'] . '</comment>',
             ]);
             $count++;
             if ($count < $totalItems) {
@@ -89,7 +89,7 @@ class Issues extends Command
     }
 
     protected function getFeedUrl(): string {
-        $uid = $this->stdIn->getArgument('uid');
+        $uid = $this->stdIn->getArgument('user');
         switch ($this->stdIn->getArgument('type')) {
             case 'rtbc':
                 return "https://www.drupal.org/project/user/$uid/feed?status[0]=14";

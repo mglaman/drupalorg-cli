@@ -120,7 +120,7 @@ abstract class Command extends BaseCommand
      */
     protected function getPiftJobs(array $options, bool $reset = false)
     {
-        $cid = implode('--', ['pift--jobs:', implode('--', $options)]);
+        $cid = implode('--', ['pift--jobs--', implode('--', $options)]);
         $cached = $this->getCacheItem($cid);
         if (!$cached->isHit() || $reset) {
             $this->debug("Cache MISS for $cid");

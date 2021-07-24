@@ -50,15 +50,15 @@ class ListResults extends Command
         foreach ($piftJobs as $job) {
             $patch = $this->getFile($job->file_id);
 
-            if ($job->result == 'pass') {
+            if ($job->result === 'pass') {
                 $style = 'info';
-            } elseif ($job->result == 'fail') {
+            } elseif ($job->result === 'fail') {
                 $style = 'error';
             } else {
                 $style = 'comment';
             }
 
-            if ($job->status == 'running') {
+            if ($job->status === 'running') {
                 $jobRunning = $job->job_id;
             }
 
@@ -82,7 +82,7 @@ class ListResults extends Command
             );
             $answer = $helper->ask($this->stdIn, $this->stdOut, $question);
 
-            if ($answer == 'Yes') {
+            if ($answer === 'Yes') {
                 $command = $this->getApplication()->find('drupalci:watch');
                 $this->stdIn = new ArgvInput([
                     'application' => 'drupalorgcli',
