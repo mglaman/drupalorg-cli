@@ -26,14 +26,6 @@ class Application extends ParentApplication
     }
 
     /**
-     * @inheritdoc
-     */
-    protected function getDefaultCommands(): array
-    {
-        return [new HelpCommand(), new Command\ListCommand()];
-    }
-
-    /**
      * @return \Symfony\Component\Console\Command\Command[]
      */
     public function getCommands(): array

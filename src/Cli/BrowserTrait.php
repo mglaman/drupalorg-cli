@@ -9,7 +9,7 @@ trait BrowserTrait
 
     protected function getDefaultBrowser(): ?string
     {
-        $potential = array('xdg-open', 'open', 'start');
+        $potential = ['xdg-open', 'open', 'start'];
         foreach ($potential as $browser) {
             // Check if command exists by executing help flag.
             $output = (int) shell_exec("command -v $browser; echo $?");
