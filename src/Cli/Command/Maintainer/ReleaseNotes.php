@@ -21,14 +21,14 @@ class ReleaseNotes extends Command
   /**
    * @var \Gitter\Repository
    */
-    protected $repository;
+    protected \Gitter\Repository $repository;
 
-    protected $cwd;
+    protected string $cwd;
 
-    protected $nids = [];
-    protected $users = [];
+    protected array $nids = [];
+    protected array $users = [];
 
-    protected $categoryLabelMap = [
+    protected array $categoryLabelMap = [
     0 => 'Misc',
     1 => 'Bug',
     2 => 'Task',
@@ -68,26 +68,23 @@ class ReleaseNotes extends Command
    * {@inheritdoc}
    *
    */
-    protected function execute(InputInterface $input, OutputInterface $output)
-    {
+    protected function execute(InputInterface $input, OutputInterface $output): int {
         $ref1 = $this->stdIn->getArgument('ref1');
         $ref2 = $this->stdIn->getArgument('ref2');
         $tags = $this->repository->getTags();
-        if (!$this->stdIn->getArgument('ref1')) {
+        if (!$this->stdIn->hasArgument('ref1')) {
             // @todo
             $this->stdOut->writeln('Please provide both arguments, for now.');
             return 1;
-        } else {
-            if (!in_array($ref1, $tags, true)) {
-                $this->stdOut->writeln(sprintf('The %s tag is not valid.', $ref1));
-                return 1;
-            }
         }
-        if ($ref2 != 'HEAD') {
-            if (!in_array($ref2, $tags, true)) {
-                $this->stdOut->writeln(sprintf('The %s tag is not valid.', $ref2));
-                return 1;
-            }
+
+        if (!in_array($ref1, $tags, true)) {
+            $this->stdOut->writeln(sprintf('The %s tag is not valid.', $ref1));
+            return 1;
+        }
+        if (($ref2 !== 'HEAD') && !in_array($ref2, $tags, TRUE)) {
+            $this->stdOut->writeln(sprintf('The %s tag is not valid.', $ref2));
+            return 1;
         }
 
         $gitLogCommand = sprintf('git log -s --pretty=format:%s %s..%s', '%s', $ref1, $ref2);
@@ -133,7 +130,7 @@ class ReleaseNotes extends Command
                 $this->stdOut->writeln('');
                 $this->stdOut->writeln(sprintf('### Contributors (%s)', count($this->users)));
                 $this->stdOut->writeln('');
-                $this->stdOut->writeln(implode(', ', array_map(function ($username) use ($format) {
+                $this->stdOut->writeln(implode(', ', array_map(function ($username) use ($format): string {
                     return $this->formatUsername($username, $format);
                 }, array_keys($this->users))));
                 $this->stdOut->writeln('');
@@ -157,7 +154,7 @@ class ReleaseNotes extends Command
             default:
                 $this->stdOut->writeln('<p><em>Add a summary here</em></p>');
                 $this->stdOut->writeln(sprintf('<h3>Contributors (%s)</h3>', count($this->users)));
-                $this->stdOut->writeln(sprintf('<p>%s</p>', implode(', ', array_map(function ($username) use ($format) {
+                $this->stdOut->writeln(sprintf('<p>%s</p>', implode(', ', array_map(function ($username) use ($format): string {
                     return $this->formatUsername($username, $format);
                 }, array_keys($this->users)))));
                 $this->stdOut->writeln('<h3>Changelog</h3>');
@@ -175,10 +172,10 @@ class ReleaseNotes extends Command
 
                 break;
         }
+        return 0;
     }
 
-    protected function formatUsername($user, $format)
-    {
+    protected function formatUsername($user, $format): string {
         $baseUrl = 'https://www.drupal.org/u/%1$s';
         $userAlias = str_replace(' ', '-', mb_strtolower($user));
         if ($format == 'html') {
@@ -266,7 +263,7 @@ class ReleaseNotes extends Command
       // * https://git.drupal.org/project/[projectname].git
         $path = str_replace('.git', '', $gitCmd->getOutput());
         $path = explode('/', $path);
-        if (!count($path)) {
+        if (count($path) === 0) {
             $this->stdOut->writeln("The commits URL could not be discovered.");
             return 1;
         }

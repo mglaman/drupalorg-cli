@@ -20,8 +20,9 @@ class CacheClear extends Command
      * {@inheritdoc}
      *
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        Cache::getCache()->flushAll();
+        Cache::getCache()->clear();
+        return 0;
     }
 }

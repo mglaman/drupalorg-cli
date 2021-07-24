@@ -13,22 +13,22 @@ abstract class ProjectCommandBase extends Command
     /**
      * The initial project data object containing NID and title.
      *
-     * @var ArrayObject
+     * @var \stdClass
      */
-    protected $projectData;
+    protected \stdClass $projectData;
 
     /**
      * The project machine name.
      *
      * @var string
      */
-    protected $projectName;
+    protected string $projectName;
 
     protected function initialize(InputInterface $input, OutputInterface $output)
     {
         parent::initialize($input, $output);
 
-        $this->projectName = $this->stdIn->getArgument('project');
+        $this->projectName = (string) $this->stdIn->getArgument('project');
         if ($this->projectName === null) {
             $this->debug("Argument project not provided. Trying to get it from the remote URL of the current repository.");
             $this->projectName = $this->getProjectFromRemote();
@@ -44,9 +44,9 @@ abstract class ProjectCommandBase extends Command
         if (!$projectList->offsetExists(0)) {
             $this->stdErr->writeln("Project $this->projectName not found.");
             exit(1);
-        } else {
-            $this->projectData = $projectList->offsetGet(0);
         }
+
+        $this->projectData = $projectList->offsetGet(0);
     }
 
     /**
@@ -55,12 +55,11 @@ abstract class ProjectCommandBase extends Command
      * @return string
      *   The project name.
      */
-    protected function getProjectFromRemote()
-    {
-        $process = new Process('git config --get remote.origin.url');
+    protected function getProjectFromRemote(): string {
+        $process = new Process((array) 'git config --get remote.origin.url');
         $process->run();
         $remote_url = trim($process->getOutput());
         preg_match('#.*\/(.*)\.git$#', $remote_url, $matches);
-        return $matches[1] ?? null;
+        return $matches[1] ?? '';
     }
 }

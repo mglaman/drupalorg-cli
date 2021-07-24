@@ -10,7 +10,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class ListCommand extends BaseListCommand
 {
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $helper = new DescriptorHelper();
         $helper->register('txt', new CustomTextDescriptor());
@@ -23,5 +23,6 @@ class ListCommand extends BaseListCommand
             'namespace' => $input->getArgument('namespace'),
             )
         );
+        return 0;
     }
 }

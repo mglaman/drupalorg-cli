@@ -52,7 +52,7 @@ class CustomTextDescriptor extends BaseTextDescriptor
                 foreach ($namespace['commands'] as $name) {
                     $command = $description->getCommand($name);
                     $aliases = $command->getAliases();
-                    if ($aliases && in_array($name, $aliases, true)) {
+                    if (count($aliases) > 0 && in_array($name, $aliases, true)) {
                         // skip aliases
                         continue;
                     }
@@ -78,9 +78,8 @@ class CustomTextDescriptor extends BaseTextDescriptor
      *
      * @return string
      */
-    protected function formatAliases(array $aliases)
-    {
-        return $aliases ? " (" . implode(', ', $aliases) . ")" : '';
+    protected function formatAliases(array $aliases): string {
+        return count($aliases) > 0 ? " (" . implode(', ', $aliases) . ")" : '';
     }
 
 
@@ -101,8 +100,7 @@ class CustomTextDescriptor extends BaseTextDescriptor
      *
      * @return int
      */
-    protected function getColumnWidth(array $commands)
-    {
+    protected function getColumnWidth(array $commands): int {
         $width = 0;
         foreach ($commands as $command) {
             $aliasesString = $this->formatAliases($command->getAliases());

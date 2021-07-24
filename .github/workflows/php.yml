@@ -49,3 +49,31 @@ jobs:
       run: composer install --prefer-dist --no-progress --no-suggest
     - name: phpstan
       run: ./vendor/bin/phpstan analyse src
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs:
+      - validate
+      - phpstan
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: |
+          echo "::set-output name=dir::$(composer config cache-files-dir)"
+      - uses: actions/cache@v1
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-suggest
+      - name: project:issues
+        run: php drupalorg project:issues address
+      - name: project:kanban
+        run: php drupalorg project:kanban address
+      - name: project:link
+        run: php drupalorg project:link address
+      - name: project:releases
+        run: php drupalorg project:releases address

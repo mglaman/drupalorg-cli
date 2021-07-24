@@ -11,12 +11,7 @@ use Symfony\Component\Process\Process;
 class Patch extends IssueCommandBase
 {
 
-  /**
-   * @var \Gitter\Repository
-   */
-    protected $repository;
-
-    protected $cwd;
+    protected string $cwd;
 
     protected function configure()
     {
@@ -39,7 +34,7 @@ class Patch extends IssueCommandBase
    * {@inheritdoc}
    *
    */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $issue = $this->getNode($this->nid);
 
@@ -66,16 +61,15 @@ class Patch extends IssueCommandBase
             $process->run();
             $this->stdOut->write($process->getOutput());
         }
+        return 0;
     }
 
-    protected function buildPatchName(RawResponse $issue)
-    {
+    protected function buildPatchName(RawResponse $issue): string {
         $cleanTitle = $this->getCleanIssueTitle($issue);
         return sprintf('%s-%s-%s.patch', $cleanTitle, $issue->get('nid'), ($issue->get('comment_count') + 1));
     }
 
-    protected function checkBranch(RawResponse $issue)
-    {
+    protected function checkBranch(RawResponse $issue): bool {
         $issueVersion = $issue->get('field_issue_version');
         if (strpos($issueVersion, $this->repository->getCurrentBranch()) !== false) {
             $this->stdOut->writeln("<comment>You do not appear to be working on an issue branch.</comment>");

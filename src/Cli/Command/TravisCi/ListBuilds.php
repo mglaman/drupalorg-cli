@@ -26,7 +26,7 @@ class ListBuilds extends Command
      * {@inheritdoc}
      *
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $project = $this->slugMapping($this->stdIn->getArgument('slug'));
         $this->debug("TravisCI slug: $project");
@@ -100,6 +100,8 @@ class ListBuilds extends Command
                 $command->run($this->stdIn, $this->stdOut);
             }
         }
+
+        return 0;
     }
 
     protected function slugMapping($project)

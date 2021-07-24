@@ -7,7 +7,6 @@ use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Helper\TableSeparator;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Issues extends Command
@@ -24,11 +23,12 @@ class Issues extends Command
 
     /**
      * {@inheritdoc}
-     *
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $feed = \Feed::load($this->getFeedUrl());
+        assert(property_exists($feed, 'title'));
+        assert(property_exists($feed, 'item'));
 
         $output->writeln("<info>{$feed->title}</info>");
 
@@ -45,7 +45,6 @@ class Issues extends Command
             $descriptionDom = new \DOMDocument();
             $descriptionDom->loadHTML($item->description);
 
-            $descriptionXpath = new \DOMXPath($descriptionDom);
             $linkParts = parse_url($item->link);
             $pathPaths = array_values(array_filter(explode('/', $linkParts['path'])));
 
@@ -59,16 +58,16 @@ class Issues extends Command
             }
         }
         $table->render();
+
+        return 0;
     }
 
-    protected function getIssueValue(\DOMXPath $xpath, $class)
-    {
+    protected function getIssueValue(\DOMXPath $xpath, $class): string {
         $nodes = $xpath->query("//div[contains(@class,\"$class\")]//div");
         return $nodes->item(2)->nodeValue;
     }
 
-    protected function getIssueStatus(\DOMXPath $xpath)
-    {
+    protected function getIssueStatus(\DOMXPath $xpath): string {
         $value = $this->getIssueValue($xpath, 'field-name-field-issue-status');
 
         switch ($value) {
@@ -89,8 +88,7 @@ class Issues extends Command
         }
     }
 
-    protected function getFeedUrl()
-    {
+    protected function getFeedUrl(): string {
         $uid = $this->stdIn->getArgument('uid');
         switch ($this->stdIn->getArgument('type')) {
             case 'rtbc':

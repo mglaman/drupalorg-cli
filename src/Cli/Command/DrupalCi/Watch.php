@@ -27,7 +27,7 @@ class Watch extends Command
      * {@inheritdoc}
      *
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $jobId = $this->stdIn->getArgument('job');
         $job = $this->client->getPiftJob($jobId);
@@ -76,5 +76,6 @@ class Watch extends Command
         ]);
 
         $table->render();
+        return 0;
     }
 }

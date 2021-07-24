@@ -3,6 +3,8 @@
     "description": "Command line interface for interacting with Drupal.org",
     "require": {
         "php": "^7.4 || ^8.0",
+        "ext-dom": "*",
+        "ext-json": "*",
         "dg/rss-php": "^1.2",
         "doctrine/cache": "^1.6",
         "guzzlehttp/guzzle": "^6.1 || ^7.3",
@@ -10,6 +12,7 @@
         "klaussilveira/gitter": "^0.3.0",
         "padraic/phar-updater": "^1.0",
         "psr/log": "^1.0",
+        "symfony/cache": "^5.3",
         "symfony/console": "^3.0 || ^4.0",
         "symfony/process": "^3.0 || ^4.0"
     },

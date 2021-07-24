@@ -13,26 +13,21 @@ use Symfony\Component\Process\Process;
 abstract class IssueCommandBase extends Command
 {
 
-  /**
-   * The git repository.
-   *
-   * @var \Gitter\Repository
-   */
-    protected $repository;
+    protected ?Repository $repository;
 
   /**
    * The current working directory.
    *
    * @var string
    */
-    protected $cwd;
+    protected string $cwd;
 
   /**
    * The issue node ID.
    *
    * @var string
    */
-    protected $nid;
+    protected string $nid;
 
     protected function initialize(InputInterface $input, OutputInterface $output)
     {
@@ -55,7 +50,7 @@ abstract class IssueCommandBase extends Command
    */
     protected function initRepo()
     {
-        if (!$this->repository === null) {
+        if ($this->repository !== null) {
             $this->debug("Repository already initialized.");
             return;
         }
@@ -83,8 +78,7 @@ abstract class IssueCommandBase extends Command
    * @return string
    *   The branch name.
    */
-    protected function getIssueVersionBranchName(RawResponse $issue)
-    {
+    protected function getIssueVersionBranchName(RawResponse $issue): string {
         $issue_version_branch = $issue->get('field_issue_version');
         if ($issue->get('field_project')->id === '3060') {
             return substr($issue_version_branch, 0, 5);
@@ -104,8 +98,7 @@ abstract class IssueCommandBase extends Command
    * @return string
    *   The formatted title.
    */
-    protected function getCleanIssueTitle(RawResponse $issue)
-    {
+    protected function getCleanIssueTitle(RawResponse $issue): string {
         $cleanTitle = preg_replace('/[^a-zA-Z0-9]+/', '_', $issue->get('title'));
         $cleanTitle = strtolower(substr($cleanTitle, 0, 20));
         $cleanTitle = preg_replace('/(^_|_$)/', '', $cleanTitle);
@@ -121,8 +114,7 @@ abstract class IssueCommandBase extends Command
    * @return string
    *   The branch name.
    */
-    protected function buildBranchName(RawResponse $issue)
-    {
+    protected function buildBranchName(RawResponse $issue): string {
         $cleanTitle = $this->getCleanIssueTitle($issue);
         return sprintf('%s-%s', $issue->get('nid'), $cleanTitle);
     }
@@ -130,7 +122,7 @@ abstract class IssueCommandBase extends Command
   /**
    * Gets the latest patch file item from an issue.
    */
-    protected function getLatestFile(RawResponse $issue)
+    protected function getLatestFile(RawResponse $issue): ?RawResponse
     {
       // Remove files hidden from display.
         $files = array_filter($issue->get('field_issue_files'), static function ($value): bool {
@@ -138,15 +130,14 @@ abstract class IssueCommandBase extends Command
         });
       // Reverse the array so we fetch latest files first.
         $files = array_reverse($files);
-        $files = array_map(function ($value) {
+        $files = array_map(function ($value): RawResponse {
             return $this->getFile($value->file->id);
         }, $files);
       // Filter out non-patch files.
         $files = array_filter($files, static function (RawResponse $file): bool {
             return strpos($file->get('name'), '.patch') !== false && strpos($file->get('name'), 'do-not-test') === false;
         });
-        $patchFile = reset($files);
-        return $patchFile;
+        return count($files) > 0 ? reset($files) : null;
     }
 
   /**
@@ -158,8 +149,7 @@ abstract class IssueCommandBase extends Command
    * @return string
    *   The node id.
    */
-    protected function getNidFromBranch(Repository $repo)
-    {
+    protected function getNidFromBranch(Repository $repo): ?string {
         $branch = $repo->getHead();
         return (preg_match('/(\d+)-/', $branch, $matches) ?  $matches[1] : null);
     }

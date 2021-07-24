@@ -2,7 +2,6 @@
 
 namespace mglaman\DrupalOrgCli\Command;
 
-use mglaman\DrupalOrgCli\Cache;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -21,17 +20,22 @@ class Completion extends Command
      * {@inheritdoc}
      *
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $command = $this->getApplication()->find('list');
 
         $arguments = [
             '--format' => 'json'
         ];
-        $input = new ArrayInput($arguments);
-        $output = new BufferedOutput();
-        $returnCode = $command->run($input, $output);
-        $commandListArray = json_decode($output->fetch(), true);
+
+        $buffered_output = new BufferedOutput();
+        $command->run(new ArrayInput($arguments), $buffered_output);
+        $commandListArray = json_decode(
+            $buffered_output->fetch(),
+            TRUE,
+            512,
+            JSON_THROW_ON_ERROR
+        );
         $commandsToComplete = [];
         foreach ($commandListArray['commands'] as $commandToAdd) {
             if ($commandToAdd['name'] == $this->getName()) {
@@ -40,5 +44,6 @@ class Completion extends Command
             $commandsToComplete[] = $commandToAdd['name'];
         }
         $this->stdOut->writeln(implode(' ', $commandsToComplete));
+        return 0;
     }
 }

@@ -28,7 +28,7 @@ class Watch extends Command
      * {@inheritdoc}
      *
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $buildId = $this->stdIn->getArgument('build');
 
@@ -86,6 +86,7 @@ class Watch extends Command
         ]);
 
         $table->render();
+        return 0;
     }
 
     protected function getBuild(Client $client, $buildId)

@@ -29,8 +29,9 @@ class Link extends IssueCommandBase
      * {@inheritdoc}
      *
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->openUrl('https://www.drupal.org/node/' . $this->nid, $this->stdErr, $this->stdOut);
+        return 0;
     }
 }

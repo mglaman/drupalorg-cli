@@ -2,22 +2,13 @@
 
 namespace mglaman\DrupalOrgCli\Command\Issue;
 
-use Gitter\Client;
 use mglaman\DrupalOrg\RawResponse;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Process\Process;
 
 class Apply extends IssueCommandBase
 {
-
-    /**
-     * @var \Gitter\Repository
-     */
-    protected $repository;
-
-    protected $cwd;
 
     protected function configure()
     {
@@ -35,8 +26,7 @@ class Apply extends IssueCommandBase
      * {@inheritdoc}
      *
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
-    {
+    protected function execute(InputInterface $input, OutputInterface $output): int {
         $nid = $this->stdIn->getArgument('nid');
         $issue = $this->getNode($nid);
 
@@ -45,7 +35,7 @@ class Apply extends IssueCommandBase
         $patchFileName = $this->getCleanIssueTitle($issue) . '.patch';
         file_put_contents($patchFileName, $patchFileContents);
 
-        if ($this->repository) {
+        if ($this->repository !== null) {
             $exitCode = $this->applyWithGit($issue, $patchFileName);
         } elseif (shell_exec("command -v patch; echo $?") == 0) {
             $exitCode = $this->applyWithPatch($patchFileName);
@@ -58,8 +48,7 @@ class Apply extends IssueCommandBase
         return $exitCode;
     }
 
-    protected function applyWithGit($issue, $patchFileName)
-    {
+    protected function applyWithGit($issue, $patchFileName): int {
         // Validate the issue versions branch, create or checkout issue branch.
         $issueBranchCommand = $this->getApplication()->find('issue:branch');
         $issueBranchCommand->run($this->stdIn, $this->stdOut);
@@ -96,23 +85,24 @@ class Apply extends IssueCommandBase
             return 1;
         }
 
-        $this->runProcess(sprintf('git branch -D %s', $tempBranchName));
+        $process = $this->runProcess(sprintf('git branch -D %s', $tempBranchName));
+        return $process->getExitCode();
     }
 
-    protected function applyWithPatch($patchFileName)
+    protected function applyWithPatch($patchFileName): int
     {
         $process = $this->runProcess(sprintf('patch -p1 < %s', $patchFileName));
-        if ($process->getExitCode() != 0) {
+        if ($process->getExitCode() !== 0) {
             $this->stdOut->writeln('<error>Failed to apply the patch</error>');
             $this->stdOut->writeln($process->getOutput());
             return 1;
         }
+        return 0;
     }
 
-    protected function getPatchFileUrl(RawResponse $issue)
+    protected function getPatchFileUrl(RawResponse $issue): string
     {
         $patchFile = $this->getLatestFile($issue);
-        $patchFileUrl = $patchFile->get('url');
-        return $patchFileUrl;
+        return $patchFile->get('url');
     }
 }

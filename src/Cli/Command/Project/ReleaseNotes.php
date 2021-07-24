@@ -23,7 +23,7 @@ class ReleaseNotes extends ProjectCommandBase
      * {@inheritdoc}
      *
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $version = $this->stdIn->getArgument('version');
         $release = $this->client->request(new Request('node.json', [
@@ -52,6 +52,7 @@ class ReleaseNotes extends ProjectCommandBase
         $this->stdOut->writeln("<options=bold>Release notes for {$this->projectName} $version</>");
         $this->stdOut->writeln("");
         $this->stdOut->writeln($this->processReleaseNotes($release->offsetGet(0)->body->value));
+        return 0;
     }
 
     protected function processReleaseNotes($body)

@@ -5,7 +5,7 @@ namespace mglaman\DrupalOrg;
 class Response extends RawResponse
 {
 
-    protected $validLinks = ['self', 'first', 'last', 'next'];
+    protected array $validLinks = ['self', 'first', 'last', 'next'];
 
     public function getLink($link)
     {
@@ -16,8 +16,7 @@ class Response extends RawResponse
         return $this->get($link);
     }
 
-    public function getList()
-    {
+    public function getList(): \ArrayObject {
         return new \ArrayObject($this->get('list'));
     }
 }

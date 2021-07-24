@@ -2,10 +2,7 @@
 
 namespace mglaman\DrupalOrgCli\Command\Project;
 
-use mglaman\DrupalOrg\RawResponse;
 use mglaman\DrupalOrgCli\BrowserTrait;
-use mglaman\DrupalOrgCli\Command\Command;
-use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -26,8 +23,9 @@ class Kanban extends ProjectCommandBase
      * {@inheritdoc}
      *
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->openUrl('https://contribkanban.com/board/' . $this->projectName, $this->stdErr, $this->stdOut);
+        return 0;
     }
 }

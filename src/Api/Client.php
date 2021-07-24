@@ -7,11 +7,11 @@ class Client
     /**
      * @var \GuzzleHttp\Client
      */
-    protected $client;
+    protected \GuzzleHttp\Client $client;
     /**
      * @var string
      */
-    const API_URL = 'https://www.drupal.org/api-d7/';
+    public const API_URL = 'https://www.drupal.org/api-d7/';
 
     public function __construct()
     {
@@ -31,8 +31,7 @@ class Client
      * @return \mglaman\DrupalOrg\Response
      * @throws \Exception
      */
-    public function request(Request $request)
-    {
+    public function request(Request $request): Response {
         $res = $this->client->request('GET', $request->getUrl());
         if ($res->getStatusCode() == 200) {
             return new Response($res->getBody()->getContents());
@@ -41,29 +40,22 @@ class Client
         throw new \Exception('Error code', $res->getStatusCode());
     }
 
-    /**
-     * @param $nid
-     * @return \mglaman\DrupalOrg\RawResponse
-     */
-    public function getNode($nid)
+    public function getNode(string $nid): Response
     {
         return $this->request(new Request('node/' . $nid));
     }
 
-    public function getFile($fid)
-    {
+    public function getFile($fid): Response {
         return $this->request(new Request('file/' . $fid));
     }
 
-    public function getPiftJob($jobId)
-    {
+    public function getPiftJob($jobId): Response {
         return $this->request(new Request('pift_ci_job/' . $jobId, [
             'time' => time(),
         ]));
     }
 
-    public function getPiftJobs(array $options)
-    {
+    public function getPiftJobs(array $options): Response {
         $options += [
           'sort' => 'job_id',
           'direction' => 'DESC',
@@ -72,20 +64,14 @@ class Client
         return $this->request(new Request('pift_ci_job.json', $options));
     }
 
-    /**
-     * @param $machineName
-     * @return \mglaman\DrupalOrg\Response
-     */
-    public function getProject($machineName)
-    {
+    public function getProject(string $machineName): Response {
         $request = new Request('node.json', [
             'field_project_machine_name' => $machineName,
         ]);
         return $this->request($request);
     }
 
-    public function getProjectReleases($projectNid, array $options = [])
-    {
+    public function getProjectReleases($projectNid, array $options = []): Response {
         $options += [
           'field_release_project' => $projectNid,
           'type' => 'project_release',

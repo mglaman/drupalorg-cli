@@ -3,7 +3,6 @@
 namespace mglaman\DrupalOrgCli\Command\Project;
 
 use mglaman\DrupalOrg\Request;
-use mglaman\DrupalOrgCli\Command\Command;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Helper\TableSeparator;
 use Symfony\Component\Console\Input\InputArgument;
@@ -29,7 +28,7 @@ class ProjectIssues extends ProjectCommandBase
      * {@inheritdoc}
      *
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $options = [
         'field_release_project' => $this->projectData->nid,
@@ -93,10 +92,10 @@ class ProjectIssues extends ProjectCommandBase
         }
 
         $table->render();
+        return 0;
     }
 
-    protected function getIssueStatus($value)
-    {
+    protected function getIssueStatus($value): string {
         switch ($value) {
             case 1:
                 return '<comment>Active</comment>';

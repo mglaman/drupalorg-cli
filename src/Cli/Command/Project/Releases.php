@@ -2,8 +2,6 @@
 
 namespace mglaman\DrupalOrgCli\Command\Project;
 
-use mglaman\DrupalOrg\RawResponse;
-use mglaman\DrupalOrgCli\Command\Command;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\InputArgument;
@@ -25,7 +23,7 @@ class Releases extends ProjectCommandBase
      * {@inheritdoc}
      *
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $releases = $this->client->getProjectReleases($this->projectData->nid, [
           'field_release_update_status' => 0,
@@ -93,5 +91,7 @@ class Releases extends ProjectCommandBase
             ]);
             $command->run($sub_input, $this->stdOut);
         }
+
+        return 0;
     }
 }

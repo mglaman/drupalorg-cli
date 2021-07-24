@@ -4,12 +4,12 @@ namespace mglaman\DrupalOrg;
 
 class Request
 {
-    const ASC = 'ASC';
-    const DESC = 'DESC';
+    public const ASC = 'ASC';
+    public const DESC = 'DESC';
 
-    protected $baseUri = Client::API_URL;
-    protected $endpoint;
-    protected $options = [];
+    protected string $baseUri = Client::API_URL;
+    protected string $endpoint;
+    protected array $options = [];
 
     /**
      * Request constructor.
@@ -17,7 +17,7 @@ class Request
      * @param string $endpoint
      * @param array $options
      */
-    public function __construct($endpoint = '', array $options = [])
+    public function __construct(string $endpoint = '', array $options = [])
     {
         $this->endpoint = $endpoint;
         $this->options = $options;
@@ -28,19 +28,11 @@ class Request
      *
      * @return string
      */
-    public function getUrl()
-    {
+    public function getUrl(): string {
         return $this->baseUri . $this->endpoint . '?' . urldecode(http_build_query($this->getOptions()));
     }
 
-    /**
-     * Set the request endpoint.
-     *
-     * @param $endpoint
-     * @return $this
-     */
-    public function setEndpoint($endpoint)
-    {
+    public function setEndpoint(string $endpoint): self {
         $this->endpoint = $endpoint;
         return $this;
     }
@@ -50,43 +42,21 @@ class Request
      *
      * @return array
      */
-    public function getOptions()
-    {
+    public function getOptions(): array {
         return $this->options;
     }
 
-    /**
-     * Set a request option.
-     *
-     * @param $key
-     * @param $value
-     * @return $this
-     */
-    public function setOption($key, $value)
-    {
+    public function setOption($key, $value): self {
         $this->options[$key] = $value;
         return $this;
     }
 
-    /**
-     * Set the key to sort key.
-     *
-     * @param $key
-     * @return \mglaman\DrupalOrg\Request
-     */
-    public function setSort($key)
-    {
+    public function setSort(string $key): self {
         return $this->setOption('sort', $key);
     }
 
-    /**
-     * Set the direction order.
-     *
-     * @param $direction
-     * @return \mglaman\DrupalOrg\Request
-     */
-    public function setDirection($direction)
-    {
+    public function setDirection(string $direction): self {
+        assert($direction === self::ASC || $direction === self::DESC);
         return $this->setOption('direction', $direction);
     }
 }

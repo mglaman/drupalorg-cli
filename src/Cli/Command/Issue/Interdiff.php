@@ -2,7 +2,6 @@
 
 namespace mglaman\DrupalOrgCli\Command\Issue;
 
-use Gitter\Client;
 use mglaman\DrupalOrg\RawResponse;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -41,12 +40,12 @@ class Interdiff extends IssueCommandBase
     /**
      * {@inheritdoc}
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $issue = $this->getNode($this->nid);
 
         if (!$this->checkBranch($issue)) {
-            return;
+            return 1;
         }
 
         $issue_version_branch = $this->getIssueVersionBranchName($issue);
@@ -77,6 +76,7 @@ class Interdiff extends IssueCommandBase
         $process->setTty(true);
         $process->run();
         $this->stdOut->write($process->getOutput());
+        return 0;
     }
 
     /**
@@ -88,8 +88,7 @@ class Interdiff extends IssueCommandBase
      * @return string
      *   The name of the interdiff file.
      */
-    protected function buildInterdiffName(RawResponse $issue)
-    {
+    protected function buildInterdiffName(RawResponse $issue): string {
         $comment_count = $issue->get('comment_count');
         $last_comment_with_patch = $this->getLastCommentWithPatch($issue);
         return sprintf('interdiff-%s-%s-%s.txt', $issue->get('nid'), $last_comment_with_patch, $comment_count + 1);
@@ -104,8 +103,7 @@ class Interdiff extends IssueCommandBase
      * @return int
      *   The comment index number.
      */
-    protected function getLastCommentWithPatch(RawResponse $issue)
-    {
+    protected function getLastCommentWithPatch(RawResponse $issue): int {
         // Files have the relevant CID info, but we need to calculate the actual
         // comment index based on that.
         $comment_index = $this->getCommentIndex($issue);
@@ -122,8 +120,7 @@ class Interdiff extends IssueCommandBase
      * @return array
      *   Array of comment index numbers, indexed by comment ID.
      */
-    protected function getCommentIndex(RawResponse $issue)
-    {
+    protected function getCommentIndex(RawResponse $issue): array {
         $comment_index = [];
         foreach ($issue->get('comments') as $index => $comment) {
             $comment_index[$comment->id] = $index + 1;
@@ -140,8 +137,7 @@ class Interdiff extends IssueCommandBase
      * @return int
      *   The most recent patch file's associated comment ID from the issue.
      */
-    protected function getLatestFileCid(RawResponse $issue)
-    {
+    protected function getLatestFileCid(RawResponse $issue): int {
         $latestPatch = $this->getLatestFile($issue);
         $fid = $latestPatch->get('fid');
         $files = array_filter($issue->get('field_issue_files'), static function (\stdClass $file) use ($fid): bool {
@@ -160,8 +156,7 @@ class Interdiff extends IssueCommandBase
      * @return bool
      *   Whether or not user is working on an issue branch.
      */
-    protected function checkBranch(RawResponse $issue)
-    {
+    protected function checkBranch(RawResponse $issue): bool {
         $issueVersion = $issue->get('field_issue_version');
         if (strpos($issueVersion, $this->repository->getCurrentBranch()) !== false) {
             $this->stdOut->writeln("<comment>You do not appear to be working on an issue branch.</comment>");

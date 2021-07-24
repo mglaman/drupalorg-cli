@@ -2,21 +2,12 @@
 
 namespace mglaman\DrupalOrgCli\Command\Issue;
 
-use Gitter\Client;
-use mglaman\DrupalOrg\RawResponse;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Branch extends IssueCommandBase
 {
-
-    /**
-     * @var \Gitter\Repository
-     */
-    protected $repository;
-
-    protected $cwd;
 
     protected function configure()
     {
@@ -34,8 +25,7 @@ class Branch extends IssueCommandBase
      * {@inheritdoc}
      *
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
-    {
+    protected function execute(InputInterface $input, OutputInterface $output): int {
         $issue = $this->getNode($this->nid);
         $branchName = $this->buildBranchName($issue);
 
@@ -55,5 +45,6 @@ class Branch extends IssueCommandBase
             $this->repository->createBranch($branchName);
             $this->repository->checkout($branchName);
         }
+        return 0;
     }
 }

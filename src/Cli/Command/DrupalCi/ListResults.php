@@ -6,11 +6,9 @@ use mglaman\DrupalOrgCli\Command\Command;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
-use Symfony\Component\Console\Question\Question;
 
 class ListResults extends Command
 {
@@ -27,7 +25,7 @@ class ListResults extends Command
      * {@inheritdoc}
      *
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $issueNid = $this->stdIn->getArgument('nid');
         $issue = $this->getNode($issueNid);
@@ -94,5 +92,6 @@ class ListResults extends Command
                 $command->run($this->stdIn, $this->stdOut);
             }
         }
+        return 0;
     }
 }
