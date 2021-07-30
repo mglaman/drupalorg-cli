@@ -113,15 +113,15 @@ class ReleaseNotes extends Command
             return 1;
         }
 
-        $gitLogCommand = sprintf(
-            'git log -s --pretty=format:%s %s..%s',
-            '%s',
-            $ref1,
-            $ref2
-        );
-
-        $gitLog = $this->runProcess([$gitLogCommand]);
+        $gitLog = $this->runProcess([
+            'git',
+            'log',
+            '-s',
+            '--pretty=format:%s',
+            "$ref1..$ref2",
+        ]);
         if ($gitLog->getExitCode() !== 0) {
+            var_export($gitLog->getErrorOutput());
             $this->stdOut->writeln('Error getting commit log');
             return 1;
         }
@@ -330,8 +330,8 @@ class ReleaseNotes extends Command
     protected function getProjectName(): string
     {
         // Execute the command "git config --get remote.origin.url".
-        $gitCmd = $this->runProcess(['git config --get remote.origin.url']);
-        if ($gitCmd->getExitCode() != 0) {
+        $gitCmd = $this->runProcess(['git', 'config', '--get', 'remote.origin.url']);
+        if ($gitCmd->getExitCode() !== 0) {
             $this->stdOut->writeln(
                 "The 'git config' command returned an error."
             );
