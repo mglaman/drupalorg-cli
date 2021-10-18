@@ -59,5 +59,10 @@
         "phpstan/phpstan-symfony": "^0.12.6",
         "phpunit/phpunit": "^9.5",
         "squizlabs/php_codesniffer": "^3.5"
+    },
+    "extra": {
+        "violinist": {
+            "one_pull_request_per_package": 1
+        }
     }
 }
