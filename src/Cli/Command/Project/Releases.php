@@ -73,15 +73,14 @@ class Releases extends ProjectCommandBase
         $table->render();
 
         $release_versions['cancel'] = '';
-
         $helper = $this->getHelper('question');
         $question = new ChoiceQuestion(
             "View release notes? [cancel]",
             $release_versions,
             'cancel'
         );
-        $answer = $helper->ask($this->stdIn, $this->stdOut, $question);
-        if ($answer != 'cancel') {
+        $answer = $helper->ask($input, $output, $question);
+        if ($answer !== 'cancel') {
             $command = $this->getApplication()->find('project:release-notes');
             $sub_input = new ArgvInput([
             'application' => 'drupalorgcli',
