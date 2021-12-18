@@ -2,6 +2,12 @@
 
 namespace mglaman\DrupalOrg;
 
+use GuzzleHttp\HandlerStack;
+use Kevinrob\GuzzleCache\CacheMiddleware;
+use Kevinrob\GuzzleCache\Storage\Psr6CacheStorage;
+use Kevinrob\GuzzleCache\Strategy\PublicCacheStrategy;
+use mglaman\DrupalOrgCli\Cache;
+
 class Client
 {
 
@@ -17,10 +23,21 @@ class Client
 
     public function __construct()
     {
+        $stack = HandlerStack::create();
+        $stack->push(
+            new CacheMiddleware(
+                new PublicCacheStrategy(
+                    new Psr6CacheStorage(Cache::getCache())
+                )
+            ),
+            'cache'
+        );
+
         $this->client = new \GuzzleHttp\Client(
             [
                 'base_uri' => self::API_URL,
                 'cookies' => true,
+                'handler' => $stack,
                 'headers' => [
                     'User-Agent' => 'DrupalOrgCli/0.0.1',
                     'Accept' => 'application/json',
@@ -39,7 +56,7 @@ class Client
     public function request(Request $request): Response
     {
         $res = $this->client->request('GET', $request->getUrl());
-        if ($res->getStatusCode() == 200) {
+        if ($res->getStatusCode() === 200) {
             return new Response($res->getBody()->getContents());
         }
 

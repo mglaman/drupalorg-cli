@@ -43,7 +43,7 @@ abstract class ProjectCommandBase extends Command
 
         // The kanban and link command doesn't need the project data from drupal.org,
         // but checking that the project exists makes sense for all project commands.
-        $projectList = $this->getProject($this->projectName)->getList();
+        $projectList = $this->client->getProject($this->projectName)->getList();
         if (!$projectList->offsetExists(0)) {
             $this->stdErr->writeln("Project $this->projectName not found.");
             exit(1);

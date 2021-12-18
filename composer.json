@@ -10,6 +10,7 @@
         "guzzlehttp/guzzle": "^6.1 || ^7.3",
         "jean85/pretty-package-versions": "~1.2",
         "jolicode/jolinotif": "^2.3",
+        "kevinrob/guzzle-cache-middleware": "^3.4",
         "klaussilveira/gitter": "^0.3.0",
         "padraic/phar-updater": "^1.0",
         "psr/log": "^1.0",

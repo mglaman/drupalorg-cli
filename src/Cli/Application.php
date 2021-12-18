@@ -3,7 +3,6 @@
 namespace mglaman\DrupalOrgCli;
 
 use Symfony\Component\Console\Application as ParentApplication;
-use Symfony\Component\Console\Command\HelpCommand;
 
 class Application extends ParentApplication
 {

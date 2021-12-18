@@ -11,12 +11,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - name: "Install PHP"
+      uses: "shivammathur/setup-php@v2"
+      with:
+        coverage: "none"
+        php-version: "7.4"
+        tools: composer:v2
     - name: Validate composer.json and composer.lock
       run: composer validate
   phpcs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - name: "Install PHP"
+      uses: "shivammathur/setup-php@v2"
+      with:
+        coverage: "none"
+        php-version: "7.4"
+        tools: composer:v2
     - name: Get Composer Cache Directory
       id: composer-cache
       run: |
@@ -35,6 +47,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - name: "Install PHP"
+      uses: "shivammathur/setup-php@v2"
+      with:
+        coverage: "none"
+        php-version: "7.4"
+        tools: composer:v2
     - name: Get Composer Cache Directory
       id: composer-cache
       run: |
@@ -57,6 +75,12 @@ jobs:
       - phpstan
     steps:
       - uses: actions/checkout@v2
+      - name: "Install PHP"
+        uses: "shivammathur/setup-php@v2"
+        with:
+          coverage: "none"
+          php-version: "7.4"
+          tools: composer:v2
       - name: Get Composer Cache Directory
         id: composer-cache
         run: |

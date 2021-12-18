@@ -50,7 +50,7 @@ class Interdiff extends IssueCommandBase
         InputInterface $input,
         OutputInterface $output
     ): int {
-        $issue = $this->getNode($this->nid);
+        $issue = $this->client->getNode($this->nid);
 
         if (!$this->checkBranch($issue)) {
             return 1;

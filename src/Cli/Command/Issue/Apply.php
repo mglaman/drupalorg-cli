@@ -37,7 +37,7 @@ class Apply extends IssueCommandBase
         OutputInterface $output
     ): int {
         $nid = $this->stdIn->getArgument('nid');
-        $issue = $this->getNode($nid);
+        $issue = $this->client->getNode($nid);
 
         $patchFileUrl = $this->getPatchFileUrl($issue);
         $patchFileContents = file_get_contents($patchFileUrl);
