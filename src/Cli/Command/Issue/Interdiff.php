@@ -150,14 +150,14 @@ class Interdiff extends IssueCommandBase
      * @param \mglaman\DrupalOrg\RawResponse $issue
      *   The issue raw response.
      *
-     * @return array<string, int>
+     * @return array<int, int>
      *   Array of comment index numbers, indexed by comment ID.
      */
     protected function getCommentIndex(RawResponse $issue): array
     {
         $comment_index = [];
         foreach ($issue->get('comments') as $index => $comment) {
-            $comment_index[$comment->id] = $index + 1;
+            $comment_index[(int) $comment->id] = $index + 1;
         }
         return $comment_index;
     }

@@ -360,7 +360,6 @@ class ReleaseNotes extends Command
             return '';
         }
         $path = explode('/', $path);
-        $path = array_pop($path);
-        return $path ?? '';
+        return array_pop($path);
     }
 }

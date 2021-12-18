@@ -36,8 +36,8 @@ abstract class IssueCommandBase extends Command
         parent::initialize($input, $output);
         $this->initRepo();
 
-        $this->nid = (string)$this->stdIn->getArgument('nid');
-        if ($this->nid === null) {
+        $this->nid = (string) $this->stdIn->getArgument('nid');
+        if ($this->nid === '') {
             $this->debug(
                 "Argument nid not provided. Trying to get it from current branch name."
             );
