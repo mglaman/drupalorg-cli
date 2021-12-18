@@ -3,6 +3,8 @@
 namespace mglaman\DrupalOrgCli;
 
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Symfony\Component\Cache\Marshaller\DefaultMarshaller;
+use Symfony\Component\Cache\Marshaller\MarshallerInterface;
 
 class Cache
 {
@@ -21,7 +23,10 @@ class Cache
             self::$cache = new FilesystemAdapter(
                 '',
                 0,
-                $tmpPath
+                $tmpPath,
+                // Skip igbinary to avoid deprecations from Guzzle cache
+                // middleware and caching streams.
+                new DefaultMarshaller(false, true)
             );
         }
         return self::$cache;
