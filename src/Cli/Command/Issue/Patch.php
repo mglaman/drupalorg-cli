@@ -44,7 +44,7 @@ class Patch extends IssueCommandBase
         InputInterface $input,
         OutputInterface $output
     ): int {
-        $issue = $this->getNode($this->nid);
+        $issue = $this->client->getNode($this->nid);
 
         $patchName = $this->buildPatchName($issue);
 

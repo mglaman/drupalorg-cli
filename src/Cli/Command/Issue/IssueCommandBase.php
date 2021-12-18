@@ -148,7 +148,7 @@ abstract class IssueCommandBase extends Command
         $files = array_reverse($files);
         $files = array_map(
             function ($value): RawResponse {
-                return $this->getFile($value->file->id);
+                return $this->client->getFile($value->file->id);
             },
             $files
         );

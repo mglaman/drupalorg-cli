@@ -137,7 +137,7 @@ class ReleaseNotes extends Command
 
             if (isset($nidsMatches[1]) && !isset($this->nids[$nidsMatches[1]])) {
                 $this->nids[$nidsMatches[1]] = $nidsMatches[1];
-                $issue = $this->getNode($nidsMatches[1]);
+                $issue = $this->client->getNode($nidsMatches[1]);
                 // There should always be an issue category, but if not default to `Task.`
                 $issueCategory = $issue->get('field_issue_category') ?? 'Task';
                 $issueCategoryLabel = $this->categoryLabelMap[$issueCategory];
