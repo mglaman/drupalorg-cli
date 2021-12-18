@@ -35,7 +35,10 @@ jobs:
         id: create-release
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ github.ref }}
+          name: ${{ github.ref }}
           draft: true
           files: drupalorg.phar
           token: ${{ secrets.GITHUB_TOKEN }}
           generate_release_notes: true
+          fail_on_unmatched_files: true
