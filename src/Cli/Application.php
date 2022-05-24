@@ -33,6 +33,11 @@ class Application extends ParentApplication
             return $commands;
         }
 
+        $commands[] = new \SelfUpdate\SelfUpdateCommand(
+            $this->getName(),
+            $this->getVersion(),
+            'mglaman/drupalorg-cli'
+        );
         $commands[] = new Command\CacheClear();
         $commands[] = new Command\Completion();
         $commands[] = new Command\DrupalCi\ListResults();
