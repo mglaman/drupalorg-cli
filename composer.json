@@ -42,7 +42,10 @@
         "preferred-install": "dist",
         "platform": {
             "php": "7.4"
-          }
+          },
+        "allow-plugins": {
+            "phpstan/extension-installer": true
+        }
     },
     "scripts": {
         "box-install": "curl -O -L https://github.com/humbug/box/releases/latest/download/box.phar",
