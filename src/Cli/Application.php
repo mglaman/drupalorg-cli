@@ -2,6 +2,7 @@
 
 namespace mglaman\DrupalOrgCli;
 
+use Composer\InstalledVersions;
 use Symfony\Component\Console\Application as ParentApplication;
 
 class Application extends ParentApplication
@@ -13,9 +14,7 @@ class Application extends ParentApplication
     public function __construct()
     {
         try {
-            $version = \Jean85\PrettyVersions::getVersion(
-                'mglaman/drupalorg-cli'
-            )->getPrettyVersion();
+            $version = InstalledVersions::getPrettyVersion('mglaman/drupalorg-cli');
         } catch (\OutOfBoundsException $e) {
             $version = '0.0.0';
         }
