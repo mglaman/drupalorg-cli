@@ -101,3 +101,34 @@ jobs:
         run: php drupalorg project:link address
       - name: project:releases
         run: php drupalorg project:releases address
+
+  phar:
+    runs-on: ubuntu-latest
+    needs:
+      - validate
+      - phpstan
+    steps:
+      - uses: actions/checkout@v2
+      - name: "Install PHP"
+        uses: "shivammathur/setup-php@v2"
+        with:
+          coverage: "none"
+          php-version: "8.1"
+          tools: composer:v2
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: |
+          echo "::set-output name=dir::$(composer config cache-files-dir)"
+      - uses: actions/cache@v1
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-suggest --no-dev
+      - name: Build phar
+        run: |
+          composer run box-install
+          composer run box-build
+          composer run box-info
