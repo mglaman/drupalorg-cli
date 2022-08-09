@@ -36,8 +36,7 @@ abstract class ProjectCommandBase extends Command
                 exit(1);
             }
         } else {
-            $projectName = $this->stdIn->getArgument('project');
-            assert(is_string($projectName));
+            $projectName = $this->stdIn->getArgument('project') ?: '';
             $this->projectName = $projectName;
         }
 
