@@ -3,7 +3,6 @@
     "src"
   ],
   "files": [
-    "vendor/autoload.php",
     "vendor/symfony/console/Resources/bin/hiddeninput.exe"
   ],
   "finder": [
