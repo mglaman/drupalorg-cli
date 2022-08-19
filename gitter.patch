@@ -1,0 +1,22 @@
+diff --git a/lib/Gitter/Client.php b/lib/Gitter/Client.php
+index 37effe9..fca5846 100644
+--- a/lib/Gitter/Client.php
++++ b/lib/Gitter/Client.php
+@@ -66,7 +66,7 @@
+             $command = '-c "color.ui"=false ' . $command;
+         }
+ 
+-        $process = new Process($this->getPath() . ' ' . $command, $repository->getPath());
++        $process = Process::fromShellCommandline($this->getPath() . ' ' . $command, $repository->getPath());
+         $process->setTimeout(180);
+         $process->run();
+ 
+@@ -79,7 +79,7 @@
+ 
+     public function getVersion()
+     {
+-        $process = new Process($this->getPath() . ' --version');
++        $process = Process::fromShellCommandline($this->getPath() . ' --version');
+         $process->run();
+ 
+         if (!$process->isSuccessful()) {

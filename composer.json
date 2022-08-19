@@ -7,6 +7,7 @@
         "ext-json": "*",
         "composer-runtime-api": "^2.0.0",
         "consolidation/self-update": "^2.0",
+        "cweagans/composer-patches": "~1.0",
         "dg/rss-php": "^1.2",
         "doctrine/cache": "^1.6",
         "guzzlehttp/guzzle": "^6.1 || ^7.3",
@@ -44,7 +45,8 @@
             "php": "7.4"
           },
         "allow-plugins": {
-            "phpstan/extension-installer": true
+            "phpstan/extension-installer": true,
+            "cweagans/composer-patches": true
         }
     },
     "scripts": {
@@ -65,6 +67,11 @@
         "squizlabs/php_codesniffer": "^3.5"
     },
     "extra": {
+        "patches": {
+            "klaussilveira/gitter": {
+                "Symfony 5/6 https://github.com/klaussilveira/gitter/pull/71": "gitter.patch"
+            }
+        },
         "violinist": {
             "one_pull_request_per_package": 1
         }
