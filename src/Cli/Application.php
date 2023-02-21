@@ -50,6 +50,7 @@ class Application extends ParentApplication
         $commands[] = new Command\Project\Link();
         $commands[] = new Command\Project\Kanban();
         $commands[] = new Command\Project\ProjectIssues();
+        $commands[] = new Command\Project\ProjectClone();
         $commands[] = new Command\Project\Releases();
         $commands[] = new Command\Project\ReleaseNotes();
         $commands[] = new Command\TravisCi\ListBuilds();
