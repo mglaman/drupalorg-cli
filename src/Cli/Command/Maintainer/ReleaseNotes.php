@@ -2,7 +2,8 @@
 
 namespace mglaman\DrupalOrgCli\Command\Maintainer;
 
-use Gitter\Client;
+use CzProject\GitPhp\Git;
+use CzProject\GitPhp\GitRepository;
 use mglaman\DrupalOrgCli\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -19,9 +20,9 @@ class ReleaseNotes extends Command
 {
 
     /**
-     * @var \Gitter\Repository
+     * @var \CzProject\GitPhp\GitRepository
      */
-    protected \Gitter\Repository $repository;
+    protected GitRepository $repository;
 
     protected string $cwd;
 
@@ -83,8 +84,8 @@ class ReleaseNotes extends Command
             $process->run();
             $repository_dir = trim($process->getOutput());
             $this->cwd = $repository_dir;
-            $client = new Client();
-            $this->repository = $client->getRepository($this->cwd);
+            $client = new Git();
+            $this->repository = $client->open($this->cwd);
         } catch (\Exception $e) {
             $this->stdOut->writeln('You must run this from a Git repository');
             exit(1);
