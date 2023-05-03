@@ -39,7 +39,7 @@ class Branch extends IssueCommandBase
         $branchName = $this->buildBranchName($issue);
 
         $issueVersionBranch = $this->getIssueVersionBranchName($issue);
-        if (!$this->repository->hasBranch($issueVersionBranch)) {
+        if (!in_array($issueVersionBranch, $this->repository->getBranches(), true)) {
             $this->stdOut->writeln(
                 sprintf(
                     '<error>The issue version branch %s is not available.</error>',
@@ -56,7 +56,7 @@ class Branch extends IssueCommandBase
         );
         $this->repository->checkout($issueVersionBranch);
 
-        if ($this->repository->hasBranch($branchName)) {
+        if (in_array($branchName, $this->repository->getBranches(), true)) {
             $this->stdOut->writeln(
                 sprintf(
                     '<info>The branch %s exists! Checking it out</info>',
@@ -71,8 +71,7 @@ class Branch extends IssueCommandBase
                     $branchName
                 )
             );
-            $this->repository->createBranch($branchName);
-            $this->repository->checkout($branchName);
+            $this->repository->createBranch($branchName, true);
         }
         return 0;
     }

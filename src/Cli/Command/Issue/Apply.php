@@ -81,8 +81,7 @@ class Apply extends IssueCommandBase
                 "Creating temp branch $tempBranchName"
             )
         );
-        $this->repository->createBranch($tempBranchName);
-        $this->repository->checkout($tempBranchName);
+        $this->repository->createBranch($tempBranchName, true);
 
         $applyPatchProcess = $this->runProcess(
             [sprintf('git apply -v --index %s', $patchFileName)]
@@ -95,6 +94,7 @@ class Apply extends IssueCommandBase
         $this->stdOut->writeln(
             sprintf('<comment>%s</comment>', "Committing $patchFileName")
         );
+        $this->repository->addFile($patchFileName);
         $this->repository->commit($patchFileName);
 
         // Check out existing issue branch for three way merge.
