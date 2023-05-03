@@ -9,7 +9,7 @@
         "consolidation/self-update": "^2.0",
         "czproject/git-php": "^4.1",
         "dg/rss-php": "^1.2",
-        "doctrine/cache": "^1.6",
+        "doctrine/cache": "^2.2",
         "guzzlehttp/guzzle": "^6.1 || ^7.3",
         "jolicode/jolinotif": "^2.3",
         "kevinrob/guzzle-cache-middleware": "^4",
