@@ -4,6 +4,7 @@ namespace mglaman\DrupalOrgCli\Command\TravisCi;
 
 use GuzzleHttp\Client;
 use mglaman\DrupalOrgCli\Command\Command;
+use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\InputArgument;
@@ -85,6 +86,7 @@ class ListBuilds extends Command
 
         if ($jobRunning) {
             $helper = $this->getHelper('question');
+            assert($helper instanceof QuestionHelper);
             $question = new ChoiceQuestion(
                 "Test #{$jobRunning} is running, do you want to watch it? [Yes]",
                 ['Yes', 'No'],
