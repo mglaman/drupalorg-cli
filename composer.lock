@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "98c55a1bf2d0411ea28727e9967514c9",
+    "content-hash": "81f2a68a062982ff8759ad3493a5c62a",
     "packages": [
         {
             "name": "composer/semver",
@@ -141,6 +141,58 @@
                 "source": "https://github.com/consolidation/self-update/tree/2.0.5"
             },
             "time": "2022-02-09T22:44:24+00:00"
+        },
+        {
+            "name": "czproject/git-php",
+            "version": "v4.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/czproject/git-php.git",
+                "reference": "bb195e30442bc5206b30fa9a304e20ea8e96458f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/czproject/git-php/zipball/bb195e30442bc5206b30fa9a304e20ea8e96458f",
+                "reference": "bb195e30442bc5206b30fa9a304e20ea8e96458f",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.6.0"
+            },
+            "require-dev": {
+                "nette/tester": "^2.0"
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "src/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Jan Pecha",
+                    "email": "janpecha@email.cz"
+                }
+            ],
+            "description": "Library for work with Git repository in PHP.",
+            "keywords": [
+                "git"
+            ],
+            "support": {
+                "issues": "https://github.com/czproject/git-php/issues",
+                "source": "https://github.com/czproject/git-php/tree/v4.1.0"
+            },
+            "funding": [
+                {
+                    "url": "https://www.paypal.com/donate?hosted_button_id=EPSKR7MGVV7KC",
+                    "type": "custom"
+                }
+            ],
+            "time": "2022-12-10T18:23:32+00:00"
         },
         {
             "name": "dg/rss-php",
@@ -755,59 +807,6 @@
                 "source": "https://github.com/Kevinrob/guzzle-cache-middleware/tree/v4.0.1"
             },
             "time": "2022-03-15T21:47:10+00:00"
-        },
-        {
-            "name": "klaussilveira/gitter",
-            "version": "0.3.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/klaussilveira/gitter.git",
-                "reference": "6eff42830c336ee9b8b8b9d2f69b62bd9bcbaf3b"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/klaussilveira/gitter/zipball/6eff42830c336ee9b8b8b9d2f69b62bd9bcbaf3b",
-                "reference": "6eff42830c336ee9b8b8b9d2f69b62bd9bcbaf3b",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.3.0",
-                "symfony/process": ">=2.2"
-            },
-            "require-dev": {
-                "mockery/mockery": "0.9.1",
-                "phpunit/phpunit": ">=3.7.1",
-                "symfony/filesystem": ">=2.2"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-0": {
-                    "Gitter": "lib/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "BSD-2-Clause"
-            ],
-            "authors": [
-                {
-                    "name": "Klaus Silveira",
-                    "email": "klaussilveira@php.net",
-                    "homepage": "http://www.klaussilveira.com/",
-                    "role": "Developer"
-                }
-            ],
-            "description": "Gitter allows you to interact in an object oriented manner with Git repositories.",
-            "homepage": "https://github.com/klaussilveira/gitter",
-            "keywords": [
-                "git",
-                "vcs"
-            ],
-            "support": {
-                "issues": "https://github.com/klaussilveira/gitter/issues",
-                "source": "https://github.com/klaussilveira/gitter/tree/master"
-            },
-            "time": "2014-05-24T15:18:29+00:00"
         },
         {
             "name": "psr/cache",
@@ -2060,16 +2059,16 @@
         },
         {
             "name": "symfony/process",
-            "version": "v5.4.8",
+            "version": "v5.4.23",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/process.git",
-                "reference": "597f3fff8e3e91836bb0bd38f5718b56ddbde2f3"
+                "reference": "4b842fc4b61609e0a155a114082bd94e31e98287"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/process/zipball/597f3fff8e3e91836bb0bd38f5718b56ddbde2f3",
-                "reference": "597f3fff8e3e91836bb0bd38f5718b56ddbde2f3",
+                "url": "https://api.github.com/repos/symfony/process/zipball/4b842fc4b61609e0a155a114082bd94e31e98287",
+                "reference": "4b842fc4b61609e0a155a114082bd94e31e98287",
                 "shasum": ""
             },
             "require": {
@@ -2102,7 +2101,7 @@
             "description": "Executes commands in sub-processes",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/process/tree/v5.4.8"
+                "source": "https://github.com/symfony/process/tree/v5.4.23"
             },
             "funding": [
                 {
@@ -2118,7 +2117,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-04-08T05:07:18+00:00"
+            "time": "2023-04-18T13:50:24+00:00"
         },
         {
             "name": "symfony/service-contracts",

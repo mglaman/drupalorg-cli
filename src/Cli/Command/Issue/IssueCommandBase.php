@@ -2,8 +2,8 @@
 
 namespace mglaman\DrupalOrgCli\Command\Issue;
 
-use Gitter\Client;
-use Gitter\Repository;
+use CzProject\GitPhp\Git;
+use CzProject\GitPhp\GitRepository;
 use mglaman\DrupalOrg\RawResponse;
 use mglaman\DrupalOrgCli\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -13,7 +13,7 @@ use Symfony\Component\Process\Process;
 abstract class IssueCommandBase extends Command
 {
 
-    protected ?Repository $repository;
+    protected ?GitRepository $repository;
 
     /**
      * The current working directory.
@@ -56,7 +56,7 @@ abstract class IssueCommandBase extends Command
      */
     protected function initRepo(): void
     {
-        if ($this->repository !== null) {
+        if (isset($this->repository)) {
             $this->debug("Repository already initialized.");
             return;
         }
@@ -67,8 +67,8 @@ abstract class IssueCommandBase extends Command
             $process->run();
             $repository_dir = trim($process->getOutput());
             $this->cwd = $repository_dir;
-            $client = new Client();
-            $this->repository = $client->getRepository($this->cwd);
+            $client = new Git();
+            $this->repository = $client->open($this->cwd);
         } catch (\Exception $e) {
             $this->stdErr->writeln("No repository found in current directory.");
             exit(1);
@@ -168,15 +168,15 @@ abstract class IssueCommandBase extends Command
     /**
      * Gets nid from head / branch name.
      *
-     * @param \Gitter\Repository $repo
+     * @param \CzProject\GitPhp\GitRepository $repo
      *   The repository.
      *
      * @return string
      *   The node id.
      */
-    protected function getNidFromBranch(Repository $repo): string
+    protected function getNidFromBranch(GitRepository $repo): string
     {
-        $branch = $repo->getHead();
+        $branch = $repo->getCurrentBranchName();
         return (preg_match('/(\d+)-/', $branch, $matches) ? $matches[1] : '');
     }
 }
