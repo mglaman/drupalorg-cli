@@ -3,6 +3,7 @@
 namespace mglaman\DrupalOrgCli\Command\DrupalCi;
 
 use mglaman\DrupalOrgCli\Command\Command;
+use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\InputArgument;
@@ -75,6 +76,7 @@ class ListResults extends Command
 
         if ($jobRunning) {
             $helper = $this->getHelper('question');
+            assert($helper instanceof QuestionHelper);
             $question = new ChoiceQuestion(
                 "Test #{$jobRunning} is running, do you want to watch it? [Yes]",
                 ['Yes' => '', 'No' => ''],

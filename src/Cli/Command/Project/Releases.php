@@ -2,6 +2,7 @@
 
 namespace mglaman\DrupalOrgCli\Command\Project;
 
+use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\InputArgument;
@@ -74,6 +75,7 @@ class Releases extends ProjectCommandBase
 
         $release_versions['cancel'] = '';
         $helper = $this->getHelper('question');
+        assert($helper instanceof QuestionHelper);
         $question = new ChoiceQuestion(
             "View release notes? [cancel]",
             $release_versions,
