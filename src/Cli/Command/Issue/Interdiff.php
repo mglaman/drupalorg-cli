@@ -57,7 +57,7 @@ class Interdiff extends IssueCommandBase
         }
 
         $issue_version_branch = $this->getIssueVersionBranchName($issue);
-        if (!$this->repository->hasBranch($issue_version_branch)) {
+        if (!in_array($issue_version_branch, $this->repository->getBranches(), true)) {
             $this->stdErr->writeln(
                 "Issue branch $issue_version_branch does not exist locally."
             );
@@ -199,7 +199,7 @@ class Interdiff extends IssueCommandBase
         $issueVersion = $issue->get('field_issue_version');
         if (strpos(
             $issueVersion,
-            $this->repository->getCurrentBranch()
+            $this->repository->getCurrentBranchName()
         ) !== false) {
             $this->stdOut->writeln(
                 "<comment>You do not appear to be working on an issue branch.</comment>"
