@@ -13,7 +13,8 @@ trait IssueTrait
      * @return string
      *   The label if known, or the casted string value if not.
      */
-    public function getIssueCategoryLabel(int $value): string {
+    public function getIssueCategoryLabel(int $value): string
+    {
         switch ($value) {
             case 1:
                 return 'Bug report';
@@ -39,7 +40,8 @@ trait IssueTrait
      * @return string
      *   The label if known, or the casted string value if not.
      */
-    public function getIssuePriorityLabel(int $value): string {
+    public function getIssuePriorityLabel(int $value): string
+    {
         switch ($value) {
             case 100:
                 return 'Minor';
@@ -63,7 +65,8 @@ trait IssueTrait
      * @return string
      *   The label if known, or the casted string value if not.
      */
-    public function getIssueStatusLabel(int $value): string {
+    public function getIssueStatusLabel(int $value): string
+    {
         switch ($value) {
             case 1:
                 return 'Active';

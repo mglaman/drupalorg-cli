@@ -31,7 +31,8 @@ class RawResponse
      * @return mixed
      *   The JSON parsed body in the response.
      */
-    public function getContent() {
+    public function getContent()
+    {
         return $this->response;
     }
 }
