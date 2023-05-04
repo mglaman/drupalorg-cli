@@ -24,4 +24,15 @@ class RawResponse
         }
         return null;
     }
+
+    /**
+     * Get the full response body.
+     *
+     * @return mixed
+     *   The JSON parsed body in the response.
+     */
+    public function getContent()
+    {
+        return $this->response;
+    }
 }
