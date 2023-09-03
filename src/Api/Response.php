@@ -24,4 +24,12 @@ class Response extends RawResponse
     {
         return new \ArrayObject($this->get('list'));
     }
+
+    /**
+     * @return \ArrayObject<int, object>
+     */
+    public function getAll(): \ArrayObject
+    {
+        return new \ArrayObject($this->response);
+    }
 }
