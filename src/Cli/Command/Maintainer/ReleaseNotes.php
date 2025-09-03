@@ -2,9 +2,11 @@
 
 namespace mglaman\DrupalOrgCli\Command\Maintainer;
 
+use CzProject\GitPhp\Commit;
 use CzProject\GitPhp\Git;
 use CzProject\GitPhp\GitRepository;
 use mglaman\DrupalOrgCli\Command\Command;
+use mglaman\DrupalOrgCli\CommitParser;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -114,36 +116,25 @@ class ReleaseNotes extends Command
             return 1;
         }
 
-        $gitLog = $this->runProcess([
-            'git',
-            'log',
-            '-s',
-            '--pretty=format:%s',
-            "$ref1..$ref2",
-        ]);
-        if ($gitLog->getExitCode() !== 0) {
-            var_export($gitLog->getErrorOutput());
-            $this->stdOut->writeln('Error getting commit log');
-            return 1;
-        }
+        $commits = array_map(
+            fn($hash) => $this->repository->getCommit($hash),
+            $this->repository->execute('log', '--pretty=format:%H', "$ref1..$ref2")
+        );
 
         $format = $this->stdIn->getOption('format');
 
-        $changes = array_filter(explode(PHP_EOL, trim($gitLog->getOutput())));
-
         $processedChanges = [];
-        foreach ($changes as $change) {
-            $nidsMatches = [];
-            preg_match('/#(\d+)/S', $change, $nidsMatches);
+        foreach ($commits as $commit) {
+            $nid = CommitParser::getNid($commit->getSubject());
 
-            if (isset($nidsMatches[1]) && !isset($this->nids[$nidsMatches[1]])) {
-                $this->nids[$nidsMatches[1]] = $nidsMatches[1];
-                $issue = $this->client->getNode($nidsMatches[1]);
+            if ($nid !== null) {
+                $this->nids[$nid] = $nid;
+                $issue = $this->client->getNode($nid);
                 // There should always be an issue category, but if not default to `Task.`
                 $issueCategory = $issue->get('field_issue_category') ?? 'Task';
                 $issueCategoryLabel = $this->categoryLabelMap[$issueCategory];
-                $processedChanges[$issueCategoryLabel][$nidsMatches[1]] = $this->formatLine(
-                    $change,
+                $processedChanges[$issueCategoryLabel][$nid] = $this->formatLine(
+                    $commit,
                     $format
                 );
             }
@@ -280,9 +271,9 @@ class ReleaseNotes extends Command
         return sprintf($replacement, $userAlias, $user);
     }
 
-    protected function formatLine(string $value, string $format): string
+    protected function formatLine(Commit $commit, string $format): string
     {
-        $value = preg_replace('/^(Patch |- |Issue ){0,3}/', '', $value);
+        $value = preg_replace('/^(Patch |- |Issue ){0,3}/', '', $commit->getSubject());
 
         $baseUrl = 'https://www.drupal.org/node/$1';
 
