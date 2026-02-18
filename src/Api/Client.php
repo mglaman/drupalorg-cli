@@ -3,6 +3,7 @@
 namespace mglaman\DrupalOrg;
 
 use GuzzleHttp\HandlerStack;
+use GuzzleRetry\GuzzleRetryMiddleware;
 use Kevinrob\GuzzleCache\CacheMiddleware;
 use Kevinrob\GuzzleCache\Storage\Psr6CacheStorage;
 use Kevinrob\GuzzleCache\Strategy\PublicCacheStrategy;
@@ -32,6 +33,11 @@ class Client
             ),
             'cache'
         );
+        $stack->push(GuzzleRetryMiddleware::factory([
+            'max_retry_attempts' => 5,
+            'retry_on_status' => [429, 503],
+            'default_retry_multiplier' => 1.5,
+        ]), 'retry');
 
         $this->client = new \GuzzleHttp\Client(
             [
@@ -45,6 +51,11 @@ class Client
                 ],
             ]
         );
+    }
+
+    public function getGuzzleClient(): \GuzzleHttp\Client
+    {
+        return $this->client;
     }
 
     /**

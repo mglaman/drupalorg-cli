@@ -4,8 +4,81 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1082e98ae792b46b5fc9a88f66c72c83",
+    "content-hash": "71b60b94873d15cc696df723bda1ad7e",
     "packages": [
+        {
+            "name": "caseyamcl/guzzle_retry_middleware",
+            "version": "v2.13.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/caseyamcl/guzzle_retry_middleware.git",
+                "reference": "17c9299cde438b00bbeb099c6480319a81636a60"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/caseyamcl/guzzle_retry_middleware/zipball/17c9299cde438b00bbeb099c6480319a81636a60",
+                "reference": "17c9299cde438b00bbeb099c6480319a81636a60",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": "^6.3|^7.0",
+                "php": "^7.1|^8.0"
+            },
+            "require-dev": {
+                "jaschilz/php-coverage-badger": "^2.0",
+                "nesbot/carbon": "^2.0|^3.0",
+                "phpstan/extension-installer": "^1.0",
+                "phpstan/phpstan": "^1.0",
+                "phpunit/phpunit": "^7.5|^8.0|^9.0",
+                "squizlabs/php_codesniffer": "^3.5",
+                "symfony/var-dumper": "^5.0|^6.0|^7.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.0-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "GuzzleRetry\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Casey McLaughlin",
+                    "email": "caseyamcl@gmail.com",
+                    "homepage": "https://caseymclaughlin.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Guzzle v6+ retry middleware that handles 429/503 status codes and connection timeouts",
+            "homepage": "https://github.com/caseyamcl/guzzle_retry_middleware",
+            "keywords": [
+                "Guzzle",
+                "back-off",
+                "caseyamcl",
+                "guzzle_retry_middleware",
+                "middleware",
+                "retry",
+                "retry-after"
+            ],
+            "support": {
+                "issues": "https://github.com/caseyamcl/guzzle_retry_middleware/issues",
+                "source": "https://github.com/caseyamcl/guzzle_retry_middleware/tree/v2.13.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/caseyamcl",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-07-11T12:33:22+00:00"
+        },
         {
             "name": "composer/semver",
             "version": "3.3.2",
@@ -4145,7 +4218,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
@@ -4154,9 +4227,9 @@
         "ext-json": "*",
         "composer-runtime-api": "^2.0.0"
     },
-    "platform-dev": [],
+    "platform-dev": {},
     "platform-overrides": {
         "php": "8.1.99"
     },
-    "plugin-api-version": "2.3.0"
+    "plugin-api-version": "2.9.0"
 }
