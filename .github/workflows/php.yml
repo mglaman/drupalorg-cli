@@ -10,7 +10,7 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: "Install PHP"
       uses: "shivammathur/setup-php@v2"
       with:
@@ -22,7 +22,7 @@ jobs:
   phpcs:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: "Install PHP"
       uses: "shivammathur/setup-php@v2"
       with:
@@ -33,7 +33,7 @@ jobs:
       id: composer-cache
       run: |
         echo "::set-output name=dir::$(composer config cache-files-dir)"
-    - uses: actions/cache@v3
+    - uses: actions/cache@v5
       with:
         path: ${{ steps.composer-cache.outputs.dir }}
         key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
@@ -46,7 +46,7 @@ jobs:
   phpstan:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: "Install PHP"
       uses: "shivammathur/setup-php@v2"
       with:
@@ -57,7 +57,7 @@ jobs:
       id: composer-cache
       run: |
         echo "::set-output name=dir::$(composer config cache-files-dir)"
-    - uses: actions/cache@v3
+    - uses: actions/cache@v5
       with:
         path: ${{ steps.composer-cache.outputs.dir }}
         key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
@@ -74,7 +74,7 @@ jobs:
       - validate
       - phpstan
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: "Install PHP"
         uses: "shivammathur/setup-php@v2"
         with:
@@ -85,7 +85,7 @@ jobs:
         id: composer-cache
         run: |
           echo "::set-output name=dir::$(composer config cache-files-dir)"
-      - uses: actions/cache@v3
+      - uses: actions/cache@v5
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
@@ -108,7 +108,7 @@ jobs:
       - validate
       - phpstan
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: "Install PHP"
         uses: "shivammathur/setup-php@v2"
         with:
@@ -119,7 +119,7 @@ jobs:
         id: composer-cache
         run: |
           echo "::set-output name=dir::$(composer config cache-files-dir)"
-      - uses: actions/cache@v3
+      - uses: actions/cache@v5
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
