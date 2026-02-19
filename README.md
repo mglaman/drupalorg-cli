@@ -13,24 +13,17 @@ A command line tool for interfacing with Drupal.org. Uses the Drupal.org REST AP
 
 ### Installing manually
 
-1. Download the `drupalorg.phar` file from the [latest releases](https://github.com/mglaman/drupalorg-cli/releases/latest).
- 
-   Mac:
+1. Download the `drupalorg.phar` file from the [latest release](https://github.com/mglaman/drupalorg-cli/releases/latest).
+
    ```bash
    curl -OL https://github.com/mglaman/drupalorg-cli/releases/latest/download/drupalorg.phar
    ```
-   Linux:
-   ```bash
-   wget -O drupalorg.phar https://github.com/mglaman/drupalorg-cli/releases/latest/download/drupalorg.phar
-   ```
-   
+
 2. Rename the file to `drupalorg`, ensure it is executable, and move it into a directory in your PATH (use `echo $PATH` to see your options).
-   ```bash
-   chmod +x drupalorg.phar
-   ```
 
    ```bash
-   sudo mv drupalorg.phar /usr/local/bin/drupalorg
+   chmod +x drupalorg.phar
+   mv drupalorg.phar /usr/local/bin/drupalorg
    ```
 
 3. Run `drupalorg` and verify you can see the list of available commands.
