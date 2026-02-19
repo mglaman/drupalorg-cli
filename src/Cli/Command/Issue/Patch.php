@@ -2,7 +2,7 @@
 
 namespace mglaman\DrupalOrgCli\Command\Issue;
 
-use mglaman\DrupalOrg\RawResponse;
+use mglaman\DrupalOrg\Entity\IssueNode;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -81,22 +81,21 @@ class Patch extends IssueCommandBase
         return 0;
     }
 
-    protected function buildPatchName(RawResponse $issue): string
+    protected function buildPatchName(IssueNode $issue): string
     {
         $cleanTitle = $this->getCleanIssueTitle($issue);
         return sprintf(
             '%s-%s-%s.patch',
             $cleanTitle,
-            $issue->get('nid'),
-            ($issue->get('comment_count') + 1)
+            $issue->nid,
+            $issue->commentCount + 1
         );
     }
 
-    protected function checkBranch(RawResponse $issue): bool
+    protected function checkBranch(IssueNode $issue): bool
     {
-        $issueVersion = $issue->get('field_issue_version');
         if (strpos(
-            $issueVersion,
+            $issue->fieldIssueVersion,
             $this->repository->getCurrentBranchName()
         ) !== false) {
             $this->stdOut->writeln(

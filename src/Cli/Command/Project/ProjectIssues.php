@@ -50,15 +50,14 @@ class ProjectIssues extends ProjectCommandBase
         InputInterface $input,
         OutputInterface $output
     ): int {
-        $options = [
+        $rawReleases = $this->client->requestRaw(new Request('node.json', [
             'field_release_project' => $this->projectData->nid,
             'type' => 'project_release',
             'sort' => 'nid',
             'direction' => 'DESC',
             'limit' => 100,
-        ];
-        $releases = $this->client->request(new Request('node.json', $options))
-            ->getList();
+        ]));
+        $releaseList = (array) ($rawReleases->list ?? []);
 
         $api_params = [
             'type' => 'project_issue',
@@ -80,7 +79,7 @@ class ProjectIssues extends ProjectCommandBase
                 $api_params['field_issue_status[value]'] = [1, 8, 13, 14, 16];
         }
 
-        foreach ($releases as $release) {
+        foreach ($releaseList as $release) {
             if (strpos(
                 $release->field_release_version,
                 $this->stdIn->getOption('core')
@@ -89,7 +88,8 @@ class ProjectIssues extends ProjectCommandBase
             }
         }
 
-        $issues = $this->client->request(new Request('node.json', $api_params));
+        $rawIssues = $this->client->requestRaw(new Request('node.json', $api_params));
+        $issueList = (array) ($rawIssues->list ?? []);
 
         $output->writeln("<info>{$this->projectData->title}</info>");
         $table = new Table($this->stdOut);
@@ -101,20 +101,17 @@ class ProjectIssues extends ProjectCommandBase
             ]
         );
 
-        $list = $issues->getList();
-        $iterator = $list->getIterator();
-        while ($iterator->valid()) {
-            $item = $iterator->current();
+        $count = count($issueList);
+        for ($i = 0; $i < $count; $i++) {
+            $item = $issueList[$i];
             $table->addRow(
                 [
                     $item->nid,
-                    $this->getIssueStatus((int)$item->field_issue_status),
+                    $this->getIssueStatus((int) $item->field_issue_status),
                     $item->title . PHP_EOL . '<comment>https://www.drupal.org/node/' . $item->nid . '</comment>',
                 ]
             );
-            $iterator->next();
-
-            if ($iterator->valid()) {
+            if ($i < $count - 1) {
                 $table->addRow(new TableSeparator());
             }
         }

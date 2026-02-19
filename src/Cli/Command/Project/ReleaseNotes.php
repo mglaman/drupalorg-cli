@@ -26,32 +26,32 @@ class ReleaseNotes extends ProjectCommandBase
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $version = $this->stdIn->getArgument('version');
-        $release = $this->client->request(new Request('node.json', [
+        $rawData = $this->client->requestRaw(new Request('node.json', [
               'field_release_project' => $this->projectData->nid,
               'field_release_version' => $version,
-          ]))
-          ->getList();
+          ]));
+        $releaseList = (array) ($rawData->list ?? []);
 
-        if (!$release->offsetExists(0) && preg_match('/^[0-9]+\.[0-9]+\.0$/', $version)) {
+        if ($releaseList === [] && preg_match('/^[0-9]+\.[0-9]+\.0$/', $version)) {
             $versionParts = explode('.', $version);
             $version = '8.x-' . $versionParts[0] . '.' . $versionParts[1];
 
             $this->debug("Trying old, non-semver version string format.");
-            $release = $this->client->request(new Request('node.json', [
+            $rawData = $this->client->requestRaw(new Request('node.json', [
                 'field_release_project' => $this->projectData->nid,
                 'field_release_version' => $version,
-            ]))
-            ->getList();
+            ]));
+            $releaseList = (array) ($rawData->list ?? []);
         }
 
-        if (!$release->offsetExists(0)) {
+        if ($releaseList === []) {
             $this->stdErr->writeln("No release found for $version.");
             exit(1);
         }
 
         $this->stdOut->writeln("<options=bold>Release notes for {$this->projectName} $version</>");
         $this->stdOut->writeln("");
-        $this->stdOut->writeln($this->processReleaseNotes($release->offsetGet(0)->body->value));
+        $this->stdOut->writeln($this->processReleaseNotes($releaseList[0]->body->value));
         return 0;
     }
 

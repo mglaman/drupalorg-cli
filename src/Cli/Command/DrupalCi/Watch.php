@@ -31,16 +31,16 @@ class Watch extends Command
     {
         $jobId = $this->stdIn->getArgument('job');
         $job = $this->client->getPiftJob($jobId);
-        $issue = $this->client->getNode($job->get('issue_nid'));
+        $issue = $this->client->getNode($job->issueNid);
 
-        $this->stdOut->writeln("<comment>" . $issue->get('title') . "</comment>");
+        $this->stdOut->writeln("<comment>" . $issue->title . "</comment>");
 
         $progress = new ProgressBar($this->stdOut);
         $progress->start();
-        if ($job->get('status') === 'complete') {
+        if ($job->status === 'complete') {
             $progress->advance();
         } else {
-            while ($job->get('status') !== 'complete') {
+            while ($job->status !== 'complete') {
                 $progress->advance();
                 sleep(60);
                 $job = $this->client->getPiftJob($jobId);
@@ -48,7 +48,7 @@ class Watch extends Command
         }
         $progress->finish();
 
-        $result = $job->get('result');
+        $result = $job->result;
 
         if ($result === 'pass') {
             $suffix = 'passed';
@@ -70,7 +70,7 @@ class Watch extends Command
           'Status',
           'Result',
         ]);
-        $patch = $this->client->getFile($job->get('file_id'));
+        $patch = $this->client->getFile($job->fileId);
 
         if ($result === 'pass') {
             $style = 'info';
@@ -82,10 +82,10 @@ class Watch extends Command
 
 
         $table->addRow([
-          $job->get('job_id'),
-          $patch->get('name'),
-          $job->get('status'),
-          "<$style>" . $job->get('message') . "</$style>",
+          $job->jobId,
+          $patch->name,
+          $job->status,
+          "<$style>" . $job->message . "</$style>",
         ]);
 
         $table->render();

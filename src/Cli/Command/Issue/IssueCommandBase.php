@@ -4,7 +4,9 @@ namespace mglaman\DrupalOrgCli\Command\Issue;
 
 use CzProject\GitPhp\Git;
 use CzProject\GitPhp\GitRepository;
-use mglaman\DrupalOrg\RawResponse;
+use mglaman\DrupalOrg\Entity\File;
+use mglaman\DrupalOrg\Entity\IssueFile;
+use mglaman\DrupalOrg\Entity\IssueNode;
 use mglaman\DrupalOrgCli\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -78,16 +80,16 @@ abstract class IssueCommandBase extends Command
     /**
      * Get the issue version's branch name.
      *
-     * @param \mglaman\DrupalOrg\RawResponse $issue
-     *   The issue raw response
+     * @param \mglaman\DrupalOrg\Entity\IssueNode $issue
+     *   The issue node entity
      *
      * @return string
      *   The branch name.
      */
-    protected function getIssueVersionBranchName(RawResponse $issue): string
+    protected function getIssueVersionBranchName(IssueNode $issue): string
     {
-        $issue_version_branch = $issue->get('field_issue_version');
-        if ($issue->get('field_project')->id === '3060') {
+        $issue_version_branch = $issue->fieldIssueVersion;
+        if ($issue->fieldProjectId === '3060') {
             return substr($issue_version_branch, 0, 5);
         }
         // Issue versions can be 8.x-1.0-rc1, 8.x-1.x-dev, 8.x-2.0. So we get the
@@ -99,18 +101,18 @@ abstract class IssueCommandBase extends Command
     /**
      * Gets a clean version of the issue title.
      *
-     * @param \mglaman\DrupalOrg\RawResponse $issue
-     *   The issue raw response.
+     * @param \mglaman\DrupalOrg\Entity\IssueNode $issue
+     *   The issue node entity.
      *
      * @return string
      *   The formatted title.
      */
-    protected function getCleanIssueTitle(RawResponse $issue): string
+    protected function getCleanIssueTitle(IssueNode $issue): string
     {
         $cleanTitle = preg_replace(
             '/[^a-zA-Z0-9]+/',
             '_',
-            $issue->get('title')
+            $issue->title
         );
         $cleanTitle = strtolower(substr($cleanTitle, 0, 20));
         $cleanTitle = preg_replace('/(^_|_$)/', '', $cleanTitle);
@@ -120,46 +122,43 @@ abstract class IssueCommandBase extends Command
     /**
      * Builds a branch name for an issue.
      *
-     * @param \mglaman\DrupalOrg\RawResponse $issue
-     *   The raw response.
+     * @param \mglaman\DrupalOrg\Entity\IssueNode $issue
+     *   The issue node entity.
      *
      * @return string
      *   The branch name.
      */
-    protected function buildBranchName(RawResponse $issue): string
+    protected function buildBranchName(IssueNode $issue): string
     {
         $cleanTitle = $this->getCleanIssueTitle($issue);
-        return sprintf('%s-%s', $issue->get('nid'), $cleanTitle);
+        return sprintf('%s-%s', $issue->nid, $cleanTitle);
     }
 
     /**
      * Gets the latest patch file item from an issue.
      */
-    protected function getLatestFile(RawResponse $issue): ?RawResponse
+    protected function getLatestFile(IssueNode $issue): ?File
     {
         // Remove files hidden from display.
         $files = array_filter(
-            $issue->get('field_issue_files'),
-            static function ($value): bool {
-                return (bool)$value->display;
+            $issue->fieldIssueFiles,
+            static function (IssueFile $value): bool {
+                return $value->display;
             }
         );
         // Reverse the array so we fetch latest files first.
         $files = array_reverse($files);
         $files = array_map(
-            function ($value): RawResponse {
-                return $this->client->getFile($value->file->id);
+            function (IssueFile $value): File {
+                return $this->client->getFile($value->fileId);
             },
             $files
         );
         // Filter out non-patch files.
         $files = array_filter(
             $files,
-            static function (RawResponse $file): bool {
-                return strpos($file->get('name'), '.patch') !== false && strpos(
-                    $file->get('name'),
-                    'do-not-test'
-                ) === false;
+            static function (File $file): bool {
+                return str_contains($file->name, '.patch') && !str_contains($file->name, 'do-not-test');
             }
         );
         return count($files) > 0 ? reset($files) : null;

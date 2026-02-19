@@ -28,7 +28,7 @@ class Releases extends ProjectCommandBase
     {
         $releases = $this->client->getProjectReleases($this->projectData->nid, [
           'field_release_update_status' => 0,
-        ])->get('list');
+        ]);
         $table = new Table($this->stdOut);
         $table->setHeaders([
           'Project',
@@ -55,7 +55,7 @@ class Releases extends ProjectCommandBase
                 $message = "Release due";
             }
 
-            if ($release->field_release_version_extra !== null) {
+            if ($release->fieldReleaseVersionExtra !== null) {
                 $securty = '<error>✗ Not covered</error>';
             } else {
                 $securty = '<info>✓ Covered</info>';
@@ -64,12 +64,12 @@ class Releases extends ProjectCommandBase
             $table->addRow([
               $this->projectData->title,
               $securty,
-              $release->field_release_version,
+              $release->fieldReleaseVersion,
               "<$format>" . date('M j, Y', $release->created) . " ($message)</$format>",
-              $release->field_release_short_description ?? 'Needs short description',
+              $release->fieldReleaseShortDescription ?? 'Needs short description',
               'https://www.drupal.org/project/' . $this->projectName,
             ]);
-            $release_versions[$release->field_release_version] = '';
+            $release_versions[$release->fieldReleaseVersion] = '';
         }
         $table->render();
 
