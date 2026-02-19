@@ -1,0 +1,47 @@
+{
+  "nid": "3383637",
+  "title": "Schedule transition button size is different for first transition and for second transition",
+  "created": "1693195104",
+  "changed": "1727653295",
+  "comment_count": "18",
+  "field_issue_version": "11.x-dev",
+  "field_issue_status": "6",
+  "field_issue_category": "1",
+  "field_issue_priority": "200",
+  "field_issue_component": "Claro theme",
+  "field_project": {
+    "uri": "https://www.drupal.org/api-d7/node/3060",
+    "id": "3060",
+    "resource": "node",
+    "machine_name": "drupal"
+  },
+  "body": {
+    "value": "<p>The Schedule transition button size is different for first and second transitions.</p>",
+    "summary": "",
+    "format": "1"
+  },
+  "author": {
+    "uri": "https://www.drupal.org/api-d7/user/3643629",
+    "id": "3643629",
+    "resource": "user"
+  },
+  "field_issue_files": [
+    {
+      "display": "1",
+      "description": "",
+      "file": {
+        "uri": "https://www.drupal.org/api-d7/file/3786488",
+        "id": "3786488",
+        "cid": 5,
+        "resource": "file"
+      }
+    }
+  ],
+  "comments": [
+    {
+      "uri": "https://www.drupal.org/api-d7/comment/15671234",
+      "id": "15671234",
+      "resource": "comment"
+    }
+  ]
+}

@@ -66,10 +66,6 @@ Available commands:
   list                                 Lists commands
  cache
   cache:clear (cc)                     Clears caches
- ci
- drupalci
-  drupalci:list (ci:l)                 Lists test results for an issue
-  drupalci:watch (ci:w)                Watches a Drupal CI job
  issue
   issue:apply                          Applies the latest patch from an issue.
   issue:branch                         Creates a branch for the issue.
@@ -85,10 +81,6 @@ Available commands:
   project:link                         Opens project page
   project:release-notes (prn)          View release notes for a release
   project:releases                     Lists available releases
- tci
- travisci
-  travisci:list (tci:l)                Lists Travis Ci builds for a Drupal project
-  travisci:watch (tci:w)               Watches a Travis CI job
 ````
 
 ## Getting Started

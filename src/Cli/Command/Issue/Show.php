@@ -37,27 +37,26 @@ class Show extends IssueCommandBase
     {
         $nid = $this->stdIn->getArgument('nid');
         $issue = $this->client->getNode($nid);
-        $issue_data = $issue->getContent();
         $format = $this->stdIn->getOption('format');
 
         if ($format == 'json') {
-            $this->stdOut->writeln(json_encode($issue_data));
+            $this->stdOut->writeln(json_encode($issue));
             return 0;
         }
         // format option is text.
-        $this->stdOut->writeln(sprintf('Title: %s', $issue->get('title')));
-        $this->stdOut->writeln(sprintf('Status: %s', $this->getIssueStatusLabel($issue->get('field_issue_status'))));
-        $this->stdOut->writeln(sprintf('Project: %s', $issue_data->field_project->machine_name));
-        $this->stdOut->writeln(sprintf('Version: %s', $issue->get('field_issue_version')));
-        $this->stdOut->writeln(sprintf('Component: %s', $issue->get('field_issue_component')));
-        $this->stdOut->writeln(sprintf('Priority: %s', $this->getIssuePriorityLabel($issue->get('field_issue_priority'))));
-        $this->stdOut->writeln(sprintf('Category: %s', $this->getIssueCategoryLabel($issue->get('field_issue_category'))));
+        $this->stdOut->writeln(sprintf('Title: %s', $issue->title));
+        $this->stdOut->writeln(sprintf('Status: %s', $this->getIssueStatusLabel($issue->fieldIssueStatus)));
+        $this->stdOut->writeln(sprintf('Project: %s', $issue->fieldProjectMachineName));
+        $this->stdOut->writeln(sprintf('Version: %s', $issue->fieldIssueVersion));
+        $this->stdOut->writeln(sprintf('Component: %s', $issue->fieldIssueComponent));
+        $this->stdOut->writeln(sprintf('Priority: %s', $this->getIssuePriorityLabel($issue->fieldIssuePriority)));
+        $this->stdOut->writeln(sprintf('Category: %s', $this->getIssueCategoryLabel($issue->fieldIssueCategory)));
         // Assigned field does not seem to be exposed on API.
         // TODO Convert to username.
-        $this->stdOut->writeln(sprintf('Reporter: %s', $issue_data->author->id));
-        $this->stdOut->writeln(sprintf('Created: %s', date('r', $issue->get('created'))));
-        $this->stdOut->writeln(sprintf('Updated: %s', date('r', $issue->get('changed'))));
-        $this->stdOut->writeln(sprintf("\nIssue summary:\n%s", strip_tags($issue_data->body->value)));
+        $this->stdOut->writeln(sprintf('Reporter: %s', $issue->authorId ?? ''));
+        $this->stdOut->writeln(sprintf('Created: %s', date('r', $issue->created)));
+        $this->stdOut->writeln(sprintf('Updated: %s', date('r', $issue->changed)));
+        $this->stdOut->writeln(sprintf("\nIssue summary:\n%s", strip_tags($issue->bodyValue ?? '')));
         return 0;
     }
 }

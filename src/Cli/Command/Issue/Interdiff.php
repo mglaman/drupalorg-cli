@@ -2,7 +2,8 @@
 
 namespace mglaman\DrupalOrgCli\Command\Issue;
 
-use mglaman\DrupalOrg\RawResponse;
+use mglaman\DrupalOrg\Entity\IssueFile;
+use mglaman\DrupalOrg\Entity\IssueNode;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -108,34 +109,33 @@ class Interdiff extends IssueCommandBase
     /**
      * Generates a file name for an interdiff.
      *
-     * @param \mglaman\DrupalOrg\RawResponse $issue
-     *   The issue raw response.
+     * @param \mglaman\DrupalOrg\Entity\IssueNode $issue
+     *   The issue node entity.
      *
      * @return string
      *   The name of the interdiff file.
      */
-    protected function buildInterdiffName(RawResponse $issue): string
+    protected function buildInterdiffName(IssueNode $issue): string
     {
-        $comment_count = $issue->get('comment_count');
         $last_comment_with_patch = $this->getLastCommentWithPatch($issue);
         return sprintf(
             'interdiff-%s-%s-%s.txt',
-            $issue->get('nid'),
+            $issue->nid,
             $last_comment_with_patch,
-            $comment_count + 1
+            $issue->commentCount + 1
         );
     }
 
     /**
      * Finds the last comment with a patch.
      *
-     * @param \mglaman\DrupalOrg\RawResponse $issue
-     *   The issue raw response.
+     * @param \mglaman\DrupalOrg\Entity\IssueNode $issue
+     *   The issue node entity.
      *
      * @return int
      *   The comment index number.
      */
-    protected function getLastCommentWithPatch(RawResponse $issue): int
+    protected function getLastCommentWithPatch(IssueNode $issue): int
     {
         // Files have the relevant CID info, but we need to calculate the actual
         // comment index based on that.
@@ -147,58 +147,60 @@ class Interdiff extends IssueCommandBase
     /**
      * Builds an index of comments, starting with 1, keyed by CID.
      *
-     * @param \mglaman\DrupalOrg\RawResponse $issue
-     *   The issue raw response.
+     * @param \mglaman\DrupalOrg\Entity\IssueNode $issue
+     *   The issue node entity.
      *
      * @return array<int, int>
      *   Array of comment index numbers, indexed by comment ID.
      */
-    protected function getCommentIndex(RawResponse $issue): array
+    protected function getCommentIndex(IssueNode $issue): array
     {
         $comment_index = [];
-        foreach ($issue->get('comments') as $index => $comment) {
+        foreach ($issue->comments as $index => $comment) {
             $comment_index[(int) $comment->id] = $index + 1;
         }
         return $comment_index;
     }
 
     /**
-     * Gets the most recent patch file from the issue.
+     * Gets the most recent patch file's associated comment ID from the issue.
      *
-     * @param \mglaman\DrupalOrg\RawResponse $issue
-     *   The issue raw response.
+     * @param \mglaman\DrupalOrg\Entity\IssueNode $issue
+     *   The issue node entity.
      *
      * @return int
-     *   The most recent patch file's associated comment ID from the issue.
+     *   The most recent patch file's associated comment ID.
      */
-    protected function getLatestFileCid(RawResponse $issue): int
+    protected function getLatestFileCid(IssueNode $issue): int
     {
         $latestPatch = $this->getLatestFile($issue);
-        $fid = $latestPatch->get('fid');
-        $files = array_filter(
-            $issue->get('field_issue_files'),
-            static function (\stdClass $file) use ($fid): bool {
-                return $fid == $file->file->id;
+        if ($latestPatch === null) {
+            return 0;
+        }
+        $fid = $latestPatch->fid;
+        $issueFiles = array_filter(
+            $issue->fieldIssueFiles,
+            static function (IssueFile $file) use ($fid): bool {
+                return $file->fileId === $fid;
             }
         );
-        $file = reset($files);
-        return $file->file->cid ?? 0;
+        $issueFile = reset($issueFiles);
+        return $issueFile !== false ? $issueFile->cid : 0;
     }
 
     /**
      * Checks that the user is working on an issue branch.
      *
-     * @param \mglaman\DrupalOrg\RawResponse $issue
-     *   The issue raw response.
+     * @param \mglaman\DrupalOrg\Entity\IssueNode $issue
+     *   The issue node entity.
      *
      * @return bool
      *   Whether or not user is working on an issue branch.
      */
-    protected function checkBranch(RawResponse $issue): bool
+    protected function checkBranch(IssueNode $issue): bool
     {
-        $issueVersion = $issue->get('field_issue_version');
         if (strpos(
-            $issueVersion,
+            $issue->fieldIssueVersion,
             $this->repository->getCurrentBranchName()
         ) !== false) {
             $this->stdOut->writeln(

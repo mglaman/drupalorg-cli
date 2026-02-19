@@ -40,8 +40,6 @@ class Application extends ParentApplication
         );
         $commands[] = new Command\CacheClear();
         $commands[] = new Command\Completion();
-        $commands[] = new Command\DrupalCi\ListResults();
-        $commands[] = new Command\DrupalCi\Watch();
         $commands[] = new Command\Issue\Link();
         $commands[] = new Command\Issue\Branch();
         $commands[] = new Command\Issue\Patch();
@@ -53,8 +51,6 @@ class Application extends ParentApplication
         $commands[] = new Command\Project\ProjectIssues();
         $commands[] = new Command\Project\Releases();
         $commands[] = new Command\Project\ReleaseNotes();
-        $commands[] = new Command\TravisCi\ListBuilds();
-        $commands[] = new Command\TravisCi\Watch();
         $commands[] = new Command\Maintainer\Issues();
         $commands[] = new Command\Maintainer\ReleaseNotes();
         return $commands;
