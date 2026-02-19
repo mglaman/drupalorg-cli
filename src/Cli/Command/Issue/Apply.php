@@ -2,7 +2,7 @@
 
 namespace mglaman\DrupalOrgCli\Command\Issue;
 
-use mglaman\DrupalOrg\RawResponse;
+use mglaman\DrupalOrg\Entity\IssueNode;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -60,7 +60,7 @@ class Apply extends IssueCommandBase
     }
 
     protected function applyWithGit(
-        RawResponse $issue,
+        IssueNode $issue,
         string $patchFileName
     ): int {
         // Validate the issue versions branch, create or checkout issue branch.
@@ -139,9 +139,12 @@ class Apply extends IssueCommandBase
         return $process->getExitCode();
     }
 
-    protected function getPatchFileUrl(RawResponse $issue): string
+    protected function getPatchFileUrl(IssueNode $issue): string
     {
         $patchFile = $this->getLatestFile($issue);
-        return $patchFile->get('url');
+        if ($patchFile === null) {
+            throw new \RuntimeException('No patch file found for issue ' . $issue->nid);
+        }
+        return $patchFile->url;
     }
 }

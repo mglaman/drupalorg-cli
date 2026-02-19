@@ -167,7 +167,7 @@ class ReleaseNotes extends Command
             // Determine issue category.
             $issueCategoryLabel = 'Misc';
             if ($nid !== null && isset($issueDetails[$nid])) {
-                $issueCategory = $issueDetails[$nid]->field_issue_category ?? 0;
+                $issueCategory = $issueDetails[$nid]->fieldIssueCategory;
                 $issueCategoryLabel = self::CATEGORY_MAP[$issueCategory] ?? 'Misc';
             }
 
@@ -262,12 +262,10 @@ class ReleaseNotes extends Command
                     $this->stdOut->writeln('### Change Records');
                     $this->stdOut->writeln('');
                     foreach ($changeRecords as $record) {
-                        $title = $record->title ?? '';
-                        $url = $record->url ?? '';
-                        if ($url !== '') {
-                            $this->stdOut->writeln(sprintf('* [%s](%s)', $title, $url));
+                        if ($record->url !== '') {
+                            $this->stdOut->writeln(sprintf('* [%s](%s)', $record->title, $record->url));
                         } else {
-                            $this->stdOut->writeln(sprintf('* %s', $title));
+                            $this->stdOut->writeln(sprintf('* %s', $record->title));
                         }
                     }
                     $this->stdOut->writeln('');
@@ -326,12 +324,10 @@ class ReleaseNotes extends Command
                     $this->stdOut->writeln('<h3>Change Records</h3>');
                     $this->stdOut->writeln('<ul>');
                     foreach ($changeRecords as $record) {
-                        $title = $record->title ?? '';
-                        $url = $record->url ?? '';
-                        if ($url !== '') {
-                            $this->stdOut->writeln(sprintf('  <li><a href="%s">%s</a></li>', htmlspecialchars($url), htmlspecialchars($title)));
+                        if ($record->url !== '') {
+                            $this->stdOut->writeln(sprintf('  <li><a href="%s">%s</a></li>', htmlspecialchars($record->url), htmlspecialchars($record->title)));
                         } else {
-                            $this->stdOut->writeln(sprintf('  <li>%s</li>', htmlspecialchars($title)));
+                            $this->stdOut->writeln(sprintf('  <li>%s</li>', htmlspecialchars($record->title)));
                         }
                     }
                     $this->stdOut->writeln('</ul>');

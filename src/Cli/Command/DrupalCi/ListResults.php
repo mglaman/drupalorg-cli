@@ -32,9 +32,9 @@ class ListResults extends Command
         $issue = $this->client->getNode($issueNid);
         $piftJobs = $this->client->getPiftJobs([
             'issue_nid' => $issueNid,
-        ])->get('list');
+        ]);
 
-        $this->stdOut->writeln("<comment>" . $issue->get('title') . "</comment>");
+        $this->stdOut->writeln("<comment>" . $issue->title . "</comment>");
 
         $table = new Table($this->stdOut);
         $table->setHeaders([
@@ -49,7 +49,7 @@ class ListResults extends Command
         $jobRunning = null;
 
         foreach ($piftJobs as $job) {
-            $patch = $this->client->getFile($job->file_id);
+            $patch = $this->client->getFile($job->fileId);
 
             if ($job->result === 'pass') {
                 $style = 'info';
@@ -60,21 +60,21 @@ class ListResults extends Command
             }
 
             if ($job->status === 'running') {
-                $jobRunning = $job->job_id;
+                $jobRunning = $job->jobId;
             }
 
             $table->addRow([
                 date('M j, Y - H:i:s', $job->updated),
-                $job->job_id,
-                $patch->get('name'),
+                $job->jobId,
+                $patch->name,
                 $job->status,
                 "<$style>" . $job->message . "</$style>",
-                $job->ci_url,
+                $job->ciUrl,
             ]);
         }
         $table->render();
 
-        if ($jobRunning) {
+        if ($jobRunning !== null) {
             $helper = $this->getHelper('question');
             assert($helper instanceof QuestionHelper);
             $question = new ChoiceQuestion(

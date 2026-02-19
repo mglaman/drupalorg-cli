@@ -6,6 +6,8 @@ use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Promise\Utils;
+use mglaman\DrupalOrg\Entity\ChangeRecord;
+use mglaman\DrupalOrg\Entity\IssueNode;
 
 final class DrupalOrg
 {
@@ -116,7 +118,7 @@ final class DrupalOrg
      * Fetch issue details for multiple issues concurrently.
      *
      * @param list<string> $nids Array of issue node IDs
-     * @return array<string, mixed> Associative array mapping nid => issue data object (or null)
+     * @return array<string, IssueNode|null> Associative array mapping nid => IssueNode (or null)
      */
     public function getIssueDetails(array $nids): array
     {
@@ -138,7 +140,8 @@ final class DrupalOrg
             foreach ($results as $nid => $result) {
                 if ($result['state'] === PromiseInterface::FULFILLED) {
                     try {
-                        $issues[$nid] = \json_decode((string) $result['value']->getBody(), false, 512, JSON_THROW_ON_ERROR);
+                        $data = \json_decode((string) $result['value']->getBody(), false, 512, JSON_THROW_ON_ERROR);
+                        $issues[$nid] = IssueNode::fromStdClass($data);
                     } catch (\JsonException) {
                         $issues[$nid] = null;
                     }
@@ -158,7 +161,7 @@ final class DrupalOrg
      *
      * @param string $projectId The Drupal.org project ID
      * @param string $version The version to filter by (e.g., "8.x-1.9")
-     * @return list<\stdClass> Array of change record objects
+     * @return ChangeRecord[] Array of change record objects
      */
     public function getChangeRecords(string $projectId, string $version): array
     {
@@ -173,9 +176,10 @@ final class DrupalOrg
             if ($data === null || !isset($data->list)) {
                 return [];
             }
-            /** @var list<\stdClass> $list */
-            $list = $data->list;
-            return $list;
+            return array_map(
+                static fn(\stdClass $record) => ChangeRecord::fromStdClass($record),
+                (array) $data->list
+            );
         } catch (RequestException) {
             return [];
         } catch (\JsonException) {
