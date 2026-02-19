@@ -76,10 +76,6 @@ Available commands:
   project:link                         Opens project page
   project:release-notes (prn)          View release notes for a release
   project:releases                     Lists available releases
- tci
- travisci
-  travisci:list (tci:l)                Lists Travis Ci builds for a Drupal project
-  travisci:watch (tci:w)               Watches a Travis CI job
 ````
 
 ## Getting Started

@@ -22,8 +22,6 @@ PHP 8.1+ Symfony Console CLI that wraps Drupal.org's REST and JSON:API endpoints
 | `project:release-notes` | `prn` | Displays release notes for a release |
 | `project:link` | | Opens project page in browser |
 | `project:kanban` | | Opens project kanban in browser |
-| `travisci:list` | `tci:l` | Lists Travis CI results for an issue |
-| `travisci:watch` | `tci:w` | Polls a Travis CI job until complete |
 
 ## Architecture
 
