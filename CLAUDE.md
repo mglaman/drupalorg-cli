@@ -13,8 +13,6 @@ PHP 8.1+ Symfony Console CLI that wraps Drupal.org's REST and JSON:API endpoints
 | `issue:interdiff` | | Generates interdiff between two commits |
 | `issue:link` | | Opens issue in browser |
 | `issue:show` | | Displays issue details |
-| `drupalci:list` | `ci:l` | Lists CI results for an issue |
-| `drupalci:watch` | `ci:w` | Polls a CI job until complete |
 | `maintainer:issues` | `mi` | Lists issues for a user |
 | `maintainer:release-notes` | `rn`, `mrn` | Generates release notes from git log |
 | `project:issues` | `pi` | Lists issues for a project |

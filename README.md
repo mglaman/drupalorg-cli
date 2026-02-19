@@ -57,10 +57,6 @@ Available commands:
   list                                 Lists commands
  cache
   cache:clear (cc)                     Clears caches
- ci
- drupalci
-  drupalci:list (ci:l)                 Lists test results for an issue
-  drupalci:watch (ci:w)                Watches a Drupal CI job
  issue
   issue:apply                          Applies the latest patch from an issue.
   issue:branch                         Creates a branch for the issue.

@@ -40,8 +40,6 @@ class Application extends ParentApplication
         );
         $commands[] = new Command\CacheClear();
         $commands[] = new Command\Completion();
-        $commands[] = new Command\DrupalCi\ListResults();
-        $commands[] = new Command\DrupalCi\Watch();
         $commands[] = new Command\Issue\Link();
         $commands[] = new Command\Issue\Branch();
         $commands[] = new Command\Issue\Patch();

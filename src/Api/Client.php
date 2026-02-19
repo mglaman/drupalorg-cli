@@ -9,7 +9,6 @@ use Kevinrob\GuzzleCache\Storage\Psr6CacheStorage;
 use Kevinrob\GuzzleCache\Strategy\PublicCacheStrategy;
 use mglaman\DrupalOrg\Entity\File;
 use mglaman\DrupalOrg\Entity\IssueNode;
-use mglaman\DrupalOrg\Entity\PiftJob;
 use mglaman\DrupalOrg\Entity\Project;
 use mglaman\DrupalOrg\Entity\Release;
 use mglaman\DrupalOrgCli\Cache;
@@ -94,38 +93,6 @@ class Client
     public function getFile(string $fid): File
     {
         return File::fromStdClass($this->request(new Request('file/' . $fid)));
-    }
-
-    public function getPiftJob(string $jobId): PiftJob
-    {
-        return PiftJob::fromStdClass(
-            $this->request(
-                new Request(
-                    'pift_ci_job/' . $jobId,
-                    [
-                        'time' => time(),
-                    ]
-                )
-            )
-        );
-    }
-
-    /**
-     * @param array<string, mixed> $options
-     * @return PiftJob[]
-     */
-    public function getPiftJobs(array $options): array
-    {
-        $options += [
-            'sort' => 'job_id',
-            'direction' => 'DESC',
-        ];
-
-        $data = $this->request(new Request('pift_ci_job.json', $options));
-        return array_map(
-            static fn(\stdClass $job) => PiftJob::fromStdClass($job),
-            (array) ($data->list ?? [])
-        );
     }
 
     public function getProject(string $machineName): ?Project
