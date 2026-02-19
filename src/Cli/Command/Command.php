@@ -3,10 +3,6 @@
 namespace mglaman\DrupalOrgCli\Command;
 
 use mglaman\DrupalOrg\Client;
-use mglaman\DrupalOrg\RawResponse;
-use mglaman\DrupalOrg\Response;
-use mglaman\DrupalOrgCli\Cache;
-use Psr\Cache\CacheItemInterface;
 use Symfony\Component\Console\Command\Command as BaseCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
