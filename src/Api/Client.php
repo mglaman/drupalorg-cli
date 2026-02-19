@@ -4,14 +4,10 @@ namespace mglaman\DrupalOrg;
 
 use GuzzleHttp\HandlerStack;
 use GuzzleRetry\GuzzleRetryMiddleware;
-use Kevinrob\GuzzleCache\CacheMiddleware;
-use Kevinrob\GuzzleCache\Storage\Psr6CacheStorage;
-use Kevinrob\GuzzleCache\Strategy\PublicCacheStrategy;
 use mglaman\DrupalOrg\Entity\File;
 use mglaman\DrupalOrg\Entity\IssueNode;
 use mglaman\DrupalOrg\Entity\Project;
 use mglaman\DrupalOrg\Entity\Release;
-use mglaman\DrupalOrgCli\Cache;
 
 class Client
 {
@@ -29,14 +25,6 @@ class Client
     public function __construct()
     {
         $stack = HandlerStack::create();
-        $stack->push(
-            new CacheMiddleware(
-                new PublicCacheStrategy(
-                    new Psr6CacheStorage(Cache::getCache())
-                )
-            ),
-            'cache'
-        );
         $stack->push(GuzzleRetryMiddleware::factory([
             'max_retry_attempts' => 5,
             'retry_on_status' => [429, 503],

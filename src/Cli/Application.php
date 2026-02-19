@@ -38,7 +38,6 @@ class Application extends ParentApplication
             $this->getVersion(),
             'mglaman/drupalorg-cli'
         );
-        $commands[] = new Command\CacheClear();
         $commands[] = new Command\Completion();
         $commands[] = new Command\Issue\Link();
         $commands[] = new Command\Issue\Branch();
