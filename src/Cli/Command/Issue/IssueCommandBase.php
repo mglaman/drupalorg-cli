@@ -92,6 +92,11 @@ abstract class IssueCommandBase extends Command
         if ($issue->fieldProjectId === '3060') {
             return substr($issue_version_branch, 0, 5);
         }
+        // Issue versions following semantic versioning (e.g. 1.0.0-x, 1.0.x-dev,
+        // 2.0.0-alpha1). Extract major.minor and append .x for the branch name.
+        if (preg_match('/^(\d+\.\d+)\./', $issue_version_branch, $matches)) {
+            return $matches[1] . '.x';
+        }
         // Issue versions can be 8.x-1.0-rc1, 8.x-1.x-dev, 8.x-2.0. So we get the
         // first section to find the development branch. This will give us a
         // branch in the format of: 8.x-1.x, for example.
