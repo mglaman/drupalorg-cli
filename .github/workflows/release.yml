@@ -1,9 +1,14 @@
 name: "Create release"
 
 on:
-  push:
-    tags:
-      - '*'
+  release:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag/release to upload phar to (e.g. 1.2.3)'
+        required: true
+        type: string
 
 concurrency: release
 
@@ -14,7 +19,9 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: "actions/checkout@v6"
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref_name || inputs.tag }}
 
       - name: "Install PHP"
         uses: "shivammathur/setup-php@v2"
@@ -23,7 +30,7 @@ jobs:
           php-version: "8.2"
 
       - name: "Install dependencies"
-        run: "composer install --no-interaction --no-progress --no-suggest --no-dev"
+        run: "composer install --no-interaction --no-progress --no-dev"
 
       - name: Build phar
         run: |
@@ -31,12 +38,8 @@ jobs:
           composer run box-build
           composer run box-info
 
-      - name: "Create release"
-        id: create-release
-        uses: softprops/action-gh-release@v2
-        with:
-          draft: true
-          files: drupalorg.phar
-          token: ${{ secrets.GITHUB_TOKEN }}
-          generate_release_notes: true
-          fail_on_unmatched_files: true
+      - name: "Upload phar to release"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ github.ref_name || inputs.tag }}" drupalorg.phar --clobber
