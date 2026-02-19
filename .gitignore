@@ -2,9 +2,11 @@
 vendor
 cache
 .DS_Store
+/.claude/settings.local.json
 /.phpunit.cache
 /.phpunit.result.cache
 
 # Binaries
 /box.phar
 /drupalorg.phar
+
