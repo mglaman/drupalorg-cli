@@ -23,7 +23,7 @@ class Release
             fieldReleaseVersionExtra: isset($data->field_release_version_extra) ? (string) $data->field_release_version_extra : null,
             fieldReleaseShortDescription: isset($data->field_release_short_description) ? (string) $data->field_release_short_description : null,
             created: (int) ($data->created ?? 0),
-            fieldReleaseProject: (string) ($data->field_release_project ?? ''),
+            fieldReleaseProject: (string) ($data->field_release_project?->id ?? ''),
             bodyValue: isset($data->body->value) ? (string) $data->body->value : null,
         );
     }
