@@ -6,6 +6,7 @@
         "ext-dom": "*",
         "ext-json": "*",
         "composer-runtime-api": "^2.0.0",
+        "caseyamcl/guzzle_retry_middleware": "^2.13",
         "consolidation/self-update": "^2.0",
         "czproject/git-php": "^4.1",
         "dg/rss-php": "^1.2",
