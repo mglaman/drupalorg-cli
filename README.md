@@ -23,7 +23,7 @@ A command line tool for interfacing with Drupal.org. Uses the Drupal.org REST AP
 
 Use the following command to install the command line tool via Composer:
 
-`composer global require mglaman/drupalorg-cli`
+`composer require mglaman/drupalorg-cli`
 
 ### Installing (Bash) completion
 
