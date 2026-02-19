@@ -13,13 +13,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[CoversClass(IssueCommandBase::class)]
 class IssueCommandBaseTest extends TestCase
 {
-    private ConcreteIssueCommand $command;
-
-    protected function setUp(): void
-    {
-        $this->command = new ConcreteIssueCommand('test:command');
-    }
-
     /**
      * @return array<string, array{string, string, string}>
      */
@@ -63,22 +56,17 @@ class IssueCommandBaseTest extends TestCase
             fieldIssueFiles: [],
             comments: [],
         );
-        self::assertSame($expectedBranch, $this->command->exposeGetIssueVersionBranchName($issue));
-    }
-}
+        $command = new class ('test:command') extends IssueCommandBase {
+            protected function execute(InputInterface $input, OutputInterface $output): int
+            {
+                return 0;
+            }
 
-/**
- * Concrete subclass to expose the protected method under test.
- */
-class ConcreteIssueCommand extends IssueCommandBase
-{
-    protected function execute(InputInterface $input, OutputInterface $output): int
-    {
-        return 0;
-    }
-
-    public function exposeGetIssueVersionBranchName(IssueNode $issue): string
-    {
-        return $this->getIssueVersionBranchName($issue);
+            public function exposeGetIssueVersionBranchName(IssueNode $issue): string
+            {
+                return $this->getIssueVersionBranchName($issue);
+            }
+        };
+        self::assertSame($expectedBranch, $command->exposeGetIssueVersionBranchName($issue));
     }
 }
