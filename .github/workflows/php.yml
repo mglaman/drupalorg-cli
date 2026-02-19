@@ -68,40 +68,6 @@ jobs:
     - name: phpstan
       run: ./vendor/bin/phpstan analyse src
 
-  e2e:
-    runs-on: ubuntu-latest
-    needs:
-      - validate
-      - phpstan
-    steps:
-      - uses: actions/checkout@v6
-      - name: "Install PHP"
-        uses: "shivammathur/setup-php@v2"
-        with:
-          coverage: "none"
-          php-version: "8.1"
-          tools: composer:v2
-      - name: Get Composer Cache Directory
-        id: composer-cache
-        run: |
-          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-      - uses: actions/cache@v5
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-
-      - name: Install dependencies
-        run: composer install --prefer-dist --no-progress --no-suggest
-      - name: project:issues
-        run: php drupalorg project:issues address
-      - name: project:kanban
-        run: php drupalorg project:kanban address
-      - name: project:link
-        run: php drupalorg project:link address
-      - name: project:releases
-        run: php drupalorg project:releases address
-
   phar:
     runs-on: ubuntu-latest
     needs:
@@ -132,3 +98,36 @@ jobs:
           composer run box-install
           composer run box-build
           composer run box-info
+      - name: Upload phar artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: drupalorg-phar
+          path: drupalorg.phar
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs:
+      - validate
+      - phpstan
+      - phar
+    strategy:
+      matrix:
+        php-version: ["8.1", "8.2", "8.3", "8.4"]
+    steps:
+      - name: "Install PHP"
+        uses: "shivammathur/setup-php@v2"
+        with:
+          coverage: "none"
+          php-version: "${{ matrix.php-version }}"
+      - name: Download phar artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: drupalorg-phar
+      - name: project:issues
+        run: php drupalorg.phar project:issues address
+      - name: project:kanban
+        run: php drupalorg.phar project:kanban address
+      - name: project:link
+        run: php drupalorg.phar project:link address
+      - name: project:releases
+        run: php drupalorg.phar project:releases address
