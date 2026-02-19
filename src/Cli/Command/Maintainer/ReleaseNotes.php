@@ -166,18 +166,18 @@ class ReleaseNotes extends Command
 
             // Determine issue category.
             $issueCategoryLabel = 'Misc';
-            if ($nid !== null && isset($issueDetails[$nid]) && $issueDetails[$nid] !== null) {
+            if ($nid !== null && isset($issueDetails[$nid])) {
                 $issueCategory = $issueDetails[$nid]->field_issue_category ?? 0;
                 $issueCategoryLabel = self::CATEGORY_MAP[$issueCategory] ?? 'Misc';
             }
 
             // Gather contributors: JSON:API first, then commit parsing, then email fallback.
             $commitContributors = [];
-            if ($nid !== null && !empty($contributorsFromApi[$nid])) {
+            if ($nid !== null && isset($contributorsFromApi[$nid]) && $contributorsFromApi[$nid] !== []) {
                 $commitContributors = $contributorsFromApi[$nid];
             } else {
                 $commitContributors = CommitParser::extractUsernames($commit);
-                if (empty($commitContributors)) {
+                if ($commitContributors === []) {
                     // Fallback: extract username from noreply email.
                     foreach ([$commit->author_email, $commit->committer_email] as $email) {
                         if (preg_match('/(?<=[0-9]-)([a-zA-Z0-9\-_\.]{2,255})(?=@users\.noreply\.drupalcode\.org)/', $email, $m)) {
@@ -205,7 +205,7 @@ class ReleaseNotes extends Command
         // Fetch change records if we have a project ID.
         $changeRecords = [];
         if ($projectId !== null) {
-            $changeRecords = $drupalOrg->getChangeRecords((string) $projectId, $ref2);
+            $changeRecords = $drupalOrg->getChangeRecords($projectId, $ref2);
         }
 
         $ref1url = "https://www.drupal.org/project/{$project}/releases/$ref1";
@@ -258,7 +258,7 @@ class ReleaseNotes extends Command
                     }
                     $this->stdOut->writeln('');
                 }
-                if (!empty($changeRecords)) {
+                if ($changeRecords !== []) {
                     $this->stdOut->writeln('### Change Records');
                     $this->stdOut->writeln('');
                     foreach ($changeRecords as $record) {
@@ -322,7 +322,7 @@ class ReleaseNotes extends Command
                     $this->stdOut->writeln('</ul>');
                 }
 
-                if (!empty($changeRecords)) {
+                if ($changeRecords !== []) {
                     $this->stdOut->writeln('<h3>Change Records</h3>');
                     $this->stdOut->writeln('<ul>');
                     foreach ($changeRecords as $record) {

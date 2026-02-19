@@ -43,12 +43,12 @@ final class DrupalOrg
     /**
      * Fetch contributors for multiple issues concurrently using promises.
      *
-     * @param array $nids Array of issue node IDs
-     * @return array Associative array mapping nid => array of contributor display names
+     * @param list<string> $nids Array of issue node IDs
+     * @return array<string, list<string>> Associative array mapping nid => array of contributor display names
      */
     public function getContributorsFromJsonApi(array $nids): array
     {
-        if (empty($nids)) {
+        if ($nids === []) {
             return [];
         }
 
@@ -89,7 +89,7 @@ final class DrupalOrg
      * Extract contributors from JSON:API response data.
      *
      * @param \stdClass $data The decoded JSON:API response
-     * @return array Array of contributor display names
+     * @return list<string> Array of contributor display names
      */
     private function extractContributorsFromJsonApiResponse(\stdClass $data): array
     {
@@ -115,12 +115,12 @@ final class DrupalOrg
     /**
      * Fetch issue details for multiple issues concurrently.
      *
-     * @param array $nids Array of issue node IDs
-     * @return array Associative array mapping nid => issue data object (or null)
+     * @param list<string> $nids Array of issue node IDs
+     * @return array<string, mixed> Associative array mapping nid => issue data object (or null)
      */
     public function getIssueDetails(array $nids): array
     {
-        if (empty($nids)) {
+        if ($nids === []) {
             return [];
         }
 
@@ -158,7 +158,7 @@ final class DrupalOrg
      *
      * @param string $projectId The Drupal.org project ID
      * @param string $version The version to filter by (e.g., "8.x-1.9")
-     * @return array Array of change record objects
+     * @return list<\stdClass> Array of change record objects
      */
     public function getChangeRecords(string $projectId, string $version): array
     {
@@ -173,7 +173,9 @@ final class DrupalOrg
             if ($data === null || !isset($data->list)) {
                 return [];
             }
-            return $data->list;
+            /** @var list<\stdClass> $list */
+            $list = $data->list;
+            return $list;
         } catch (RequestException) {
             return [];
         } catch (\JsonException) {

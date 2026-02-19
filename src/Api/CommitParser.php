@@ -4,6 +4,7 @@ namespace mglaman\DrupalOrg;
 
 final class CommitParser
 {
+    /** @return list<string> */
     public static function extractUsernames(\stdClass $commit, bool $sort = false): array
     {
         $from_title = self::extractUsernamesFromString($commit->title);
@@ -18,6 +19,7 @@ final class CommitParser
         return $usernames;
     }
 
+    /** @return list<string> */
     private static function extractUsernamesFromString(string $message): array
     {
         $usernames = [];
