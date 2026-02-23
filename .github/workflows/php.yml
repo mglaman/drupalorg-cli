@@ -125,7 +125,7 @@ jobs:
           composer run box-build
           composer run box-info
       - name: Upload phar artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: drupalorg-phar
           path: drupalorg.phar
