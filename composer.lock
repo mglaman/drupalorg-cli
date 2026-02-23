@@ -217,23 +217,23 @@
         },
         {
             "name": "czproject/git-php",
-            "version": "v4.1.0",
+            "version": "v4.6.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/czproject/git-php.git",
-                "reference": "bb195e30442bc5206b30fa9a304e20ea8e96458f"
+                "reference": "1f1ecc92aea9ee31120f4f5b759f5aa947420b0a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/czproject/git-php/zipball/bb195e30442bc5206b30fa9a304e20ea8e96458f",
-                "reference": "bb195e30442bc5206b30fa9a304e20ea8e96458f",
+                "url": "https://api.github.com/repos/czproject/git-php/zipball/1f1ecc92aea9ee31120f4f5b759f5aa947420b0a",
+                "reference": "1f1ecc92aea9ee31120f4f5b759f5aa947420b0a",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.6.0"
+                "php": "8.0 - 8.5"
             },
             "require-dev": {
-                "nette/tester": "^2.0"
+                "nette/tester": "^2.5"
             },
             "type": "library",
             "autoload": {
@@ -257,15 +257,27 @@
             ],
             "support": {
                 "issues": "https://github.com/czproject/git-php/issues",
-                "source": "https://github.com/czproject/git-php/tree/v4.1.0"
+                "source": "https://github.com/czproject/git-php/tree/v4.6.0"
             },
             "funding": [
                 {
-                    "url": "https://www.paypal.com/donate?hosted_button_id=EPSKR7MGVV7KC",
-                    "type": "custom"
+                    "url": "https://github.com/sponsors/janpecha",
+                    "type": "github"
+                },
+                {
+                    "url": "https://www.janpecha.cz/donate/git-php/",
+                    "type": "other"
+                },
+                {
+                    "url": "https://donate.stripe.com/7sIcO2a9maTSg2A9AA",
+                    "type": "stripe"
+                },
+                {
+                    "url": "https://thanks.dev/u/gh/czproject",
+                    "type": "thanks.dev"
                 }
             ],
-            "time": "2022-12-10T18:23:32+00:00"
+            "time": "2025-11-10T07:24:07+00:00"
         },
         {
             "name": "dg/rss-php",
@@ -3836,5 +3848,5 @@
     "platform-overrides": {
         "php": "8.1.99"
     },
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.6.0"
 }
