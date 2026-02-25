@@ -139,5 +139,4 @@ class Apply extends IssueCommandBase
         return $process->getExitCode();
     }
 
-
 }
