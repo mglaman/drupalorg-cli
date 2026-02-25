@@ -47,14 +47,13 @@ class GetProjectIssuesActionTest extends TestCase
         $project = Project::fromStdClass(self::projectFixture());
 
         $client = $this->createMock(Client::class);
-        $client->method('getProject')->with('address')->willReturn($project);
         $client->method('requestRaw')->willReturnOnConsecutiveCalls(
             self::makeRawReleases(),
             self::makeRawIssues()
         );
 
         $action = new GetProjectIssuesAction($client);
-        $result = $action('address', 'all', '8.x', 10);
+        $result = $action($project, 'all', '8.x', 10);
 
         self::assertInstanceOf(ProjectIssuesResult::class, $result);
         self::assertSame('Address', $result->projectTitle);
@@ -63,31 +62,18 @@ class GetProjectIssuesActionTest extends TestCase
         self::assertSame('Test issue', $result->issues[0]->title);
     }
 
-    public function testInvokeThrowsWhenProjectNotFound(): void
-    {
-        $client = $this->createMock(Client::class);
-        $client->method('getProject')->willReturn(null);
-
-        $action = new GetProjectIssuesAction($client);
-
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Project address not found.');
-        $action('address', 'all', '8.x', 10);
-    }
-
     public function testJsonSerialize(): void
     {
         $project = Project::fromStdClass(self::projectFixture());
 
         $client = $this->createMock(Client::class);
-        $client->method('getProject')->willReturn($project);
         $client->method('requestRaw')->willReturnOnConsecutiveCalls(
             self::makeRawReleases(),
             self::makeRawIssues()
         );
 
         $action = new GetProjectIssuesAction($client);
-        $result = $action('address', 'all', '8.x', 10);
+        $result = $action($project, 'all', '8.x', 10);
 
         $json = json_encode($result);
         self::assertIsString($json);

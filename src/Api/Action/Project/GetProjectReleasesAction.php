@@ -4,6 +4,7 @@ namespace mglaman\DrupalOrg\Action\Project;
 
 use mglaman\DrupalOrg\Action\ActionInterface;
 use mglaman\DrupalOrg\Client;
+use mglaman\DrupalOrg\Entity\Project;
 use mglaman\DrupalOrg\Result\Project\ProjectReleasesResult;
 
 class GetProjectReleasesAction implements ActionInterface
@@ -12,12 +13,8 @@ class GetProjectReleasesAction implements ActionInterface
     {
     }
 
-    public function __invoke(string $machineName): ProjectReleasesResult
+    public function __invoke(Project $project): ProjectReleasesResult
     {
-        $project = $this->client->getProject($machineName);
-        if ($project === null) {
-            throw new \RuntimeException("Project $machineName not found.");
-        }
         $releases = $this->client->getProjectReleases($project->nid, [
             'field_release_update_status' => 0,
         ]);

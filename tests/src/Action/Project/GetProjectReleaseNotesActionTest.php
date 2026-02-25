@@ -48,11 +48,10 @@ class GetProjectReleaseNotesActionTest extends TestCase
         $project = Project::fromStdClass(self::projectFixture());
 
         $client = $this->createMock(Client::class);
-        $client->method('getProject')->with('address')->willReturn($project);
         $client->method('requestRaw')->willReturn(self::makeRawRelease(self::releaseFixture()));
 
         $action = new GetProjectReleaseNotesAction($client);
-        $result = $action('address', '10.6.3');
+        $result = $action($project, '10.6.3');
 
         self::assertInstanceOf(ProjectReleaseNotesResult::class, $result);
         self::assertSame('address', $result->projectName);
@@ -67,14 +66,13 @@ class GetProjectReleaseNotesActionTest extends TestCase
         $releaseNode->field_release_version = '8.x-1.0';
 
         $client = $this->createMock(Client::class);
-        $client->method('getProject')->willReturn($project);
         $client->method('requestRaw')->willReturnOnConsecutiveCalls(
             self::makeEmptyList(),
             self::makeRawRelease($releaseNode)
         );
 
         $action = new GetProjectReleaseNotesAction($client);
-        $result = $action('address', '1.0.0');
+        $result = $action($project, '1.0.0');
 
         self::assertSame('8.x-1.0', $result->version);
         self::assertSame('<p>Release notes content.</p>', $result->body);
@@ -85,14 +83,13 @@ class GetProjectReleaseNotesActionTest extends TestCase
         $project = Project::fromStdClass(self::projectFixture());
 
         $client = $this->createMock(Client::class);
-        $client->method('getProject')->willReturn($project);
         $client->method('requestRaw')->willReturn(self::makeEmptyList());
 
         $action = new GetProjectReleaseNotesAction($client);
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('No release found for 99.9.9.');
-        $action('address', '99.9.9');
+        $action($project, '99.9.9');
     }
 
     public function testInvokeThrowsWhenSemverFallbackAlsoFails(): void
@@ -100,26 +97,13 @@ class GetProjectReleaseNotesActionTest extends TestCase
         $project = Project::fromStdClass(self::projectFixture());
 
         $client = $this->createMock(Client::class);
-        $client->method('getProject')->willReturn($project);
         $client->method('requestRaw')->willReturn(self::makeEmptyList());
 
         $action = new GetProjectReleaseNotesAction($client);
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('No release found for 8.x-1.0.');
-        $action('address', '1.0.0');
-    }
-
-    public function testInvokeThrowsWhenProjectNotFound(): void
-    {
-        $client = $this->createMock(Client::class);
-        $client->method('getProject')->willReturn(null);
-
-        $action = new GetProjectReleaseNotesAction($client);
-
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Project address not found.');
-        $action('address', '1.0.0');
+        $action($project, '1.0.0');
     }
 
     public function testJsonSerialize(): void
@@ -127,11 +111,10 @@ class GetProjectReleaseNotesActionTest extends TestCase
         $project = Project::fromStdClass(self::projectFixture());
 
         $client = $this->createMock(Client::class);
-        $client->method('getProject')->willReturn($project);
         $client->method('requestRaw')->willReturn(self::makeRawRelease(self::releaseFixture()));
 
         $action = new GetProjectReleaseNotesAction($client);
-        $result = $action('address', '10.6.3');
+        $result = $action($project, '10.6.3');
 
         $json = json_encode($result);
         self::assertIsString($json);

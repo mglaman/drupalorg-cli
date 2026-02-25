@@ -28,7 +28,7 @@ class Releases extends ProjectCommandBase
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $action = new GetProjectReleasesAction($this->client);
-        $result = $action($this->projectName);
+        $result = $action($this->projectData);
 
         $table = new Table($this->stdOut);
         $table->setHeaders([

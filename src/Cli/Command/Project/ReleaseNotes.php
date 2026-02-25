@@ -28,7 +28,7 @@ class ReleaseNotes extends ProjectCommandBase
         $version = (string) $this->stdIn->getArgument('version');
         $action = new GetProjectReleaseNotesAction($this->client);
         try {
-            $result = $action($this->projectName, $version);
+            $result = $action($this->projectData, $version);
         } catch (\RuntimeException $e) {
             $this->stdErr->writeln($e->getMessage());
             return 1;

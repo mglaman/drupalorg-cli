@@ -40,11 +40,10 @@ class GetProjectReleasesActionTest extends TestCase
         $release = Release::fromStdClass(self::releaseFixture());
 
         $client = $this->createMock(Client::class);
-        $client->method('getProject')->with('address')->willReturn($project);
         $client->method('getProjectReleases')->with('2421989', ['field_release_update_status' => 0])->willReturn([$release]);
 
         $action = new GetProjectReleasesAction($client);
-        $result = $action('address');
+        $result = $action($project);
 
         self::assertInstanceOf(ProjectReleasesResult::class, $result);
         self::assertSame('Address', $result->projectTitle);
@@ -53,29 +52,16 @@ class GetProjectReleasesActionTest extends TestCase
         self::assertSame('10.6.3', $result->releases[0]->fieldReleaseVersion);
     }
 
-    public function testInvokeThrowsWhenProjectNotFound(): void
-    {
-        $client = $this->createMock(Client::class);
-        $client->method('getProject')->willReturn(null);
-
-        $action = new GetProjectReleasesAction($client);
-
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Project address not found.');
-        $action('address');
-    }
-
     public function testJsonSerialize(): void
     {
         $project = Project::fromStdClass(self::projectFixture());
         $release = Release::fromStdClass(self::releaseFixture());
 
         $client = $this->createMock(Client::class);
-        $client->method('getProject')->willReturn($project);
         $client->method('getProjectReleases')->willReturn([$release]);
 
         $action = new GetProjectReleasesAction($client);
-        $result = $action('address');
+        $result = $action($project);
 
         $json = json_encode($result);
         self::assertIsString($json);

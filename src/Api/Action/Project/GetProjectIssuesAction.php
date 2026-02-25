@@ -4,6 +4,7 @@ namespace mglaman\DrupalOrg\Action\Project;
 
 use mglaman\DrupalOrg\Action\ActionInterface;
 use mglaman\DrupalOrg\Client;
+use mglaman\DrupalOrg\Entity\Project;
 use mglaman\DrupalOrg\Request;
 use mglaman\DrupalOrg\Result\Project\ProjectIssuesResult;
 
@@ -13,13 +14,8 @@ class GetProjectIssuesAction implements ActionInterface
     {
     }
 
-    public function __invoke(string $machineName, string $type, string $core, int $limit): ProjectIssuesResult
+    public function __invoke(Project $project, string $type, string $core, int $limit): ProjectIssuesResult
     {
-        $project = $this->client->getProject($machineName);
-        if ($project === null) {
-            throw new \RuntimeException("Project $machineName not found.");
-        }
-
         $rawReleases = $this->client->requestRaw(new Request('node.json', [
             'field_release_project' => $project->nid,
             'type' => 'project_release',

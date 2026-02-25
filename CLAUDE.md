@@ -23,7 +23,7 @@ PHP 8.1+ Symfony Console CLI that wraps Drupal.org's REST and JSON:API endpoints
 
 ## Architecture
 
-- `src/Api/Client.php` — Guzzle client with cache + retry middleware; `getGuzzleClient()` exposes it for async use
+- `src/Api/Client.php` — Guzzle client with retry middleware (429/503); `getGuzzleClient()` exposes it for async use
 - `src/Api/DrupalOrg.php` — concurrent async requests (JSON:API contributors, issue details, change records) via `GuzzleHttp\Promise\Utils::settle()`
 - `src/Api/CommitParser.php` — extracts usernames from classic `by user:` format and Git trailers (`Co-authored-by:` etc.), extracts NIDs from commit titles
 - `src/Api/Request.php` / `Response.php` / `RawResponse.php` — request builder and JSON response wrappers

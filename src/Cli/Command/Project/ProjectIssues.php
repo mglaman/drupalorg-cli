@@ -52,7 +52,7 @@ class ProjectIssues extends ProjectCommandBase
     ): int {
         $action = new GetProjectIssuesAction($this->client);
         $result = $action(
-            $this->projectName,
+            $this->projectData,
             (string) $this->stdIn->getArgument('type'),
             (string) $this->stdIn->getOption('core'),
             (int) $this->stdIn->getOption('limit')
