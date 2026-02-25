@@ -24,9 +24,15 @@ class GetMaintainerIssuesAction implements ActionInterface
 
         $items = [];
         foreach ($feedArray['item'] as $item) {
+            $project = '';
             $linkParts = parse_url($item['link']);
-            $pathParts = array_values(array_filter(explode('/', $linkParts['path'])));
-            $items[] = ['project' => $pathParts[1], 'title' => $item['title'], 'link' => $item['link']];
+            if (is_array($linkParts) && isset($linkParts['path'])) {
+                $pathParts = array_values(array_filter(explode('/', $linkParts['path'])));
+                if (isset($pathParts[1])) {
+                    $project = $pathParts[1];
+                }
+            }
+            $items[] = ['project' => $project, 'title' => $item['title'], 'link' => $item['link']];
         }
 
         return new MaintainerIssuesResult(feedTitle: $feedArray['title'], items: $items);

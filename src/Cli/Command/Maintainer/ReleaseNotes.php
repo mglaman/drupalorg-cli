@@ -78,7 +78,7 @@ class ReleaseNotes extends Command
         $ref1 = $this->stdIn->getArgument('ref1');
         $ref2 = $this->stdIn->getArgument('ref2');
 
-        if (!$this->stdIn->hasArgument('ref1')) {
+        if ($ref1 === null || $ref1 === '') {
             // @todo
             $this->stdOut->writeln('Please provide both arguments, for now.');
             return 1;
@@ -90,6 +90,9 @@ class ReleaseNotes extends Command
         try {
             $result = $action($this->repository, $this->cwd, $ref1, $ref2);
         } catch (\InvalidArgumentException $e) {
+            $this->stdOut->writeln($e->getMessage());
+            return 1;
+        } catch (\RuntimeException $e) {
             $this->stdOut->writeln($e->getMessage());
             return 1;
         }

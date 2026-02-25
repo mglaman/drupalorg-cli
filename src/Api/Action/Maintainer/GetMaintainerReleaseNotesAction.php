@@ -53,7 +53,16 @@ class GetMaintainerReleaseNotesAction implements ActionInterface
         $process->run();
 
         if ($process->getExitCode() !== 0) {
-            throw new \RuntimeException('Error getting commit log');
+            $exitCode = $process->getExitCode();
+            $errorOutput = trim($process->getErrorOutput());
+            $message = 'Error getting commit log';
+            if ($exitCode !== null) {
+                $message .= sprintf(' (exit code %d)', $exitCode);
+            }
+            if ($errorOutput !== '') {
+                $message .= sprintf(': %s', $errorOutput);
+            }
+            throw new \RuntimeException($message);
         }
 
         // Parse commits into structured objects.
@@ -156,9 +165,9 @@ class GetMaintainerReleaseNotesAction implements ActionInterface
     private function cleanCommitTitle(string $title): string
     {
         // Strip common prefixes.
-        $title = preg_replace('/^(Patch |- |Issue ){0,3}/', '', $title);
+        $title = preg_replace('/^(Patch |- |Issue ){0,3}/', '', $title) ?? $title;
         // Strip any trailing "by username:" attribution.
-        $title = preg_replace('/\s+by [^:]+:.*$/S', '', $title);
+        $title = preg_replace('/\s+by [^:]+:.*$/S', '', $title) ?? $title;
         return $title;
     }
 
@@ -174,13 +183,13 @@ class GetMaintainerReleaseNotesAction implements ActionInterface
         $remoteUrl = $process->getOutput();
 
         // Not a drupal.org project — use the directory name.
-        if (!strpos($remoteUrl, 'drupal.org')) {
+        if (strpos($remoteUrl, 'drupal.org') === false) {
             $parts = explode(DIRECTORY_SEPARATOR, $cwd);
             return end($parts);
         }
 
         // Sandbox projects cannot have releases.
-        if (strpos($remoteUrl, 'drupal.org/sandbox')) {
+        if (strpos($remoteUrl, 'drupal.org/sandbox') !== false) {
             return '';
         }
 
