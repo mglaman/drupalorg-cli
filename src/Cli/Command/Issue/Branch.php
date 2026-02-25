@@ -2,6 +2,7 @@
 
 namespace mglaman\DrupalOrgCli\Command\Issue;
 
+use mglaman\DrupalOrg\Action\Issue\GetIssueBranchNameAction;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -35,15 +36,14 @@ class Branch extends IssueCommandBase
         InputInterface $input,
         OutputInterface $output
     ): int {
-        $issue = $this->client->getNode($this->nid);
-        $branchName = $this->buildBranchName($issue);
+        $action = new GetIssueBranchNameAction($this->client);
+        $result = $action($this->nid);
 
-        $issueVersionBranch = $this->getIssueVersionBranchName($issue);
-        if (!in_array($issueVersionBranch, $this->repository->getBranches(), true)) {
+        if (!in_array($result->issueVersionBranch, $this->repository->getBranches(), true)) {
             $this->stdOut->writeln(
                 sprintf(
                     '<error>The issue version branch %s is not available.</error>',
-                    $issueVersionBranch
+                    $result->issueVersionBranch
                 )
             );
             return 1;
@@ -51,27 +51,27 @@ class Branch extends IssueCommandBase
         $this->stdOut->writeln(
             sprintf(
                 '<info>Creating issue branch for %s</info>',
-                $issueVersionBranch
+                $result->issueVersionBranch
             )
         );
-        $this->repository->checkout($issueVersionBranch);
+        $this->repository->checkout($result->issueVersionBranch);
 
-        if (in_array($branchName, $this->repository->getBranches(), true)) {
+        if (in_array($result->branchName, $this->repository->getBranches(), true)) {
             $this->stdOut->writeln(
                 sprintf(
                     '<info>The branch %s exists! Checking it out</info>',
-                    $branchName
+                    $result->branchName
                 )
             );
-            $this->repository->checkout($branchName);
+            $this->repository->checkout($result->branchName);
         } else {
             $this->stdOut->writeln(
                 sprintf(
                     '<info>Creating the %s branch. Checking it out</info>',
-                    $branchName
+                    $result->branchName
                 )
             );
-            $this->repository->createBranch($branchName, true);
+            $this->repository->createBranch($result->branchName, true);
         }
         return 0;
     }
