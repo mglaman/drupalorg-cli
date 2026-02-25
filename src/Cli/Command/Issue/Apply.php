@@ -8,9 +8,6 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-/**
- * @deprecated The patch-based workflow is superseded by GitLab Issue Forks and Merge Requests. See issue #271.
- */
 class Apply extends IssueCommandBase
 {
 
