@@ -4,6 +4,7 @@ namespace mglaman\DrupalOrg\Tests\Action\Project;
 
 use mglaman\DrupalOrg\Action\Project\GetProjectIssuesAction;
 use mglaman\DrupalOrg\Client;
+use mglaman\DrupalOrg\Entity\IssueNode;
 use mglaman\DrupalOrg\Entity\Project;
 use mglaman\DrupalOrg\Result\Project\ProjectIssuesResult;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -58,6 +59,7 @@ class GetProjectIssuesActionTest extends TestCase
         self::assertInstanceOf(ProjectIssuesResult::class, $result);
         self::assertSame('Address', $result->projectTitle);
         self::assertCount(1, $result->issues);
+        self::assertInstanceOf(IssueNode::class, $result->issues[0]);
         self::assertSame('200', $result->issues[0]->nid);
         self::assertSame('Test issue', $result->issues[0]->title);
     }
@@ -80,5 +82,7 @@ class GetProjectIssuesActionTest extends TestCase
         $decoded = json_decode($json, true);
         self::assertSame('Address', $decoded['project_title']);
         self::assertCount(1, $decoded['issues']);
+        self::assertSame('200', $decoded['issues'][0]['nid']);
+        self::assertSame(1, $decoded['issues'][0]['field_issue_status']);
     }
 }

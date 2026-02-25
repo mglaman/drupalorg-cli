@@ -4,6 +4,7 @@ namespace mglaman\DrupalOrg\Action\Project;
 
 use mglaman\DrupalOrg\Action\ActionInterface;
 use mglaman\DrupalOrg\Client;
+use mglaman\DrupalOrg\Entity\IssueNode;
 use mglaman\DrupalOrg\Entity\Project;
 use mglaman\DrupalOrg\Request;
 use mglaman\DrupalOrg\Result\Project\ProjectIssuesResult;
@@ -54,10 +55,14 @@ class GetProjectIssuesAction implements ActionInterface
 
         $rawIssues = $this->client->requestRaw(new Request('node.json', $apiParams));
         $issueList = (array) ($rawIssues->list ?? []);
+        $issues = array_map(
+            static fn(\stdClass $issue) => IssueNode::fromStdClass($issue),
+            $issueList
+        );
 
         return new ProjectIssuesResult(
             projectTitle: $project->title,
-            issues: $issueList,
+            issues: $issues,
         );
     }
 }

@@ -75,7 +75,7 @@ class ProjectIssues extends ProjectCommandBase
             $table->addRow(
                 [
                     $item->nid,
-                    $this->getIssueStatus((int) $item->field_issue_status),
+                    $this->getIssueStatus($item->fieldIssueStatus),
                     $item->title . PHP_EOL . '<comment>https://www.drupal.org/node/' . $item->nid . '</comment>',
                 ]
             );

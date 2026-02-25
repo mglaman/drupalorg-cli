@@ -2,12 +2,13 @@
 
 namespace mglaman\DrupalOrg\Result\Project;
 
+use mglaman\DrupalOrg\Entity\IssueNode;
 use mglaman\DrupalOrg\Result\ResultInterface;
 
 class ProjectIssuesResult implements ResultInterface
 {
     /**
-     * @param mixed[] $issues
+     * @param IssueNode[] $issues
      */
     public function __construct(
         public readonly string $projectTitle,
@@ -19,7 +20,14 @@ class ProjectIssuesResult implements ResultInterface
     {
         return [
             'project_title' => $this->projectTitle,
-            'issues' => $this->issues,
+            'issues' => array_map(
+                static fn(IssueNode $issue) => [
+                    'nid' => $issue->nid,
+                    'title' => $issue->title,
+                    'field_issue_status' => $issue->fieldIssueStatus,
+                ],
+                $this->issues
+            ),
         ];
     }
 }
