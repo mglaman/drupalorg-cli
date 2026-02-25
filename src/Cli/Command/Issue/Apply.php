@@ -2,7 +2,8 @@
 
 namespace mglaman\DrupalOrgCli\Command\Issue;
 
-use mglaman\DrupalOrg\Entity\IssueNode;
+use mglaman\DrupalOrg\Action\Issue\GetLatestIssuePatchAction;
+use mglaman\DrupalOrg\Result\Issue\IssuePatchResult;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -36,16 +37,15 @@ class Apply extends IssueCommandBase
         InputInterface $input,
         OutputInterface $output
     ): int {
-        $nid = $this->stdIn->getArgument('nid');
-        $issue = $this->client->getNode($nid);
+        $action = new GetLatestIssuePatchAction($this->client);
+        $result = $action($this->nid);
 
-        $patchFileUrl = $this->getPatchFileUrl($issue);
-        $patchFileContents = file_get_contents($patchFileUrl);
-        $patchFileName = $this->getCleanIssueTitle($issue) . '.patch';
+        $patchFileContents = file_get_contents($result->patchUrl);
+        $patchFileName = $result->patchFileName;
         file_put_contents($patchFileName, $patchFileContents);
 
         if ($this->repository !== null) {
-            $exitCode = $this->applyWithGit($issue, $patchFileName);
+            $exitCode = $this->applyWithGit($result, $patchFileName);
         } elseif ((int)shell_exec("command -v patch; echo $?") === 0) {
             $exitCode = $this->applyWithPatch($patchFileName);
         } else {
@@ -60,20 +60,20 @@ class Apply extends IssueCommandBase
     }
 
     protected function applyWithGit(
-        IssueNode $issue,
+        IssuePatchResult $result,
         string $patchFileName
     ): int {
         // Validate the issue versions branch, create or checkout issue branch.
         $issueBranchCommand = $this->getApplication()->find('issue:branch');
         $issueBranchCommand->run($this->stdIn, $this->stdOut);
 
-        $branchName = $this->buildBranchName($issue);
+        $branchName = $result->branchName;
         $tempBranchName = $branchName . '-patch-temp';
 
         // Check out the root development branch to create a temporary merge branch
         // where we will apply the patch, and then three way merge to existing issue
         // branch.
-        $issueVersionBranch = $this->getIssueVersionBranchName($issue);
+        $issueVersionBranch = $result->issueVersionBranch;
         $this->repository->checkout($issueVersionBranch);
         $this->stdOut->writeln(
             sprintf(
@@ -137,14 +137,5 @@ class Apply extends IssueCommandBase
             return 1;
         }
         return $process->getExitCode();
-    }
-
-    protected function getPatchFileUrl(IssueNode $issue): string
-    {
-        $patchFile = $this->getLatestFile($issue);
-        if ($patchFile === null) {
-            throw new \RuntimeException('No patch file found for issue ' . $issue->nid);
-        }
-        return $patchFile->url;
     }
 }
