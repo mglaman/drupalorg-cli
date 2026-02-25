@@ -2,19 +2,18 @@
 
 namespace mglaman\DrupalOrgCli\Command\Issue;
 
+use mglaman\DrupalOrg\Action\Issue\GetIssueAction;
+use mglaman\DrupalOrg\IssueTrait;
+use mglaman\DrupalOrgCli\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use mglaman\DrupalOrg\IssueTrait;
 
-class Show extends IssueCommandBase
+class Show extends Command
 {
     use IssueTrait;
 
-    /**
-     * {@inheritdoc}
-     */
     protected function configure(): void
     {
         $this
@@ -30,33 +29,27 @@ class Show extends IssueCommandBase
             ->setDescription('Show a given issue information.');
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $nid = $this->stdIn->getArgument('nid');
-        $issue = $this->client->getNode($nid);
+        $result = (new GetIssueAction($this->client))($nid);
         $format = $this->stdIn->getOption('format');
 
         if ($format == 'json') {
-            $this->stdOut->writeln(json_encode($issue));
+            $this->stdOut->writeln(json_encode($result));
             return 0;
         }
-        // format option is text.
-        $this->stdOut->writeln(sprintf('Title: %s', $issue->title));
-        $this->stdOut->writeln(sprintf('Status: %s', $this->getIssueStatusLabel($issue->fieldIssueStatus)));
-        $this->stdOut->writeln(sprintf('Project: %s', $issue->fieldProjectMachineName));
-        $this->stdOut->writeln(sprintf('Version: %s', $issue->fieldIssueVersion));
-        $this->stdOut->writeln(sprintf('Component: %s', $issue->fieldIssueComponent));
-        $this->stdOut->writeln(sprintf('Priority: %s', $this->getIssuePriorityLabel($issue->fieldIssuePriority)));
-        $this->stdOut->writeln(sprintf('Category: %s', $this->getIssueCategoryLabel($issue->fieldIssueCategory)));
-        // Assigned field does not seem to be exposed on API.
-        // TODO Convert to username.
-        $this->stdOut->writeln(sprintf('Reporter: %s', $issue->authorId ?? ''));
-        $this->stdOut->writeln(sprintf('Created: %s', date('r', $issue->created)));
-        $this->stdOut->writeln(sprintf('Updated: %s', date('r', $issue->changed)));
-        $this->stdOut->writeln(sprintf("\nIssue summary:\n%s", strip_tags($issue->bodyValue ?? '')));
+        $this->stdOut->writeln(sprintf('Title: %s', $result->title));
+        $this->stdOut->writeln(sprintf('Status: %s', $this->getIssueStatusLabel($result->fieldIssueStatus)));
+        $this->stdOut->writeln(sprintf('Project: %s', $result->fieldProjectMachineName));
+        $this->stdOut->writeln(sprintf('Version: %s', $result->fieldIssueVersion));
+        $this->stdOut->writeln(sprintf('Component: %s', $result->fieldIssueComponent));
+        $this->stdOut->writeln(sprintf('Priority: %s', $this->getIssuePriorityLabel($result->fieldIssuePriority)));
+        $this->stdOut->writeln(sprintf('Category: %s', $this->getIssueCategoryLabel($result->fieldIssueCategory)));
+        $this->stdOut->writeln(sprintf('Reporter: %s', $result->authorId ?? ''));
+        $this->stdOut->writeln(sprintf('Created: %s', date('r', $result->created)));
+        $this->stdOut->writeln(sprintf('Updated: %s', date('r', $result->changed)));
+        $this->stdOut->writeln(sprintf("\nIssue summary:\n%s", strip_tags($result->bodyValue ?? '')));
         return 0;
     }
 }
