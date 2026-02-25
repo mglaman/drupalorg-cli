@@ -9,6 +9,6 @@ class GetIssueLinkAction implements ActionInterface
 {
     public function __invoke(string $nid): IssueLinkResult
     {
-        return new IssueLinkResult(url: 'https://www.drupal.org/node/' . $nid);
+        return new IssueLinkResult(url: 'https://www.drupal.org/i/' . $nid);
     }
 }

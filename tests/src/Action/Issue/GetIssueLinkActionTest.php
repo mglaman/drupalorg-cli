@@ -17,7 +17,7 @@ class GetIssueLinkActionTest extends TestCase
         $result = $action('3383637');
 
         self::assertInstanceOf(IssueLinkResult::class, $result);
-        self::assertSame('https://www.drupal.org/node/3383637', $result->url);
+        self::assertSame('https://www.drupal.org/i/3383637', $result->url);
     }
 
     public function testJsonSerialize(): void
@@ -28,6 +28,6 @@ class GetIssueLinkActionTest extends TestCase
         $json = json_encode($result);
         self::assertIsString($json);
         $decoded = json_decode($json, true);
-        self::assertSame('https://www.drupal.org/node/3383637', $decoded['url']);
+        self::assertSame('https://www.drupal.org/i/3383637', $decoded['url']);
     }
 }
