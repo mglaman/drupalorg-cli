@@ -5,6 +5,7 @@ namespace mglaman\DrupalOrg\Tests\Entity;
 use mglaman\DrupalOrg\Entity\IssueFile;
 use mglaman\DrupalOrg\Entity\IssueNode;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(IssueNode::class)]
@@ -68,5 +69,67 @@ class IssueNodeTest extends TestCase
         self::assertNull($issue->authorId);
         self::assertSame([], $issue->fieldIssueFiles);
         self::assertSame([], $issue->comments);
+    }
+
+    public function testBuildCleanTitle(): void
+    {
+        $issue = IssueNode::fromStdClass(self::fixture());
+        // Title: "Schedule transition button size is different for first transition and for second transition"
+        // After regex + lowercase + truncate to 20 chars + strip leading/trailing underscores:
+        self::assertSame('schedule_transition', $issue->buildCleanTitle());
+    }
+
+    public function testBuildBranchName(): void
+    {
+        $issue = IssueNode::fromStdClass(self::fixture());
+        self::assertSame('3383637-schedule_transition', $issue->buildBranchName());
+    }
+
+    /**
+     * @return array<string, array{string, string, string}>
+     */
+    public static function versionBranchProvider(): array
+    {
+        return [
+            // Traditional Drupal.org branch format.
+            'traditional-minor' => ['8.x-1.0', '1234', '8.x-1.x'],
+            'traditional-dev' => ['8.x-1.x-dev', '1234', '8.x-1.x'],
+            'traditional-rc' => ['8.x-1.0-rc1', '1234', '8.x-1.x'],
+            'traditional-major2' => ['8.x-2.0', '1234', '8.x-2.x'],
+            // Semantic versioning branch format.
+            'semver-patch-wildcard' => ['1.0.0-x', '1234', '1.0.x'],
+            'semver-dev' => ['1.0.x-dev', '1234', '1.0.x'],
+            'semver-patch' => ['1.0.1', '1234', '1.0.x'],
+            'semver-alpha' => ['2.0.0-alpha1', '1234', '2.0.x'],
+            // Drupal core (project ID 3060).
+            'drupal-core' => ['11.x-dev', '3060', '11.x-'],
+        ];
+    }
+
+    #[DataProvider('versionBranchProvider')]
+    public function testBuildIssueVersionBranch(
+        string $version,
+        string $projectId,
+        string $expectedBranch
+    ): void {
+        $issue = new IssueNode(
+            nid: '12345',
+            title: 'Test issue',
+            created: 0,
+            changed: 0,
+            commentCount: 0,
+            fieldIssueVersion: $version,
+            fieldIssueStatus: 1,
+            fieldIssueCategory: 1,
+            fieldIssuePriority: 200,
+            fieldIssueComponent: 'Test',
+            fieldProjectId: $projectId,
+            fieldProjectMachineName: 'test_module',
+            bodyValue: null,
+            authorId: null,
+            fieldIssueFiles: [],
+            comments: [],
+        );
+        self::assertSame($expectedBranch, $issue->buildIssueVersionBranch());
     }
 }

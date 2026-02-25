@@ -63,12 +63,27 @@ class Apply extends IssueCommandBase
         IssuePatchResult $result,
         string $patchFileName
     ): int {
-        // Validate the issue versions branch, create or checkout issue branch.
-        $issueBranchCommand = $this->getApplication()->find('issue:branch');
-        $issueBranchCommand->run($this->stdIn, $this->stdOut);
-
         $branchName = $result->branchName;
         $tempBranchName = $branchName . '-patch-temp';
+
+        // Validate the issue version branch and create or checkout the issue branch.
+        $branches = $this->repository->getBranches() ?? [];
+        if (!in_array($result->issueVersionBranch, $branches, true)) {
+            $this->stdErr->writeln(
+                sprintf(
+                    '<error>The issue version branch %s is not available.</error>',
+                    $result->issueVersionBranch
+                )
+            );
+            return 1;
+        }
+        if (!in_array($branchName, $branches, true)) {
+            $this->stdOut->writeln(
+                sprintf('<info>Creating the %s branch</info>', $branchName)
+            );
+            $this->repository->checkout($result->issueVersionBranch);
+            $this->repository->createBranch($branchName, true);
+        }
 
         // Check out the root development branch to create a temporary merge branch
         // where we will apply the patch, and then three way merge to existing issue

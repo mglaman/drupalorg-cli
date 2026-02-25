@@ -28,6 +28,30 @@ class IssueNode
     ) {
     }
 
+    public function buildCleanTitle(): string
+    {
+        $cleanTitle = preg_replace('/[^a-zA-Z0-9]+/', '_', $this->title);
+        $cleanTitle = strtolower(substr((string) $cleanTitle, 0, 20));
+        return (string) preg_replace('/(^_|_$)/', '', $cleanTitle);
+    }
+
+    public function buildBranchName(): string
+    {
+        return sprintf('%s-%s', $this->nid, $this->buildCleanTitle());
+    }
+
+    public function buildIssueVersionBranch(): string
+    {
+        $issueVersionBranch = $this->fieldIssueVersion;
+        if ($this->fieldProjectId === '3060') {
+            return substr($issueVersionBranch, 0, 5);
+        }
+        if (preg_match('/^(\d+\.\d+)\./', $issueVersionBranch, $matches)) {
+            return $matches[1] . '.x';
+        }
+        return substr($issueVersionBranch, 0, 6) . 'x';
+    }
+
     public static function fromStdClass(\stdClass $data): self
     {
         $fieldIssueFiles = array_map(
