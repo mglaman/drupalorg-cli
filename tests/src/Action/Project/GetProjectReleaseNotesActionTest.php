@@ -91,7 +91,7 @@ class GetProjectReleaseNotesActionTest extends TestCase
         $action = new GetProjectReleaseNotesAction($client);
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('No release found for 99.9.9');
+        $this->expectExceptionMessage('No release found for 99.9.9.');
         $action('address', '99.9.9');
     }
 
@@ -106,7 +106,7 @@ class GetProjectReleaseNotesActionTest extends TestCase
         $action = new GetProjectReleaseNotesAction($client);
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('No release found for 8.x-1.0');
+        $this->expectExceptionMessage('No release found for 8.x-1.0.');
         $action('address', '1.0.0');
     }
 

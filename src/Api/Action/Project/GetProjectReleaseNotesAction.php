@@ -37,7 +37,7 @@ class GetProjectReleaseNotesAction implements ActionInterface
         }
 
         if ($releaseList === []) {
-            throw new \RuntimeException("No release found for $version");
+            throw new \RuntimeException("No release found for $version.");
         }
 
         return new ProjectReleaseNotesResult(
