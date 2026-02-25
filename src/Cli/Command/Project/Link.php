@@ -2,6 +2,7 @@
 
 namespace mglaman\DrupalOrgCli\Command\Project;
 
+use mglaman\DrupalOrg\Action\Project\GetProjectLinkAction;
 use mglaman\DrupalOrgCli\BrowserTrait;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -21,7 +22,9 @@ class Link extends ProjectCommandBase
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->openUrl('https://www.drupal.org/project/' . $this->projectName, $this->stdErr, $this->stdOut);
+        $action = new GetProjectLinkAction();
+        $result = $action($this->projectName);
+        $this->openUrl($result->url, $this->stdErr, $this->stdOut);
         return 0;
     }
 }

@@ -1,0 +1,27 @@
+<?php
+
+namespace mglaman\DrupalOrg\Action\Project;
+
+use mglaman\DrupalOrg\Action\ActionInterface;
+use mglaman\DrupalOrg\Client;
+use mglaman\DrupalOrg\Entity\Project;
+use mglaman\DrupalOrg\Result\Project\ProjectReleasesResult;
+
+class GetProjectReleasesAction implements ActionInterface
+{
+    public function __construct(private readonly Client $client)
+    {
+    }
+
+    public function __invoke(Project $project): ProjectReleasesResult
+    {
+        $releases = $this->client->getProjectReleases($project->nid, [
+            'field_release_update_status' => 0,
+        ]);
+        return new ProjectReleasesResult(
+            projectTitle: $project->title,
+            projectName: $project->machineName,
+            releases: $releases,
+        );
+    }
+}

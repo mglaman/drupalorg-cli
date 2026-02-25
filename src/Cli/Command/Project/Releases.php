@@ -2,6 +2,7 @@
 
 namespace mglaman\DrupalOrgCli\Command\Project;
 
+use mglaman\DrupalOrg\Action\Project\GetProjectReleasesAction;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\ArgvInput;
@@ -26,9 +27,9 @@ class Releases extends ProjectCommandBase
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $releases = $this->client->getProjectReleases($this->projectData->nid, [
-          'field_release_update_status' => 0,
-        ]);
+        $action = new GetProjectReleasesAction($this->client);
+        $result = $action($this->projectData);
+
         $table = new Table($this->stdOut);
         $table->setHeaders([
           'Project',
@@ -40,7 +41,7 @@ class Releases extends ProjectCommandBase
         ]);
 
         $release_versions = [];
-        foreach ($releases as $release) {
+        foreach ($result->releases as $release) {
             $releaseDate = (new \DateTime())->setTimestamp($release->created);
             $now = new \DateTime();
             $difference = $now->diff($releaseDate);
@@ -62,7 +63,7 @@ class Releases extends ProjectCommandBase
             }
 
             $table->addRow([
-              $this->projectData->title,
+              $result->projectTitle,
               $securty,
               $release->fieldReleaseVersion,
               "<$format>" . date('M j, Y', $release->created) . " ($message)</$format>",

@@ -2,7 +2,7 @@
 
 namespace mglaman\DrupalOrgCli\Command\Project;
 
-use mglaman\DrupalOrg\Request;
+use mglaman\DrupalOrg\Action\Project\GetProjectIssuesAction;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Helper\TableSeparator;
 use Symfony\Component\Console\Input\InputArgument;
@@ -50,48 +50,15 @@ class ProjectIssues extends ProjectCommandBase
         InputInterface $input,
         OutputInterface $output
     ): int {
-        $rawReleases = $this->client->requestRaw(new Request('node.json', [
-            'field_release_project' => $this->projectData->nid,
-            'type' => 'project_release',
-            'sort' => 'nid',
-            'direction' => 'DESC',
-            'limit' => 100,
-        ]));
-        $releaseList = (array) ($rawReleases->list ?? []);
+        $action = new GetProjectIssuesAction($this->client);
+        $result = $action(
+            $this->projectData,
+            (string) $this->stdIn->getArgument('type'),
+            (string) $this->stdIn->getOption('core'),
+            (int) $this->stdIn->getOption('limit')
+        );
 
-        $api_params = [
-            'type' => 'project_issue',
-            'field_project' => $this->projectData->nid,
-            'field_issue_status[value]' => [1, 8, 13, 14, 16],
-            'sort' => 'field_issue_priority',
-            'direction' => 'DESC',
-            'limit' => $this->stdIn->getOption('limit'),
-        ];
-
-        switch ($this->stdIn->getArgument('type')) {
-            case 'rtbc':
-                $api_params['field_issue_status[value]'] = [14];
-                break;
-            case 'review':
-                $api_params['field_issue_status[value]'] = [8];
-                break;
-            default:
-                $api_params['field_issue_status[value]'] = [1, 8, 13, 14, 16];
-        }
-
-        foreach ($releaseList as $release) {
-            if (strpos(
-                $release->field_release_version,
-                $this->stdIn->getOption('core')
-            ) === 0) {
-                $api_params['field_issue_version']['value'][] = $release->field_release_version;
-            }
-        }
-
-        $rawIssues = $this->client->requestRaw(new Request('node.json', $api_params));
-        $issueList = (array) ($rawIssues->list ?? []);
-
-        $output->writeln("<info>{$this->projectData->title}</info>");
+        $output->writeln("<info>{$result->projectTitle}</info>");
         $table = new Table($this->stdOut);
         $table->setHeaders(
             [
@@ -101,13 +68,14 @@ class ProjectIssues extends ProjectCommandBase
             ]
         );
 
+        $issueList = $result->issues;
         $count = count($issueList);
         for ($i = 0; $i < $count; $i++) {
             $item = $issueList[$i];
             $table->addRow(
                 [
                     $item->nid,
-                    $this->getIssueStatus((int) $item->field_issue_status),
+                    $this->getIssueStatus($item->fieldIssueStatus),
                     $item->title . PHP_EOL . '<comment>https://www.drupal.org/node/' . $item->nid . '</comment>',
                 ]
             );
