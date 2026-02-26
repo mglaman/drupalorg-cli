@@ -3,8 +3,11 @@
 namespace mglaman\DrupalOrgCli\Formatter;
 
 use mglaman\DrupalOrg\IssueTrait;
+use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
 use mglaman\DrupalOrg\Result\Issue\IssueResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
+use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestListResult;
+use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestStatusResult;
 use mglaman\DrupalOrg\Result\Project\ProjectIssuesResult;
 use mglaman\DrupalOrg\Result\Project\ProjectReleasesResult;
 
@@ -66,6 +69,55 @@ class MarkdownFormatter extends AbstractFormatter
             $date = date('c', $release->created);
             $description = $release->fieldReleaseShortDescription ?? '';
             $lines[] = "- **{$release->fieldReleaseVersion}** ({$date}) — {$description}";
+        }
+        return implode("\n", $lines);
+    }
+
+    protected function formatIssueFork(IssueForkResult $result): string
+    {
+        $lines = [];
+        $lines[] = "# Issue Fork: {$result->remoteName}";
+        $lines[] = '';
+        $lines[] = "- **Remote name:** {$result->remoteName}";
+        $lines[] = "- **SSH URL:** {$result->sshUrl}";
+        $lines[] = "- **HTTPS URL:** {$result->httpsUrl}";
+        $lines[] = "- **GitLab path:** {$result->gitLabProjectPath}";
+        if ($result->branches !== []) {
+            $lines[] = '';
+            $lines[] = '## Branches';
+            $lines[] = '';
+            foreach ($result->branches as $branch) {
+                $lines[] = "- {$branch}";
+            }
+        }
+        return implode("\n", $lines);
+    }
+
+    protected function formatMergeRequestList(MergeRequestListResult $result): string
+    {
+        $lines = [];
+        $lines[] = "# Merge Requests: {$result->projectPath}";
+        $lines[] = '';
+        foreach ($result->mergeRequests as $mr) {
+            $mergeable = $mr->isMergeable ? ' ✓' : '';
+            $lines[] = "- **!{$mr->iid}** [{$mr->state}{$mergeable}] [{$mr->title}]({$mr->webUrl})";
+            $lines[] = "  - Branch: `{$mr->sourceBranch}` → `{$mr->targetBranch}`";
+            $lines[] = "  - Author: {$mr->author} | Updated: {$mr->updatedAt}";
+        }
+        return implode("\n", $lines);
+    }
+
+    protected function formatMergeRequestStatus(MergeRequestStatusResult $result): string
+    {
+        $lines = [];
+        $lines[] = "# MR !{$result->iid} Pipeline Status";
+        $lines[] = '';
+        $lines[] = "- **Status:** {$result->status}";
+        if ($result->pipelineId !== null) {
+            $lines[] = "- **Pipeline ID:** {$result->pipelineId}";
+        }
+        if ($result->pipelineUrl !== null && $result->pipelineUrl !== '') {
+            $lines[] = "- **Pipeline URL:** {$result->pipelineUrl}";
         }
         return implode("\n", $lines);
     }

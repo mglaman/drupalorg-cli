@@ -3,8 +3,11 @@
 namespace mglaman\DrupalOrgCli\Formatter;
 
 use mglaman\DrupalOrg\IssueTrait;
+use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
 use mglaman\DrupalOrg\Result\Issue\IssueResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
+use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestListResult;
+use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestStatusResult;
 use mglaman\DrupalOrg\Result\Project\ProjectIssuesResult;
 use mglaman\DrupalOrg\Result\Project\ProjectReleasesResult;
 
@@ -92,6 +95,70 @@ XML;
             $items .= "    </item>\n";
         }
         return "<drupal_context>\n  <project>{$projectTitle}</project>\n  <items>\n{$items}  </items>\n</drupal_context>";
+    }
+
+    protected function formatIssueFork(IssueForkResult $result): string
+    {
+        $remoteName = $this->xmlEscape($result->remoteName);
+        $sshUrl = $this->xmlEscape($result->sshUrl);
+        $httpsUrl = $this->xmlEscape($result->httpsUrl);
+        $gitLabPath = $this->xmlEscape($result->gitLabProjectPath);
+
+        $branchItems = '';
+        foreach ($result->branches as $branch) {
+            $branchItems .= '    <branch>' . $this->xmlEscape($branch) . "</branch>\n";
+        }
+
+        return <<<XML
+<drupal_context>
+  <remote_name>{$remoteName}</remote_name>
+  <ssh_url>{$sshUrl}</ssh_url>
+  <https_url>{$httpsUrl}</https_url>
+  <gitlab_project_path>{$gitLabPath}</gitlab_project_path>
+  <branches>
+{$branchItems}  </branches>
+</drupal_context>
+XML;
+    }
+
+    protected function formatMergeRequestList(MergeRequestListResult $result): string
+    {
+        $projectPath = $this->xmlEscape($result->projectPath);
+        $items = '';
+        foreach ($result->mergeRequests as $mr) {
+            $title = $this->xmlEscape($mr->title);
+            $sourceBranch = $this->xmlEscape($mr->sourceBranch);
+            $targetBranch = $this->xmlEscape($mr->targetBranch);
+            $author = $this->xmlEscape($mr->author);
+            $mergeable = $mr->isMergeable ? 'yes' : 'no';
+            $items .= "    <merge_request>\n";
+            $items .= "      <iid>{$mr->iid}</iid>\n";
+            $items .= "      <title>{$title}</title>\n";
+            $items .= "      <source_branch>{$sourceBranch}</source_branch>\n";
+            $items .= "      <target_branch>{$targetBranch}</target_branch>\n";
+            $items .= "      <state>{$mr->state}</state>\n";
+            $items .= "      <mergeable>{$mergeable}</mergeable>\n";
+            $items .= "      <author>{$author}</author>\n";
+            $items .= "      <url>{$mr->webUrl}</url>\n";
+            $items .= "    </merge_request>\n";
+        }
+        return "<drupal_context>\n  <project_path>{$projectPath}</project_path>\n  <merge_requests>\n{$items}  </merge_requests>\n</drupal_context>";
+    }
+
+    protected function formatMergeRequestStatus(MergeRequestStatusResult $result): string
+    {
+        $status = $this->xmlEscape($result->status);
+        $pipelineId = $result->pipelineId !== null ? (string) $result->pipelineId : '';
+        $pipelineUrl = $this->xmlEscape($result->pipelineUrl ?? '');
+
+        return <<<XML
+<drupal_context>
+  <merge_request_iid>{$result->iid}</merge_request_iid>
+  <pipeline_id>{$pipelineId}</pipeline_id>
+  <status>{$status}</status>
+  <pipeline_url>{$pipelineUrl}</pipeline_url>
+</drupal_context>
+XML;
     }
 
     private function toIso8601(int $timestamp): string
