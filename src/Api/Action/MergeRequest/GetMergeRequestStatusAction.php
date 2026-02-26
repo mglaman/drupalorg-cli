@@ -2,29 +2,13 @@
 
 namespace mglaman\DrupalOrg\Action\MergeRequest;
 
-use mglaman\DrupalOrg\Action\ActionInterface;
-use mglaman\DrupalOrg\Client;
-use mglaman\DrupalOrg\GitLab\Client as GitLabClient;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestStatusResult;
 
-class GetMergeRequestStatusAction implements ActionInterface
+class GetMergeRequestStatusAction extends AbstractMergeRequestAction
 {
-    public function __construct(
-        private readonly Client $client,
-        private readonly GitLabClient $gitLabClient,
-    ) {
-    }
-
     public function __invoke(string $nid, int $mrIid): MergeRequestStatusResult
     {
-        $issue = $this->client->getNode($nid);
-        $projectMachineName = $issue->fieldProjectMachineName;
-        $remoteName = $projectMachineName . '-' . $nid;
-        $gitLabProjectPath = 'issue/' . $remoteName;
-
-        $encodedPath = urlencode($gitLabProjectPath);
-        $project = $this->gitLabClient->getProject($encodedPath);
-        $projectId = (int) $project->id;
+        [$projectId] = $this->resolveGitLabProject($nid);
 
         $pipelines = $this->gitLabClient->getMergeRequestPipelines($projectId, $mrIid);
 

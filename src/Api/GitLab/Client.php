@@ -38,10 +38,8 @@ class Client
     }
 
     /**
-     * @throws \Exception
-     */
-    /**
      * @param array<string, mixed> $query
+     * @throws \Exception
      */
     private function get(string $path, array $query = []): mixed
     {

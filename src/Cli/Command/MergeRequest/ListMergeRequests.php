@@ -4,7 +4,6 @@ namespace mglaman\DrupalOrgCli\Command\MergeRequest;
 
 use mglaman\DrupalOrg\Action\MergeRequest\ListMergeRequestsAction;
 use mglaman\DrupalOrg\GitLab\Client as GitLabClient;
-use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestItem;
 use mglaman\DrupalOrgCli\Command\Issue\IssueCommandBase;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputArgument;

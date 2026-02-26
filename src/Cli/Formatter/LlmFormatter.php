@@ -136,10 +136,13 @@ XML;
             $items .= "      <title>{$title}</title>\n";
             $items .= "      <source_branch>{$sourceBranch}</source_branch>\n";
             $items .= "      <target_branch>{$targetBranch}</target_branch>\n";
-            $items .= "      <state>{$mr->state}</state>\n";
+            $state = $this->xmlEscape($mr->state);
+            $updatedAt = $this->xmlEscape($mr->updatedAt);
+            $items .= "      <state>{$state}</state>\n";
             $items .= "      <mergeable>{$mergeable}</mergeable>\n";
             $items .= "      <author>{$author}</author>\n";
-            $items .= "      <url>{$mr->webUrl}</url>\n";
+            $items .= "      <url>" . $this->xmlEscape($mr->webUrl) . "</url>\n";
+            $items .= "      <updated_at>{$updatedAt}</updated_at>\n";
             $items .= "    </merge_request>\n";
         }
         return "<drupal_context>\n  <project_path>{$projectPath}</project_path>\n  <merge_requests>\n{$items}  </merge_requests>\n</drupal_context>";
