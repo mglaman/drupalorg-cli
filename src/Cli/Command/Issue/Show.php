@@ -23,7 +23,7 @@ class Show extends Command
                 'format',
                 'f',
                 InputOption::VALUE_OPTIONAL,
-                'Output options: text, json. Defaults to text.',
+                'Output options: text, json, md, llm. Defaults to text.',
                 'text'
             )
             ->setDescription('Show a given issue information.');
@@ -35,8 +35,7 @@ class Show extends Command
         $result = (new GetIssueAction($this->client))($nid);
         $format = $this->stdIn->getOption('format');
 
-        if ($format == 'json') {
-            $this->stdOut->writeln(json_encode($result));
+        if ($this->writeFormatted($result, (string) $format)) {
             return 0;
         }
         $this->stdOut->writeln(sprintf('Title: %s', $result->title));

@@ -39,6 +39,13 @@ class ProjectIssues extends ProjectCommandBase
                 'Limit',
                 '10'
             )
+            ->addOption(
+                'format',
+                'f',
+                InputOption::VALUE_OPTIONAL,
+                'Output options: text, json, md, llm. Defaults to text.',
+                'text'
+            )
             ->setDescription('Lists issues for a project.');
     }
 
@@ -57,6 +64,10 @@ class ProjectIssues extends ProjectCommandBase
             (string) $this->stdIn->getOption('core'),
             (int) $this->stdIn->getOption('limit')
         );
+
+        if ($this->writeFormatted($result, (string) $this->stdIn->getOption('format'))) {
+            return 0;
+        }
 
         $output->writeln("<info>{$result->projectTitle}</info>");
         $table = new Table($this->stdOut);

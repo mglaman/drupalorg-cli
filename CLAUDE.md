@@ -28,6 +28,7 @@ PHP 8.1+ Symfony Console CLI that wraps Drupal.org's REST and JSON:API endpoints
 - `src/Api/CommitParser.php` — extracts usernames from classic `by user:` format and Git trailers (`Co-authored-by:` etc.), extracts NIDs from commit titles
 - `src/Api/Request.php` / `Response.php` / `RawResponse.php` — request builder and JSON response wrappers
 - `src/Cli/Command/Command.php` — base class; provides `$this->client` (Client), `$this->stdOut/stdErr/stdIn`, `runProcess()`
+- `src/Cli/Formatter/` — output formatters for `--format=json|md|llm`; `AbstractFormatter` centralises result-type dispatch; `JsonFormatter` implements `FormatterInterface` directly (works for any result via `json_encode`)
 
 ## Development Commands
 
@@ -44,6 +45,7 @@ composer box-install && composer box-build  # Build phar
 - PHPStan level 6 with strict + deprecation rules
 - Never edit `composer.lock` directly — use `composer require` / `composer update`
 - Use concurrent async Guzzle requests (`requestAsync` + `Utils::settle()`) when fetching multiple Drupal.org nodes
+- When adding a new `ResultInterface` implementation, register it in `AbstractFormatter::format()` and add the corresponding abstract method; every concrete formatter (`MarkdownFormatter`, `LlmFormatter`) is then forced to implement it at compile time
 
 ## Skills
 
