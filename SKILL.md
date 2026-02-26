@@ -86,8 +86,9 @@ drupalorg project:kanban <project>
 drupalorg maintainer:issues <user> [type] --format=llm
 
 # Generate release notes from git log for a maintainer's project
-# ref1 = from-tag/SHA; ref2 defaults to HEAD; --format=json|md|html (default: html)
-drupalorg maintainer:release-notes <ref1> [ref2]
+# ref1 = from-tag/SHA; ref2 defaults to HEAD
+# --format accepts json|md|html (default: html); llm is not supported
+drupalorg maintainer:release-notes <ref1> [ref2] [--format=json|md|html]
 ```
 
 ### Utility commands
