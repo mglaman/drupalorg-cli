@@ -52,6 +52,7 @@ class Application extends ParentApplication
         $commands[] = new Command\Project\ReleaseNotes();
         $commands[] = new Command\Maintainer\Issues();
         $commands[] = new Command\Maintainer\ReleaseNotes();
+        $commands[] = new Command\Skill\Install();
         return $commands;
     }
 

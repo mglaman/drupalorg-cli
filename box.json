@@ -3,7 +3,8 @@
     "src"
   ],
   "files": [
-    "vendor/symfony/console/Resources/bin/hiddeninput.exe"
+    "vendor/symfony/console/Resources/bin/hiddeninput.exe",
+    "SKILL.md"
   ],
   "finder": [
     {
