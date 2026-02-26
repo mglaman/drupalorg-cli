@@ -44,10 +44,12 @@ drupalorg issue:show <nid> --format=llm
 drupalorg issue:branch <nid>
 
 # Generate a patch from committed (but not yet pushed) changes
-drupalorg issue:patch
+# nid is optional; auto-detected from the branch name if omitted
+drupalorg issue:patch [nid]
 
-# Generate an interdiff between two commits
-drupalorg issue:interdiff <from-commit> <to-commit>
+# Generate an interdiff from committed local changes against the upstream branch
+# nid is optional; auto-detected from the branch name if omitted
+drupalorg issue:interdiff [nid]
 
 # Download and apply the latest patch attached to an issue
 drupalorg issue:apply <nid>
@@ -60,7 +62,8 @@ drupalorg issue:link <nid>
 
 ```bash
 # List open issues for a project
-drupalorg project:issues <project> --format=llm
+# type: all (default) or rtbc; --core defaults to 8.x; --limit defaults to 10
+drupalorg project:issues [project] [type] --format=llm
 
 # List available releases for a project
 drupalorg project:releases <project> --format=llm
@@ -79,18 +82,17 @@ drupalorg project:kanban <project>
 
 ```bash
 # List issues assigned to or filed by a maintainer
-drupalorg maintainer:issues <username> --format=llm
+# type: all (default) or rtbc
+drupalorg maintainer:issues <user> [type] --format=llm
 
 # Generate release notes from git log for a maintainer's project
-drupalorg maintainer:release-notes
+# ref1 = from-tag/SHA; ref2 defaults to HEAD; --format=json|md|html (default: html)
+drupalorg maintainer:release-notes <ref1> [ref2]
 ```
 
 ### Utility commands
 
 ```bash
-# Clear the local API response cache
-drupalorg cache:clear
-
 # Install the drupalorg-cli agent skill into your project
 drupalorg skill:install [--path=.claude/skills]
 ```
@@ -130,8 +132,18 @@ drupalorg issue:patch
 ### Generate an interdiff for a re-roll
 
 ```bash
-# After committing an updated patch on top of the previous one:
-drupalorg issue:interdiff <previous-commit-sha> <new-commit-sha>
+# Commit your updated changes on the issue branch, then:
+drupalorg issue:interdiff
+```
+
+### Generate release notes
+
+```bash
+# Generate release notes from a tag/SHA to HEAD (default html output)
+drupalorg maintainer:release-notes 10.3.5
+
+# Generate as Markdown between two specific refs
+drupalorg maintainer:release-notes 10.3.5 10.3.6 --format=md
 ```
 
 ### Browse project releases
@@ -152,4 +164,3 @@ drupalorg project:release-notes drupal 10.3.6 --format=llm
 | `No patch found on issue` | Issue has no file attachments | Check `issue:show` to confirm files exist |
 | `No branch configured` | `issue:patch` run outside a git repo or without a tracking branch | Run `issue:branch <nid>` first |
 | `429 / 503` | Drupal.org rate limit or maintenance | The client retries automatically; wait and retry if it persists |
-| `Cache stale` | Old API response cached locally | Run `drupalorg cache:clear` and retry |
