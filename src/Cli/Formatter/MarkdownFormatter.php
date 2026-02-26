@@ -7,26 +7,12 @@ use mglaman\DrupalOrg\Result\Issue\IssueResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
 use mglaman\DrupalOrg\Result\Project\ProjectIssuesResult;
 use mglaman\DrupalOrg\Result\Project\ProjectReleasesResult;
-use mglaman\DrupalOrg\Result\ResultInterface;
 
-class MarkdownFormatter implements FormatterInterface
+class MarkdownFormatter extends AbstractFormatter
 {
     use IssueTrait;
 
-    public function format(ResultInterface $result): string
-    {
-        return match (true) {
-            $result instanceof IssueResult => $this->formatIssue($result),
-            $result instanceof ProjectIssuesResult => $this->formatProjectIssues($result),
-            $result instanceof MaintainerIssuesResult => $this->formatMaintainerIssues($result),
-            $result instanceof ProjectReleasesResult => $this->formatProjectReleases($result),
-            default => throw new \InvalidArgumentException(
-                sprintf('Unsupported result type: %s', get_class($result))
-            ),
-        };
-    }
-
-    private function formatIssue(IssueResult $result): string
+    protected function formatIssue(IssueResult $result): string
     {
         $lines = [];
         $lines[] = "# {$result->title}";
@@ -47,7 +33,7 @@ class MarkdownFormatter implements FormatterInterface
         return implode("\n", $lines);
     }
 
-    private function formatProjectIssues(ProjectIssuesResult $result): string
+    protected function formatProjectIssues(ProjectIssuesResult $result): string
     {
         $lines = [];
         $lines[] = "# {$result->projectTitle}";
@@ -60,7 +46,7 @@ class MarkdownFormatter implements FormatterInterface
         return implode("\n", $lines);
     }
 
-    private function formatMaintainerIssues(MaintainerIssuesResult $result): string
+    protected function formatMaintainerIssues(MaintainerIssuesResult $result): string
     {
         $lines = [];
         $lines[] = "# {$result->feedTitle}";
@@ -71,7 +57,7 @@ class MarkdownFormatter implements FormatterInterface
         return implode("\n", $lines);
     }
 
-    private function formatProjectReleases(ProjectReleasesResult $result): string
+    protected function formatProjectReleases(ProjectReleasesResult $result): string
     {
         $lines = [];
         $lines[] = "# {$result->projectTitle}";
