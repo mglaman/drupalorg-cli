@@ -8,6 +8,7 @@ use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Helper\TableSeparator;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Issues extends Command
@@ -29,6 +30,13 @@ class Issues extends Command
                 'Type of issues: all, rtbc',
                 'all'
             )
+            ->addOption(
+                'format',
+                'f',
+                InputOption::VALUE_OPTIONAL,
+                'Output options: text, json, md, llm. Defaults to text.',
+                'text'
+            )
             ->setDescription('Lists issues for a user, based on maintainer.');
     }
 
@@ -44,6 +52,10 @@ class Issues extends Command
 
         $action = new GetMaintainerIssuesAction();
         $result = $action($user, $type);
+
+        if ($this->writeFormatted($result, (string) $this->stdIn->getOption('format'))) {
+            return 0;
+        }
 
         $output->writeln("<info>{$result->feedTitle}</info>");
 

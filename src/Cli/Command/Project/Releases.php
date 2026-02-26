@@ -8,6 +8,7 @@ use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
 
@@ -18,6 +19,13 @@ class Releases extends ProjectCommandBase
         $this
           ->setName('project:releases')
           ->addArgument('project', InputArgument::OPTIONAL, 'The project machine name')
+          ->addOption(
+              'format',
+              'f',
+              InputOption::VALUE_OPTIONAL,
+              'Output options: text, json, md, llm. Defaults to text.',
+              'text'
+          )
           ->setDescription('Lists available releases');
     }
 
@@ -29,6 +37,10 @@ class Releases extends ProjectCommandBase
     {
         $action = new GetProjectReleasesAction($this->client);
         $result = $action($this->projectData);
+
+        if ($this->writeFormatted($result, (string) $this->stdIn->getOption('format'))) {
+            return 0;
+        }
 
         $table = new Table($this->stdOut);
         $table->setHeaders([

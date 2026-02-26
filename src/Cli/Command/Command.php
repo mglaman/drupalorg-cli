@@ -3,6 +3,10 @@
 namespace mglaman\DrupalOrgCli\Command;
 
 use mglaman\DrupalOrg\Client;
+use mglaman\DrupalOrg\Result\ResultInterface;
+use mglaman\DrupalOrgCli\Formatter\JsonFormatter;
+use mglaman\DrupalOrgCli\Formatter\LlmFormatter;
+use mglaman\DrupalOrgCli\Formatter\MarkdownFormatter;
 use Symfony\Component\Console\Command\Command as BaseCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
@@ -49,6 +53,21 @@ abstract class Command extends BaseCommand
         if ($this->stdOut->getVerbosity() > OutputInterface::VERBOSITY_NORMAL) {
             $this->stdOut->writeln('<comment>' . $message . '</comment>');
         }
+    }
+
+    protected function writeFormatted(ResultInterface $result, string $format): bool
+    {
+        if ($format === 'text') {
+            return false;
+        }
+        $formatter = match ($format) {
+            'json' => new JsonFormatter(),
+            'md', 'markdown' => new MarkdownFormatter(),
+            'llm' => new LlmFormatter(),
+            default => throw new \InvalidArgumentException("Unknown format: $format"),
+        };
+        $this->stdOut->writeln($formatter->format($result));
+        return true;
     }
 
     /**
