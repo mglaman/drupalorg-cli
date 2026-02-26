@@ -15,12 +15,12 @@ branches, generating patches and interdiffs, applying patches, and browsing
 releases.
 
 ```bash
-drupalorg <command> [arguments] [--format=text|json|md|llm]
+drupalorg <command> [arguments]
 ```
 
 ## Output Formats
 
-Every read command accepts `--format` / `-f`:
+`issue:show`, `project:issues`, `project:releases`, `project:release-notes`, and `maintainer:issues` accept `--format` / `-f`:
 
 | Format | Description |
 |--------|-------------|

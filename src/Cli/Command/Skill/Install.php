@@ -26,15 +26,24 @@ class Install extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $skillSource = dirname(__DIR__, 4) . '/SKILL.md';
+        $skillSource = __DIR__ . '/../../../../SKILL.md';
         $content = file_get_contents($skillSource);
         if ($content === false) {
             $this->stdErr->writeln(sprintf('<error>Could not read skill source: %s</error>', $skillSource));
             return 1;
         }
 
-        $basePath = (string) $this->stdIn->getOption('path');
-        $dir = rtrim($basePath, '/\\') . DIRECTORY_SEPARATOR . 'drupalorg-cli';
+        $basePath = trim((string) $this->stdIn->getOption('path'));
+        if ($basePath === '') {
+            $this->stdErr->writeln('<error>The --path option must not be empty.</error>');
+            return 1;
+        }
+        $normalizedBase = rtrim($basePath, '/\\');
+        if ($normalizedBase === '' || (strlen($normalizedBase) === 2 && ctype_alpha($normalizedBase[0]) && $normalizedBase[1] === ':')) {
+            $this->stdErr->writeln('<error>The --path option must not point to a filesystem root.</error>');
+            return 1;
+        }
+        $dir = $normalizedBase . DIRECTORY_SEPARATOR . 'drupalorg-cli';
         $fullPath = $dir . '/SKILL.md';
 
         if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
