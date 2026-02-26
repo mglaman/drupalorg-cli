@@ -34,7 +34,7 @@ class Install extends Command
         }
 
         $basePath = (string) $this->stdIn->getOption('path');
-        $dir = rtrim($basePath, '/') . '/drupalorg-cli';
+        $dir = rtrim($basePath, '/\\') . DIRECTORY_SEPARATOR . 'drupalorg-cli';
         $fullPath = $dir . '/SKILL.md';
 
         if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
@@ -47,7 +47,7 @@ class Install extends Command
             return 1;
         }
 
-        $this->stdOut->writeln(sprintf('Skill installed to %s', $fullPath));
+        $this->stdOut->writeln(sprintf('<comment>Skill installed to %s</comment>', $fullPath));
         return 0;
     }
 }
