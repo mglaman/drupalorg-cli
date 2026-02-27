@@ -4,6 +4,7 @@ namespace mglaman\DrupalOrg\Tests\Action\MergeRequest;
 
 use mglaman\DrupalOrg\Action\MergeRequest\ListMergeRequestsAction;
 use mglaman\DrupalOrg\Client;
+use mglaman\DrupalOrg\Enum\MergeRequestState;
 use mglaman\DrupalOrg\Entity\IssueNode;
 use mglaman\DrupalOrg\GitLab\Client as GitLabClient;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestItem;
@@ -76,7 +77,7 @@ class ListMergeRequestsActionTest extends TestCase
             ->willReturn([self::makeMrObject()]);
 
         $action = new ListMergeRequestsAction($client, $gitLabClient);
-        $result = $action('3383637', 'opened');
+        $result = $action('3383637', MergeRequestState::Opened);
 
         self::assertInstanceOf(MergeRequestListResult::class, $result);
         self::assertSame('issue/drupal-3383637', $result->projectPath);
@@ -101,7 +102,7 @@ class ListMergeRequestsActionTest extends TestCase
             ->willReturn([self::makeMrObject(7, 'opened'), self::makeMrObject(6, 'merged')]);
 
         $action = new ListMergeRequestsAction($client, $gitLabClient);
-        $result = $action('3383637', 'all');
+        $result = $action('3383637', MergeRequestState::All);
 
         self::assertCount(2, $result->mergeRequests);
     }
@@ -116,7 +117,7 @@ class ListMergeRequestsActionTest extends TestCase
         $gitLabClient->method('getMergeRequests')->willReturn([]);
 
         $action = new ListMergeRequestsAction($client, $gitLabClient);
-        $result = $action('3383637', 'opened');
+        $result = $action('3383637', MergeRequestState::Opened);
 
         self::assertSame([], $result->mergeRequests);
     }

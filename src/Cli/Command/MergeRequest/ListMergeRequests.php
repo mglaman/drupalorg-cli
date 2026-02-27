@@ -3,6 +3,7 @@
 namespace mglaman\DrupalOrgCli\Command\MergeRequest;
 
 use mglaman\DrupalOrg\Action\MergeRequest\ListMergeRequestsAction;
+use mglaman\DrupalOrg\Enum\MergeRequestState;
 use mglaman\DrupalOrg\GitLab\Client as GitLabClient;
 use mglaman\DrupalOrgCli\Command\Issue\IssueCommandBase;
 use Symfony\Component\Console\Helper\Table;
@@ -25,7 +26,7 @@ class ListMergeRequests extends IssueCommandBase
                 'state',
                 null,
                 InputOption::VALUE_OPTIONAL,
-                'Filter by state: opened, closed, merged, all.',
+                'Filter by state: opened, closed, merged, all. Defaults to opened.',
                 'opened'
             )
             ->addOption(
@@ -40,7 +41,7 @@ class ListMergeRequests extends IssueCommandBase
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $state = (string) ($this->stdIn->getOption('state') ?? 'opened');
+        $state = MergeRequestState::from((string) ($this->stdIn->getOption('state') ?? 'opened'));
         $format = (string) ($this->stdIn->getOption('format') ?? 'text');
 
         $action = new ListMergeRequestsAction($this->client, new GitLabClient());
@@ -51,7 +52,7 @@ class ListMergeRequests extends IssueCommandBase
         }
 
         if ($result->mergeRequests === []) {
-            $this->stdOut->writeln(sprintf('No %s merge requests found.', $state));
+            $this->stdOut->writeln(sprintf('No %s merge requests found.', $state->value));
             return 0;
         }
 

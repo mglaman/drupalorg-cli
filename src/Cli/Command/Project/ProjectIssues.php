@@ -3,6 +3,7 @@
 namespace mglaman\DrupalOrgCli\Command\Project;
 
 use mglaman\DrupalOrg\Action\Project\GetProjectIssuesAction;
+use mglaman\DrupalOrg\Enum\ProjectIssueType;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Helper\TableSeparator;
 use Symfony\Component\Console\Input\InputArgument;
@@ -22,7 +23,7 @@ class ProjectIssues extends ProjectCommandBase
             ->addArgument(
                 'type',
                 InputArgument::OPTIONAL,
-                'Type of issues: all, rtbc',
+                'Type of issues: all, rtbc, review',
                 'all'
             )
             ->addOption(
@@ -60,7 +61,7 @@ class ProjectIssues extends ProjectCommandBase
         $action = new GetProjectIssuesAction($this->client);
         $result = $action(
             $this->projectData,
-            (string) $this->stdIn->getArgument('type'),
+            ProjectIssueType::from((string) $this->stdIn->getArgument('type')),
             (string) $this->stdIn->getOption('core'),
             (int) $this->stdIn->getOption('limit')
         );

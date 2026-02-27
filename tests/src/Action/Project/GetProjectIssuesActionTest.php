@@ -6,6 +6,7 @@ use mglaman\DrupalOrg\Action\Project\GetProjectIssuesAction;
 use mglaman\DrupalOrg\Client;
 use mglaman\DrupalOrg\Entity\IssueNode;
 use mglaman\DrupalOrg\Entity\Project;
+use mglaman\DrupalOrg\Enum\ProjectIssueType;
 use mglaman\DrupalOrg\Result\Project\ProjectIssuesResult;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -54,7 +55,7 @@ class GetProjectIssuesActionTest extends TestCase
         );
 
         $action = new GetProjectIssuesAction($client);
-        $result = $action($project, 'all', '8.x', 10);
+        $result = $action($project, ProjectIssueType::All, '8.x', 10);
 
         self::assertInstanceOf(ProjectIssuesResult::class, $result);
         self::assertSame('Address', $result->projectTitle);
@@ -75,7 +76,7 @@ class GetProjectIssuesActionTest extends TestCase
         );
 
         $action = new GetProjectIssuesAction($client);
-        $result = $action($project, 'all', '8.x', 10);
+        $result = $action($project, ProjectIssueType::All, '8.x', 10);
 
         $json = json_encode($result);
         self::assertIsString($json);

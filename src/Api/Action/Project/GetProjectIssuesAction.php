@@ -6,6 +6,7 @@ use mglaman\DrupalOrg\Action\ActionInterface;
 use mglaman\DrupalOrg\Client;
 use mglaman\DrupalOrg\Entity\IssueNode;
 use mglaman\DrupalOrg\Entity\Project;
+use mglaman\DrupalOrg\Enum\ProjectIssueType;
 use mglaman\DrupalOrg\Request;
 use mglaman\DrupalOrg\Result\Project\ProjectIssuesResult;
 
@@ -15,7 +16,7 @@ class GetProjectIssuesAction implements ActionInterface
     {
     }
 
-    public function __invoke(Project $project, string $type, string $core, int $limit): ProjectIssuesResult
+    public function __invoke(Project $project, ProjectIssueType $type, string $core, int $limit): ProjectIssuesResult
     {
         $rawReleases = $this->client->requestRaw(new Request('node.json', [
             'field_release_project' => $project->nid,
@@ -36,16 +37,11 @@ class GetProjectIssuesAction implements ActionInterface
             'limit' => $limit,
         ];
 
-        switch ($type) {
-            case 'rtbc':
-                $apiParams['field_issue_status[value]'] = [14];
-                break;
-            case 'review':
-                $apiParams['field_issue_status[value]'] = [8];
-                break;
-            default:
-                $apiParams['field_issue_status[value]'] = [1, 8, 13, 14, 16];
-        }
+        $apiParams['field_issue_status[value]'] = match ($type) {
+            ProjectIssueType::Rtbc => [14],
+            ProjectIssueType::Review => [8],
+            ProjectIssueType::All => [1, 8, 13, 14, 16],
+        };
 
         foreach ($releaseList as $release) {
             if (strpos($release->field_release_version, $core) === 0) {

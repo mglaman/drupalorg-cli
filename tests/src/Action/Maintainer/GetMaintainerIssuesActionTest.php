@@ -3,6 +3,7 @@
 namespace mglaman\DrupalOrg\Tests\Action\Maintainer;
 
 use mglaman\DrupalOrg\Action\Maintainer\GetMaintainerIssuesAction;
+use mglaman\DrupalOrg\Enum\MaintainerIssueType;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -51,7 +52,7 @@ class GetMaintainerIssuesActionTest extends TestCase
         };
 
         $action = new GetMaintainerIssuesAction($feedLoader);
-        $result = $action('testuser', 'all');
+        $result = $action('testuser', MaintainerIssueType::Any);
 
         self::assertInstanceOf(MaintainerIssuesResult::class, $result);
         self::assertSame('Issues for testuser', $result->feedTitle);
@@ -71,7 +72,7 @@ class GetMaintainerIssuesActionTest extends TestCase
         };
 
         $action = new GetMaintainerIssuesAction($feedLoader);
-        $result = $action('testuser', 'rtbc');
+        $result = $action('testuser', MaintainerIssueType::Rtbc);
 
         self::assertInstanceOf(MaintainerIssuesResult::class, $result);
         self::assertStringContainsString('status[0]=14', $capturedUrl);
@@ -82,7 +83,7 @@ class GetMaintainerIssuesActionTest extends TestCase
         $feedLoader = static fn(string $u): object => self::makeMockFeed('Test feed', self::makeItems());
 
         $action = new GetMaintainerIssuesAction($feedLoader);
-        $result = $action('testuser', 'all');
+        $result = $action('testuser', MaintainerIssueType::Any);
 
         $json = json_encode($result);
         self::assertIsString($json);
