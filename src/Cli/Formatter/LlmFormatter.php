@@ -29,6 +29,24 @@ class LlmFormatter extends AbstractFormatter
         $updated = $this->toIso8601($result->changed);
         $description = $this->stripAndEscape($result->bodyValue ?? '');
 
+        $commentsXml = '';
+        if ($result->comments !== []) {
+            $commentsXml = "\n  <comments>";
+            foreach ($result->comments as $index => $comment) {
+                $number = $index + 1;
+                $author = $this->xmlEscape($comment->authorName);
+                $commentCreated = $this->toIso8601($comment->created);
+                $body = $this->cdataWrap($comment->bodyValue ?? '');
+                $commentsXml .= "\n    <comment>";
+                $commentsXml .= "\n      <number>{$number}</number>";
+                $commentsXml .= "\n      <author>{$author}</author>";
+                $commentsXml .= "\n      <created>{$commentCreated}</created>";
+                $commentsXml .= "\n      <body>{$body}</body>";
+                $commentsXml .= "\n    </comment>";
+            }
+            $commentsXml .= "\n  </comments>";
+        }
+
         return <<<XML
 <drupal_context>
   <issue_id>{$nid}</issue_id>
@@ -41,7 +59,7 @@ class LlmFormatter extends AbstractFormatter
   <component>{$component}</component>
   <created>{$created}</created>
   <updated>{$updated}</updated>
-  <description>{$description}</description>
+  <description>{$description}</description>{$commentsXml}
 </drupal_context>
 XML;
     }
@@ -177,5 +195,11 @@ XML;
     private function stripAndEscape(string $value): string
     {
         return $this->xmlEscape(strip_tags($value));
+    }
+
+    private function cdataWrap(string $value): string
+    {
+        // CDATA sections cannot contain ']]>', so split any occurrence.
+        return '<![CDATA[' . str_replace(']]>', ']]]]><![CDATA[>', $value) . ']]>';
     }
 }

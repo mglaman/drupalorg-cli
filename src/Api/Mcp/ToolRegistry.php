@@ -33,12 +33,14 @@ class ToolRegistry
     {
     }
 
-    #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'issue_show', description: 'Get details of a Drupal.org issue.')]
+    #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'issue_show', description: 'Get details of a Drupal.org issue, optionally including comments.')]
     public function issueShow(
         #[Schema(description: 'The Drupal.org issue node ID.', pattern: self::NID_PATTERN)]
-        string $nid
+        string $nid,
+        #[Schema(description: 'Whether to include issue comments.')]
+        bool $withComments = false
     ): mixed {
-        return (new GetIssueAction($this->client))($nid)->jsonSerialize();
+        return (new GetIssueAction($this->client))($nid, $withComments)->jsonSerialize();
     }
 
     #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'issue_get_link', description: 'Get the URL for a Drupal.org issue.')]

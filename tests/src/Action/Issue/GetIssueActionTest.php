@@ -2,8 +2,12 @@
 
 namespace mglaman\DrupalOrg\Tests\Action\Issue;
 
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Psr7\Response;
 use mglaman\DrupalOrg\Action\Issue\GetIssueAction;
 use mglaman\DrupalOrg\Client;
+use mglaman\DrupalOrg\Entity\IssueComment;
 use mglaman\DrupalOrg\Entity\IssueNode;
 use mglaman\DrupalOrg\Result\Issue\IssueResult;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -21,6 +25,11 @@ class GetIssueActionTest extends TestCase
             512,
             JSON_THROW_ON_ERROR
         );
+    }
+
+    private static function commentFixture(): string
+    {
+        return file_get_contents(__DIR__ . '/../../../fixtures/comment_node.json');
     }
 
     public function testInvoke(): void
@@ -45,6 +54,93 @@ class GetIssueActionTest extends TestCase
         self::assertSame('3643629', $result->authorId);
         self::assertSame(1693195104, $result->created);
         self::assertSame(1727653295, $result->changed);
+        self::assertSame([], $result->comments);
+    }
+
+    public function testInvokeWithoutCommentsFlag(): void
+    {
+        $issueData = self::fixture();
+        $commentRef = new \stdClass();
+        $commentRef->uri = 'https://www.drupal.org/api-d7/comment/15671234';
+        $commentRef->id = '15671234';
+        $commentRef->resource = 'comment';
+        $issueData->comments = [$commentRef];
+
+        $issueNode = IssueNode::fromStdClass($issueData);
+
+        $client = $this->createMock(Client::class);
+        $client->method('getNode')->willReturn($issueNode);
+
+        $action = new GetIssueAction($client);
+        $result = $action('3383637', false);
+
+        self::assertSame([], $result->comments);
+    }
+
+    public function testInvokeWithComments(): void
+    {
+        $issueData = self::fixture();
+        $commentRef = new \stdClass();
+        $commentRef->uri = 'https://www.drupal.org/api-d7/comment/15671234';
+        $commentRef->id = '15671234';
+        $commentRef->resource = 'comment';
+        $issueData->comments = [$commentRef];
+
+        $issueNode = IssueNode::fromStdClass($issueData);
+
+        $mock = new MockHandler([
+            new Response(200, [], self::commentFixture()),
+        ]);
+        $handlerStack = HandlerStack::create($mock);
+        $guzzleClient = new \GuzzleHttp\Client(['handler' => $handlerStack]);
+
+        $client = $this->createMock(Client::class);
+        $client->method('getNode')->willReturn($issueNode);
+        $client->method('getGuzzleClient')->willReturn($guzzleClient);
+
+        $action = new GetIssueAction($client);
+        $result = $action('3383637', true);
+
+        self::assertCount(1, $result->comments);
+        self::assertInstanceOf(IssueComment::class, $result->comments[0]);
+        self::assertSame('15671234', $result->comments[0]->cid);
+        self::assertSame('testuser', $result->comments[0]->authorName);
+    }
+
+    public function testInvokeWithCommentsFiltersSystemMessages(): void
+    {
+        $issueData = self::fixture();
+        $commentRef = new \stdClass();
+        $commentRef->uri = 'https://www.drupal.org/api-d7/comment/99887766';
+        $commentRef->id = '99887766';
+        $commentRef->resource = 'comment';
+        $issueData->comments = [$commentRef];
+
+        $issueNode = IssueNode::fromStdClass($issueData);
+
+        $systemCommentData = [
+            'cid' => '99887766',
+            'subject' => 'Status: Needs work',
+            'comment_body' => ['value' => '<p>System message.</p>', 'format' => '1'],
+            'created' => '1700000000',
+            'name' => 'System Message',
+            'author' => ['uri' => 'https://www.drupal.org/api-d7/user/180064', 'id' => '180064', 'resource' => 'user'],
+        ];
+
+        $mock = new MockHandler([
+            new Response(200, [], json_encode($systemCommentData)),
+        ]);
+        $handlerStack = HandlerStack::create($mock);
+        $guzzleClient = new \GuzzleHttp\Client(['handler' => $handlerStack]);
+
+        $client = $this->createMock(Client::class);
+        $client->method('getNode')->willReturn($issueNode);
+        $client->method('getGuzzleClient')->willReturn($guzzleClient);
+
+        $action = new GetIssueAction($client);
+        $result = $action('3383637', true);
+
+        self::assertSame([], $result->comments);
     }
 
     public function testJsonSerialize(): void
@@ -63,5 +159,6 @@ class GetIssueActionTest extends TestCase
         self::assertSame('3383637', $decoded['nid']);
         self::assertSame(6, $decoded['field_issue_status']);
         self::assertSame('drupal', $decoded['field_project_machine_name']);
+        self::assertSame([], $decoded['comments']);
     }
 }

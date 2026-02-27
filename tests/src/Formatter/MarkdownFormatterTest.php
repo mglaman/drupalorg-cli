@@ -2,6 +2,7 @@
 
 namespace mglaman\DrupalOrg\Tests\Formatter;
 
+use mglaman\DrupalOrg\Entity\IssueComment;
 use mglaman\DrupalOrg\Entity\IssueNode;
 use mglaman\DrupalOrg\Entity\Release;
 use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
@@ -88,6 +89,48 @@ class MarkdownFormatterTest extends TestCase
         self::assertStringContainsString('## Summary', $output);
         self::assertStringContainsString('Issue body content.', $output);
         self::assertStringNotContainsString('<p>', $output);
+    }
+
+    public function testIssueResultWithComments(): void
+    {
+        $comment = new IssueComment(
+            cid: '15671234',
+            bodyValue: '<p>LGTM <strong>with</strong> nits.</p>',
+            created: 1700000000,
+            authorId: '99999',
+            authorName: 'reviewer',
+        );
+        $result = new IssueResult(
+            nid: '3383637',
+            title: 'Schedule transition button size',
+            created: 1693195104,
+            changed: 1727653295,
+            fieldIssueStatus: 1,
+            fieldIssueCategory: 1,
+            fieldIssuePriority: 200,
+            fieldIssueVersion: '11.x-dev',
+            fieldIssueComponent: 'Claro theme',
+            fieldProjectMachineName: 'drupal',
+            authorId: '3643629',
+            bodyValue: '<p>Issue body.</p>',
+            comments: [$comment],
+        );
+
+        $formatter = new MarkdownFormatter();
+        $output = $formatter->format($result);
+
+        self::assertStringContainsString('## Comments', $output);
+        self::assertStringContainsString('### Comment #1 — reviewer', $output);
+        self::assertStringContainsString('LGTM', $output);
+        self::assertStringNotContainsString('<strong>', $output);
+    }
+
+    public function testIssueResultWithoutCommentsHasNoCommentsSection(): void
+    {
+        $formatter = new MarkdownFormatter();
+        $output = $formatter->format(self::makeIssueResult());
+
+        self::assertStringNotContainsString('## Comments', $output);
     }
 
     public function testProjectIssuesResult(): void
