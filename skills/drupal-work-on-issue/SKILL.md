@@ -1,3 +1,11 @@
+---
+name: drupal-work-on-issue
+description: >
+  Agentic workflow for contributing to a Drupal.org issue via GitLab MR. Orchestrates
+  fork verification, directory alignment, remote setup, branch checkout, and the
+  fix/push/pipeline loop.
+---
+
 # /drupal-work-on-issue
 
 **Purpose:** Agentic workflow for contributing to a Drupal.org issue via GitLab MR.
