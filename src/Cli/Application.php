@@ -53,6 +53,14 @@ class Application extends ParentApplication
         $commands[] = new Command\Maintainer\Issues();
         $commands[] = new Command\Maintainer\ReleaseNotes();
         $commands[] = new Command\Skill\Install();
+        $commands[] = new Command\Issue\GetFork();
+        $commands[] = new Command\Issue\SetupRemote();
+        $commands[] = new Command\Issue\Checkout();
+        $commands[] = new Command\MergeRequest\ListMergeRequests();
+        $commands[] = new Command\MergeRequest\GetDiff();
+        $commands[] = new Command\MergeRequest\GetFiles();
+        $commands[] = new Command\MergeRequest\GetStatus();
+        $commands[] = new Command\MergeRequest\GetLogs();
         return $commands;
     }
 

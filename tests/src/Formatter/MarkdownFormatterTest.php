@@ -4,8 +4,12 @@ namespace mglaman\DrupalOrg\Tests\Formatter;
 
 use mglaman\DrupalOrg\Entity\IssueNode;
 use mglaman\DrupalOrg\Entity\Release;
+use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
 use mglaman\DrupalOrg\Result\Issue\IssueResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
+use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestItem;
+use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestListResult;
+use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestStatusResult;
 use mglaman\DrupalOrg\Result\Project\ProjectIssuesResult;
 use mglaman\DrupalOrg\Result\Project\ProjectReleasesResult;
 use mglaman\DrupalOrg\Result\ResultInterface;
@@ -137,6 +141,96 @@ class MarkdownFormatterTest extends TestCase
         self::assertStringContainsString('# Drupal', $output);
         self::assertStringContainsString('**10.3.8**', $output);
         self::assertStringContainsString('Security fixes', $output);
+    }
+
+    public function testIssueForkResult(): void
+    {
+        $result = new IssueForkResult(
+            remoteName: 'drupal-3383637',
+            sshUrl: 'git@git.drupal.org:issue/drupal-3383637.git',
+            httpsUrl: 'https://git.drupalcode.org/issue/drupal-3383637.git',
+            gitLabProjectPath: 'issue/drupal-3383637',
+            branches: ['3383637-fix-the-thing', 'main'],
+        );
+
+        $formatter = new MarkdownFormatter();
+        $output = $formatter->format($result);
+
+        self::assertStringContainsString('# Issue Fork: drupal-3383637', $output);
+        self::assertStringContainsString('**Remote name:** drupal-3383637', $output);
+        self::assertStringContainsString('**SSH URL:** git@git.drupal.org:issue/drupal-3383637.git', $output);
+        self::assertStringContainsString('**HTTPS URL:** https://git.drupalcode.org/issue/drupal-3383637.git', $output);
+        self::assertStringContainsString('**GitLab path:** issue/drupal-3383637', $output);
+        self::assertStringContainsString('## Branches', $output);
+        self::assertStringContainsString('- 3383637-fix-the-thing', $output);
+        self::assertStringContainsString('- main', $output);
+    }
+
+    public function testMergeRequestListResult(): void
+    {
+        $mr = new MergeRequestItem(
+            iid: 7,
+            title: 'Fix the bug',
+            sourceBranch: '3383637-fix-the-thing',
+            targetBranch: '11.x',
+            state: 'opened',
+            webUrl: 'https://git.drupalcode.org/issue/drupal-3383637/-/merge_requests/7',
+            isMergeable: true,
+            author: 'mglaman',
+            updatedAt: '2024-01-15T10:00:00Z',
+        );
+
+        $result = new MergeRequestListResult(
+            projectPath: 'issue/drupal-3383637',
+            mergeRequests: [$mr],
+        );
+
+        $formatter = new MarkdownFormatter();
+        $output = $formatter->format($result);
+
+        self::assertStringContainsString('# Merge Requests: issue/drupal-3383637', $output);
+        self::assertStringContainsString('**!7**', $output);
+        self::assertStringContainsString('[Fix the bug](https://git.drupalcode.org/issue/drupal-3383637/-/merge_requests/7)', $output);
+        self::assertStringContainsString('[opened ✓]', $output);
+        self::assertStringContainsString('`3383637-fix-the-thing` → `11.x`', $output);
+        self::assertStringContainsString('mglaman', $output);
+        self::assertStringContainsString('2024-01-15T10:00:00Z', $output);
+    }
+
+    public function testMergeRequestStatusResult(): void
+    {
+        $result = new MergeRequestStatusResult(
+            iid: 7,
+            pipelineId: 99,
+            status: 'passed',
+            pipelineUrl: 'https://git.drupalcode.org/issue/drupal-3383637/-/pipelines/99',
+        );
+
+        $formatter = new MarkdownFormatter();
+        $output = $formatter->format($result);
+
+        self::assertStringContainsString('# MR !7 Pipeline Status', $output);
+        self::assertStringContainsString('**Status:** passed', $output);
+        self::assertStringContainsString('**Pipeline ID:** 99', $output);
+        self::assertStringContainsString('**Pipeline URL:** https://git.drupalcode.org/issue/drupal-3383637/-/pipelines/99', $output);
+    }
+
+    public function testMergeRequestStatusResultNoPipeline(): void
+    {
+        $result = new MergeRequestStatusResult(
+            iid: 7,
+            pipelineId: null,
+            status: 'none',
+            pipelineUrl: null,
+        );
+
+        $formatter = new MarkdownFormatter();
+        $output = $formatter->format($result);
+
+        self::assertStringContainsString('# MR !7 Pipeline Status', $output);
+        self::assertStringContainsString('**Status:** none', $output);
+        self::assertStringNotContainsString('**Pipeline ID:**', $output);
+        self::assertStringNotContainsString('**Pipeline URL:**', $output);
     }
 
     public function testUnsupportedResultTypeThrows(): void
