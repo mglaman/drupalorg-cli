@@ -83,6 +83,28 @@ class Install extends Command
             return 1;
         }
 
+        // Install the standalone /drupal-work-on-issue skill.
+        $woiSrcDir = __DIR__ . '/../../../../skills/drupal-work-on-issue';
+        $woiDestDir = $cwd . DIRECTORY_SEPARATOR . '.claude' . DIRECTORY_SEPARATOR . 'skills' . DIRECTORY_SEPARATOR . 'drupal-work-on-issue';
+
+        if (!is_dir($woiDestDir) && !mkdir($woiDestDir, 0755, true) && !is_dir($woiDestDir)) {
+            $this->stdErr->writeln(sprintf('<error>Failed to create directory: %s</error>', $woiDestDir));
+            return 1;
+        }
+
+        $woiSrc = $woiSrcDir . DIRECTORY_SEPARATOR . 'SKILL.md';
+        $woiDest = $woiDestDir . DIRECTORY_SEPARATOR . 'SKILL.md';
+        $woiContent = file_get_contents($woiSrc);
+        if ($woiContent === false) {
+            $this->stdErr->writeln(sprintf('<error>Could not read skill source: %s</error>', $woiSrc));
+            return 1;
+        }
+        if (file_put_contents($woiDest, $woiContent) === false) {
+            $this->stdErr->writeln(sprintf('<error>Failed to write skill file: %s</error>', $woiDest));
+            return 1;
+        }
+        $this->stdOut->writeln(sprintf('<comment>Skill installed to %s</comment>', $woiDest));
+
         return 0;
     }
 }
