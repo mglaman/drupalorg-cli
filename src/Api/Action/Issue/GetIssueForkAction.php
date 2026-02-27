@@ -27,8 +27,7 @@ class GetIssueForkAction implements ActionInterface
 
         $branches = [];
         try {
-            $encodedPath = urlencode($gitLabProjectPath);
-            $project = $this->gitLabClient->getProject($encodedPath);
+            $project = $this->gitLabClient->getProject($gitLabProjectPath);
             $branchObjects = $this->gitLabClient->getBranches((int) $project->id);
             $branches = array_map(
                 static fn(\stdClass $b) => (string) $b->name,

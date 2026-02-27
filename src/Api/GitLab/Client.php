@@ -55,14 +55,14 @@ class Client
     }
 
     /**
-     * GET /projects/{encoded_path}
+     * GET /projects/{path}
      *
      * @throws \Exception
      */
-    public function getProject(string $encodedPath): \stdClass
+    public function getProject(string $path): \stdClass
     {
         /** @var \stdClass $result */
-        $result = $this->get('projects/' . $encodedPath);
+        $result = $this->get('projects/' . urlencode($path));
         return $result;
     }
 

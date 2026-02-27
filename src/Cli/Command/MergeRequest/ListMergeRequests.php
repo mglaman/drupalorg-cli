@@ -13,6 +13,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class ListMergeRequests extends IssueCommandBase
 {
+    protected bool $requiresRepository = false;
+
     protected function configure(): void
     {
         $this

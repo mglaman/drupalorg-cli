@@ -4,8 +4,11 @@ namespace mglaman\DrupalOrg\Tests\Formatter;
 
 use mglaman\DrupalOrg\Entity\IssueNode;
 use mglaman\DrupalOrg\Entity\Release;
+use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
 use mglaman\DrupalOrg\Result\Issue\IssueResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
+use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestItem;
+use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestListResult;
 use mglaman\DrupalOrg\Result\Project\ProjectIssuesResult;
 use mglaman\DrupalOrg\Result\Project\ProjectReleasesResult;
 use mglaman\DrupalOrg\Result\ResultInterface;
@@ -167,6 +170,63 @@ class LlmFormatterTest extends TestCase
         $formatter = new LlmFormatter();
         $this->expectException(\InvalidArgumentException::class);
         $formatter->format($result);
+    }
+
+    public function testIssueForkResult(): void
+    {
+        $result = new IssueForkResult(
+            remoteName: 'drupal-3383637',
+            sshUrl: 'git@git.drupal.org:issue/drupal-3383637.git',
+            httpsUrl: 'https://git.drupalcode.org/issue/drupal-3383637.git',
+            gitLabProjectPath: 'issue/drupal-3383637',
+            branches: ['3383637-fix-the-thing', 'main'],
+        );
+
+        $formatter = new LlmFormatter();
+        $output = $formatter->format($result);
+
+        self::assertStringContainsString('<drupal_context>', $output);
+        self::assertStringContainsString('<remote_name>drupal-3383637</remote_name>', $output);
+        self::assertStringContainsString('<ssh_url>git@git.drupal.org:issue/drupal-3383637.git</ssh_url>', $output);
+        self::assertStringContainsString('<https_url>https://git.drupalcode.org/issue/drupal-3383637.git</https_url>', $output);
+        self::assertStringContainsString('<gitlab_project_path>issue/drupal-3383637</gitlab_project_path>', $output);
+        self::assertStringContainsString('<branch>3383637-fix-the-thing</branch>', $output);
+        self::assertStringContainsString('<branch>main</branch>', $output);
+    }
+
+    public function testMergeRequestListResult(): void
+    {
+        $mr = new MergeRequestItem(
+            iid: 7,
+            title: 'Fix <b>broken</b> & stuff',
+            sourceBranch: '3383637-fix-the-thing',
+            targetBranch: '11.x',
+            state: 'opened',
+            webUrl: 'https://git.drupalcode.org/issue/drupal-3383637/-/merge_requests/7',
+            isMergeable: true,
+            author: 'mglaman',
+            updatedAt: '2024-01-15T10:00:00Z',
+        );
+
+        $result = new MergeRequestListResult(
+            projectPath: 'issue/drupal-3383637',
+            mergeRequests: [$mr],
+        );
+
+        $formatter = new LlmFormatter();
+        $output = $formatter->format($result);
+
+        self::assertStringContainsString('<drupal_context>', $output);
+        self::assertStringContainsString('<project_path>issue/drupal-3383637</project_path>', $output);
+        self::assertStringContainsString('<iid>7</iid>', $output);
+        self::assertStringContainsString('<title>Fix &lt;b&gt;broken&lt;/b&gt; &amp; stuff</title>', $output);
+        self::assertStringContainsString('<state>opened</state>', $output);
+        self::assertStringContainsString('<mergeable>yes</mergeable>', $output);
+        self::assertStringContainsString('<author>mglaman</author>', $output);
+        self::assertStringContainsString('<url>https://git.drupalcode.org/issue/drupal-3383637/-/merge_requests/7</url>', $output);
+        self::assertStringContainsString('<updated_at>2024-01-15T10:00:00Z</updated_at>', $output);
+        // Raw < must not appear inside tag values.
+        self::assertStringNotContainsString('<b>', $output);
     }
 
     public function testXmlEscapingInTitle(): void

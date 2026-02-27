@@ -22,7 +22,7 @@ abstract class AbstractMergeRequestAction implements ActionInterface
         $issue = $this->client->getNode($nid);
         $remoteName = $issue->fieldProjectMachineName . '-' . $nid;
         $projectPath = 'issue/' . $remoteName;
-        $project = $this->gitLabClient->getProject(urlencode($projectPath));
+        $project = $this->gitLabClient->getProject($projectPath);
         return [(int) $project->id, $projectPath];
     }
 }

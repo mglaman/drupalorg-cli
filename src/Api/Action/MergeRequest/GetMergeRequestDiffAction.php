@@ -15,7 +15,14 @@ class GetMergeRequestDiffAction extends AbstractMergeRequestAction
 
         $unified = '';
         foreach ($diffs as $fileDiff) {
-            $unified .= $fileDiff->diff ?? '';
+            $diff = $fileDiff->diff ?? '';
+            if ($diff === '') {
+                continue;
+            }
+            $unified .= $diff;
+            if (!str_ends_with($diff, "\n")) {
+                $unified .= "\n";
+            }
         }
 
         return new MergeRequestDiffResult(

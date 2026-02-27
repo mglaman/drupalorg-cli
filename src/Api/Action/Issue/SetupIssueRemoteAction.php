@@ -44,7 +44,15 @@ class SetupIssueRemoteAction implements ActionInterface
         }
 
         $fetchProcess = new Process(['git', 'fetch', $remoteName]);
-        $fetchProcess->run();
+        try {
+            $fetchProcess->mustRun();
+        } catch (ProcessFailedException $e) {
+            throw new \RuntimeException(
+                sprintf('Failed to fetch from remote %s: %s', $remoteName, $e->getMessage()),
+                0,
+                $e
+            );
+        }
         $fetchOutput = $fetchProcess->getOutput() . $fetchProcess->getErrorOutput();
 
         return new SetupIssueRemoteResult(

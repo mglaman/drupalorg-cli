@@ -28,24 +28,32 @@ abstract class IssueCommandBase extends Command
      */
     protected string $nid;
 
+    /**
+     * Whether this command requires a git repository.
+     * When false, initRepo() is skipped if nid is provided as an argument.
+     */
+    protected bool $requiresRepository = true;
+
     protected function initialize(
         InputInterface $input,
         OutputInterface $output
     ): void {
         parent::initialize($input, $output);
-        $this->initRepo();
 
         $this->nid = (string) $this->stdIn->getArgument('nid');
         if ($this->nid === '') {
             $this->debug(
                 "Argument nid not provided. Trying to get it from current branch name."
             );
+            $this->initRepo();
             $this->nid = $this->getNidFromBranch($this->repository);
             if ($this->nid === '') {
                 throw new \RuntimeException(
                     'Argument nid not provided and not able to get it from current branch name.'
                 );
             }
+        } elseif ($this->requiresRepository) {
+            $this->initRepo();
         }
     }
 
