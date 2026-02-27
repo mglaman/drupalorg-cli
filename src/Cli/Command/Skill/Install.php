@@ -26,12 +26,7 @@ class Install extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $skillSource = __DIR__ . '/../../../../SKILL.md';
-        $content = file_get_contents($skillSource);
-        if ($content === false) {
-            $this->stdErr->writeln(sprintf('<error>Could not read skill source: %s</error>', $skillSource));
-            return 1;
-        }
+        $skillSourceDir = __DIR__ . '/../../../../skills/drupalorg-cli';
 
         $basePath = trim((string) $this->stdIn->getOption('path'));
         if ($basePath === '') {
@@ -43,20 +38,48 @@ class Install extends Command
             $this->stdErr->writeln('<error>The --path option must not point to a filesystem root.</error>');
             return 1;
         }
-        $dir = $normalizedBase . DIRECTORY_SEPARATOR . 'drupalorg-cli';
-        $fullPath = $dir . '/SKILL.md';
+        $destDir = $normalizedBase . DIRECTORY_SEPARATOR . 'drupalorg-cli';
 
-        if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
-            $this->stdErr->writeln(sprintf('<error>Failed to create directory: %s</error>', $dir));
+        if (!is_dir($destDir) && !mkdir($destDir, 0755, true) && !is_dir($destDir)) {
+            $this->stdErr->writeln(sprintf('<error>Failed to create directory: %s</error>', $destDir));
             return 1;
         }
 
-        if (file_put_contents($fullPath, $content) === false) {
-            $this->stdErr->writeln(sprintf('<error>Failed to write skill file: %s</error>', $fullPath));
+        $skillMdSrc = $skillSourceDir . '/SKILL.md';
+        $skillMdDest = $destDir . '/SKILL.md';
+        $content = file_get_contents($skillMdSrc);
+        if ($content === false) {
+            $this->stdErr->writeln(sprintf('<error>Could not read skill source: %s</error>', $skillMdSrc));
+            return 1;
+        }
+        if (file_put_contents($skillMdDest, $content) === false) {
+            $this->stdErr->writeln(sprintf('<error>Failed to write skill file: %s</error>', $skillMdDest));
+            return 1;
+        }
+        $this->stdOut->writeln(sprintf('<comment>Skill installed to %s</comment>', $skillMdDest));
+
+        $refSrcDir = $skillSourceDir . '/references';
+        $refDestDir = $destDir . '/references';
+        if (!is_dir($refDestDir) && !mkdir($refDestDir, 0755, true) && !is_dir($refDestDir)) {
+            $this->stdErr->writeln(sprintf('<error>Failed to create directory: %s</error>', $refDestDir));
             return 1;
         }
 
-        $this->stdOut->writeln(sprintf('<comment>Skill installed to %s</comment>', $fullPath));
+        $refFiles = glob($refSrcDir . '/*.md');
+        if ($refFiles === false) {
+            $this->stdErr->writeln(sprintf('<error>Could not read references directory: %s</error>', $refSrcDir));
+            return 1;
+        }
+
+        foreach ($refFiles as $refFile) {
+            $refDest = $refDestDir . '/' . basename($refFile);
+            if (!copy($refFile, $refDest)) {
+                $this->stdErr->writeln(sprintf('<error>Failed to copy reference file: %s</error>', $refDest));
+                return 1;
+            }
+            $this->stdOut->writeln(sprintf('<comment>Reference installed to %s</comment>', $refDest));
+        }
+
         return 0;
     }
 }
