@@ -68,8 +68,8 @@ class GetIssueAction implements ActionInterface
                         return;
                     }
                     $commentsByIndex[$index] = $comment;
-                } catch (\JsonException) {
-                    // skip unparseable responses
+                } catch (\Throwable) {
+                    // skip unparseable responses (JSON errors or unexpected comment payloads)
                 }
             },
             'rejected' => static function (\Throwable $reason, int $index): void {
