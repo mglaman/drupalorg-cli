@@ -3,6 +3,7 @@
 namespace mglaman\DrupalOrgCli\Command\Maintainer;
 
 use mglaman\DrupalOrg\Action\Maintainer\GetMaintainerIssuesAction;
+use mglaman\DrupalOrg\Enum\MaintainerIssueType;
 use mglaman\DrupalOrgCli\Command\Command;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Helper\TableSeparator;
@@ -27,8 +28,8 @@ class Issues extends Command
             ->addArgument(
                 'type',
                 InputArgument::OPTIONAL,
-                'Type of issues: all, rtbc',
-                'all'
+                'Type of issues: any, rtbc',
+                'any'
             )
             ->addOption(
                 'format',
@@ -48,10 +49,9 @@ class Issues extends Command
         OutputInterface $output
     ): int {
         $user = $this->stdIn->getArgument('user');
-        $type = $this->stdIn->getArgument('type');
 
         $action = new GetMaintainerIssuesAction();
-        $result = $action($user, $type);
+        $result = $action($user, MaintainerIssueType::from((string) $this->stdIn->getArgument('type')));
 
         if ($this->writeFormatted($result, (string) $this->stdIn->getOption('format'))) {
             return 0;

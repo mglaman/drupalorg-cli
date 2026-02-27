@@ -3,6 +3,7 @@
 namespace mglaman\DrupalOrg\Action\Maintainer;
 
 use mglaman\DrupalOrg\Action\ActionInterface;
+use mglaman\DrupalOrg\Enum\MaintainerIssueType;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
 
 class GetMaintainerIssuesAction implements ActionInterface
@@ -11,11 +12,11 @@ class GetMaintainerIssuesAction implements ActionInterface
     {
     }
 
-    public function __invoke(string $user, string $type): MaintainerIssuesResult
+    public function __invoke(string $user, MaintainerIssueType $type): MaintainerIssuesResult
     {
         $feedUrl = match ($type) {
-            'rtbc' => "https://www.drupal.org/project/user/$user/feed?status[0]=14",
-            default => "https://www.drupal.org/project/user/$user/feed",
+            MaintainerIssueType::Rtbc => "https://www.drupal.org/project/user/$user/feed?status[0]=14",
+            MaintainerIssueType::Any => "https://www.drupal.org/project/user/$user/feed",
         };
 
         $feed = ($this->feedLoader ?? static fn(string $u) => \Feed::load($u))($feedUrl);

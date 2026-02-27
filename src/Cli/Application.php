@@ -61,6 +61,8 @@ class Application extends ParentApplication
         $commands[] = new Command\MergeRequest\GetFiles();
         $commands[] = new Command\MergeRequest\GetStatus();
         $commands[] = new Command\MergeRequest\GetLogs();
+        $commands[] = new Command\Mcp\Serve();
+        $commands[] = new Command\Mcp\Config();
         return $commands;
     }
 
