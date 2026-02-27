@@ -18,7 +18,7 @@ class Install extends Command
                 'path',
                 null,
                 InputOption::VALUE_OPTIONAL,
-                'Destination directory for the skill directory (SKILL.md + references/).',
+                'Base directory into which the skill will be installed (files are written to <path>/drupalorg-cli/SKILL.md and <path>/drupalorg-cli/references/).',
                 '.claude/skills'
             )
             ->setDescription('Installs the drupalorg-cli agent skill into your project.');
@@ -45,8 +45,8 @@ class Install extends Command
             return 1;
         }
 
-        $skillMdSrc = $skillSourceDir . '/SKILL.md';
-        $skillMdDest = $destDir . '/SKILL.md';
+        $skillMdSrc = $skillSourceDir . DIRECTORY_SEPARATOR . 'SKILL.md';
+        $skillMdDest = $destDir . DIRECTORY_SEPARATOR . 'SKILL.md';
         $content = file_get_contents($skillMdSrc);
         if ($content === false) {
             $this->stdErr->writeln(sprintf('<error>Could not read skill source: %s</error>', $skillMdSrc));
@@ -58,8 +58,8 @@ class Install extends Command
         }
         $this->stdOut->writeln(sprintf('<comment>Skill installed to %s</comment>', $skillMdDest));
 
-        $refSrcDir = $skillSourceDir . '/references';
-        $refDestDir = $destDir . '/references';
+        $refSrcDir = $skillSourceDir . DIRECTORY_SEPARATOR . 'references';
+        $refDestDir = $destDir . DIRECTORY_SEPARATOR . 'references';
         if (!is_dir($refDestDir) && !mkdir($refDestDir, 0755, true) && !is_dir($refDestDir)) {
             $this->stdErr->writeln(sprintf('<error>Failed to create directory: %s</error>', $refDestDir));
             return 1;
@@ -72,11 +72,11 @@ class Install extends Command
 
         try {
             foreach (new \DirectoryIterator($refSrcDir) as $fileInfo) {
-                if ($fileInfo->isDot() || $fileInfo->getExtension() !== 'md') {
+                if ($fileInfo->isDot() || !$fileInfo->isFile() || $fileInfo->getExtension() !== 'md') {
                     continue;
                 }
                 $refSrc = $fileInfo->getPathname();
-                $refDest = $refDestDir . '/' . $fileInfo->getFilename();
+                $refDest = $refDestDir . DIRECTORY_SEPARATOR . $fileInfo->getFilename();
                 if (!copy($refSrc, $refDest)) {
                     $lastError = error_get_last();
                     $errorDetail = (is_array($lastError) && $lastError['message'] !== '')
@@ -93,7 +93,11 @@ class Install extends Command
                 $this->stdOut->writeln(sprintf('<comment>Reference installed to %s</comment>', $refDest));
             }
         } catch (\UnexpectedValueException $e) {
-            $this->stdErr->writeln(sprintf('<error>Failed to read skill references directory: %s</error>', $refSrcDir));
+            $this->stdErr->writeln(sprintf(
+                '<error>Failed to read skill references directory: %s (%s)</error>',
+                $refSrcDir,
+                $e->getMessage()
+            ));
             return 1;
         }
 
