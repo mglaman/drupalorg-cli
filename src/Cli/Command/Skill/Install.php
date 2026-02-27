@@ -65,15 +65,12 @@ class Install extends Command
             return 1;
         }
 
-        $refFiles = glob($refSrcDir . '/*.md');
-        if ($refFiles === false) {
-            $this->stdErr->writeln(sprintf('<error>Could not read references directory: %s</error>', $refSrcDir));
-            return 1;
-        }
-
-        foreach ($refFiles as $refFile) {
-            $refDest = $refDestDir . '/' . basename($refFile);
-            if (!copy($refFile, $refDest)) {
+        foreach (new \DirectoryIterator($refSrcDir) as $fileInfo) {
+            if ($fileInfo->isDot() || $fileInfo->getExtension() !== 'md') {
+                continue;
+            }
+            $refDest = $refDestDir . '/' . $fileInfo->getFilename();
+            if (!copy($fileInfo->getPathname(), $refDest)) {
                 $this->stdErr->writeln(sprintf('<error>Failed to copy reference file: %s</error>', $refDest));
                 return 1;
             }
