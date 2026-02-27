@@ -26,8 +26,8 @@ Commands that fetch data accept `--format` / `-f`:
 |--------|-------------|---------|
 | `text` | Human-readable plain text (default) | All commands |
 | `json` | Machine-readable JSON | Most commands |
-| `md`   | Markdown suitable for display or copy-paste | `issue:show`, `issue:get-fork`, `mr:list`, `mr:status`, `project:*`, `maintainer:issues` |
-| `llm`  | Structured XML optimised for agent consumption | `issue:show`, `issue:get-fork`, `mr:list`, `mr:status`, `project:*`, `maintainer:issues` |
+| `md`   | Markdown suitable for display or copy-paste | `issue:show`, `issue:get-fork`, `mr:list`, `mr:status`, `project:issues`, `project:releases`, `project:release-notes`, `maintainer:issues` |
+| `llm`  | Structured XML optimised for agent consumption | `issue:show`, `issue:get-fork`, `mr:list`, `mr:status`, `project:issues`, `project:releases`, `project:release-notes`, `maintainer:issues` |
 
 **Agents should always pass `--format=llm`** to get rich, structured output
 with clearly labelled fields, contributor lists, and change records.

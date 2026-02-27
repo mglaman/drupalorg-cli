@@ -18,7 +18,7 @@ class Install extends Command
                 'path',
                 null,
                 InputOption::VALUE_OPTIONAL,
-                'Destination directory for the skill file.',
+                'Destination directory for the skill directory (SKILL.md + references/).',
                 '.claude/skills'
             )
             ->setDescription('Installs the drupalorg-cli agent skill into your project.');
@@ -65,16 +65,36 @@ class Install extends Command
             return 1;
         }
 
-        foreach (new \DirectoryIterator($refSrcDir) as $fileInfo) {
-            if ($fileInfo->isDot() || $fileInfo->getExtension() !== 'md') {
-                continue;
+        if (!is_dir($refSrcDir) || !is_readable($refSrcDir)) {
+            $this->stdErr->writeln(sprintf('<error>Skill references directory is missing or not readable: %s</error>', $refSrcDir));
+            return 1;
+        }
+
+        try {
+            foreach (new \DirectoryIterator($refSrcDir) as $fileInfo) {
+                if ($fileInfo->isDot() || $fileInfo->getExtension() !== 'md') {
+                    continue;
+                }
+                $refSrc = $fileInfo->getPathname();
+                $refDest = $refDestDir . '/' . $fileInfo->getFilename();
+                if (!copy($refSrc, $refDest)) {
+                    $lastError = error_get_last();
+                    $errorDetail = (is_array($lastError) && $lastError['message'] !== '')
+                        ? ' Underlying error: ' . $lastError['message']
+                        : '';
+                    $this->stdErr->writeln(sprintf(
+                        '<error>Failed to copy reference file from %s to %s.%s</error>',
+                        $refSrc,
+                        $refDest,
+                        $errorDetail
+                    ));
+                    return 1;
+                }
+                $this->stdOut->writeln(sprintf('<comment>Reference installed to %s</comment>', $refDest));
             }
-            $refDest = $refDestDir . '/' . $fileInfo->getFilename();
-            if (!copy($fileInfo->getPathname(), $refDest)) {
-                $this->stdErr->writeln(sprintf('<error>Failed to copy reference file: %s</error>', $refDest));
-                return 1;
-            }
-            $this->stdOut->writeln(sprintf('<comment>Reference installed to %s</comment>', $refDest));
+        } catch (\UnexpectedValueException $e) {
+            $this->stdErr->writeln(sprintf('<error>Failed to read skill references directory: %s</error>', $refSrcDir));
+            return 1;
         }
 
         return 0;

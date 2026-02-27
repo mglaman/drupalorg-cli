@@ -13,9 +13,9 @@ drupalorg issue:get-fork <nid> --format=llm
 ```
 
 Outputs:
-- `remote_name` — git remote alias (e.g. `issue/3001234`)
+- `remote_name` — git remote alias (format `<projectMachineName>-<nid>`, e.g. `drupal-3574743`)
 - `ssh_url` / `https_url` — fork clone URLs
-- `gitlab_project_path` — full GitLab path
+- `gitlab_project_path` — full GitLab namespace/path for the fork (e.g. `issue/drupal-3574743`)
 - `branches` — existing branches on the fork
 
 If `branches` is empty, no one has pushed to the fork yet. You may need to
@@ -40,7 +40,7 @@ drupalorg issue:checkout <nid>
 drupalorg issue:checkout <nid> <branch-name>
 ```
 
-Branch names follow the convention `<nid>-<short-slug>`, e.g. `3001234-fix-cache`.
+Branch names follow the convention `<nid>-<short_slug>`, e.g. `3001234-fix_cache` (slugs use underscores).
 
 ---
 

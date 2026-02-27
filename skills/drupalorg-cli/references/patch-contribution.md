@@ -21,7 +21,7 @@ git commit -m "Issue #<nid> by <username>: <short description>"
 
 # 4. Generate the patch (diffs against the upstream tracking branch)
 drupalorg issue:patch [nid]
-#    Writes: <nid>-short-title.patch in the current directory
+#    Writes: <cleanTitle>-<nid>-<commentCount+1>.patch to the git repo root
 
 # 5. Upload the patch file to the issue on drupal.org
 ```
@@ -43,7 +43,7 @@ git commit -m "Issue #<nid> by <username>: Address review feedback"
 
 # 2. Generate the interdiff (compares the two latest commits on the branch)
 drupalorg issue:interdiff [nid]
-#    Writes: <nid>-N-Mof N.diff in the current directory
+#    Writes: interdiff-<nid>-<lastPatchComment>-<commentCount+1>.txt to the git repo root
 
 # 3. Generate the updated patch
 drupalorg issue:patch [nid]

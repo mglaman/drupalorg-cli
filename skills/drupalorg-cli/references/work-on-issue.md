@@ -14,9 +14,9 @@ drupalorg issue:get-fork <nid> --format=llm
 ```
 
 The `--format=llm` output includes:
-- `remote_name` — the git remote alias to use (e.g. `issue/3001234`)
+- `remote_name` — the git remote alias to use (format `<projectMachineName>-<nid>`, e.g. `drupal-3574743`)
 - `ssh_url` / `https_url` — clone URLs for the fork
-- `gitlab_project_path` — the GitLab namespace/path
+- `gitlab_project_path` — the GitLab namespace/path for the fork (e.g. `issue/drupal-3574743`)
 - `branches` — branches that exist on the fork (empty if fork does not exist yet)
 
 **If no branches appear**, the contributor has not pushed to their fork yet.
