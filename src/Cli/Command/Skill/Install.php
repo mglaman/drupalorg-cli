@@ -4,7 +4,6 @@ namespace mglaman\DrupalOrgCli\Command\Skill;
 
 use mglaman\DrupalOrgCli\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Install extends Command
@@ -14,31 +13,14 @@ class Install extends Command
     {
         $this
             ->setName('skill:install')
-            ->addOption(
-                'path',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Base directory into which the skill will be installed (files are written to <path>/drupalorg-cli/SKILL.md and <path>/drupalorg-cli/references/).',
-                '.claude/skills'
-            )
-            ->setDescription('Installs the drupalorg-cli agent skill into your project.');
+            ->setDescription('Installs the drupalorg-cli agent skill into .claude/skills/drupalorg-cli/ in the current directory.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $skillSourceDir = __DIR__ . '/../../../../skills/drupalorg-cli';
-
-        $basePath = trim((string) $this->stdIn->getOption('path'));
-        if ($basePath === '') {
-            $this->stdErr->writeln('<error>The --path option must not be empty.</error>');
-            return 1;
-        }
-        $normalizedBase = rtrim($basePath, '/\\');
-        if ($normalizedBase === '' || (strlen($normalizedBase) === 2 && ctype_alpha($normalizedBase[0]) && $normalizedBase[1] === ':')) {
-            $this->stdErr->writeln('<error>The --path option must not point to a filesystem root.</error>');
-            return 1;
-        }
-        $destDir = $normalizedBase . DIRECTORY_SEPARATOR . 'drupalorg-cli';
+        $cwd = (string) getcwd();
+        $destDir = $cwd . DIRECTORY_SEPARATOR . '.claude' . DIRECTORY_SEPARATOR . 'skills' . DIRECTORY_SEPARATOR . 'drupalorg-cli';
 
         if (!is_dir($destDir) && !mkdir($destDir, 0755, true) && !is_dir($destDir)) {
             $this->stdErr->writeln(sprintf('<error>Failed to create directory: %s</error>', $destDir));

@@ -131,8 +131,8 @@ drupalorg maintainer:release-notes <ref1> [ref2] [--format=json|md|html]
 ### Utility commands
 
 ```bash
-# Install the drupalorg-cli agent skill into your project
-drupalorg skill:install [--path=.claude/skills]
+# Install the drupalorg-cli agent skill into .claude/skills/drupalorg-cli/
+drupalorg skill:install
 
 # Clear the local API cache
 drupalorg cache:clear
