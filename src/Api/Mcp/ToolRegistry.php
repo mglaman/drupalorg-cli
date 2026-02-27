@@ -4,6 +4,7 @@ namespace mglaman\DrupalOrg\Mcp;
 
 use Mcp\Capability\Attribute\McpTool;
 use Mcp\Capability\Attribute\Schema;
+use Mcp\Schema\ToolAnnotations;
 use mglaman\DrupalOrg\Action\Issue\GetIssueAction;
 use mglaman\DrupalOrg\Action\Issue\GetIssueBranchNameAction;
 use mglaman\DrupalOrg\Action\Issue\GetIssueForkAction;
@@ -32,7 +33,7 @@ class ToolRegistry
     {
     }
 
-    #[McpTool(name: 'issue_show', description: 'Get details of a Drupal.org issue.')]
+    #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'issue_show', description: 'Get details of a Drupal.org issue.')]
     public function issueShow(
         #[Schema(description: 'The Drupal.org issue node ID.', pattern: self::NID_PATTERN)]
         string $nid
@@ -40,7 +41,7 @@ class ToolRegistry
         return (new GetIssueAction($this->client))($nid)->jsonSerialize();
     }
 
-    #[McpTool(name: 'issue_get_link', description: 'Get the URL for a Drupal.org issue.')]
+    #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'issue_get_link', description: 'Get the URL for a Drupal.org issue.')]
     public function issueGetLink(
         #[Schema(description: 'The Drupal.org issue node ID.', pattern: self::NID_PATTERN)]
         string $nid
@@ -48,7 +49,7 @@ class ToolRegistry
         return (new GetIssueLinkAction())($nid)->jsonSerialize();
     }
 
-    #[McpTool(name: 'issue_get_branch', description: 'Get the Git branch name for an issue.')]
+    #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'issue_get_branch', description: 'Get the Git branch name for an issue.')]
     public function issueGetBranch(
         #[Schema(description: 'The Drupal.org issue node ID.', pattern: self::NID_PATTERN)]
         string $nid
@@ -56,7 +57,7 @@ class ToolRegistry
         return (new GetIssueBranchNameAction($this->client))($nid)->jsonSerialize();
     }
 
-    #[McpTool(name: 'issue_get_patch_url', description: 'Get the latest patch URL for an issue.')]
+    #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'issue_get_patch_url', description: 'Get the latest patch URL for an issue.')]
     public function issueGetPatchUrl(
         #[Schema(description: 'The Drupal.org issue node ID.', pattern: self::NID_PATTERN)]
         string $nid
@@ -64,7 +65,7 @@ class ToolRegistry
         return (new GetLatestIssuePatchAction($this->client))($nid)->jsonSerialize();
     }
 
-    #[McpTool(name: 'issue_get_fork', description: 'Get GitLab fork info for an issue.')]
+    #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'issue_get_fork', description: 'Get GitLab fork info for an issue.')]
     public function issueGetFork(
         #[Schema(description: 'The Drupal.org issue node ID.', pattern: self::NID_PATTERN)]
         string $nid
@@ -72,7 +73,7 @@ class ToolRegistry
         return (new GetIssueForkAction($this->client, new GitLabClient()))($nid)->jsonSerialize();
     }
 
-    #[McpTool(name: 'project_get_issues', description: 'Get open issues for a Drupal.org project.')]
+    #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'project_get_issues', description: 'Get open issues for a Drupal.org project.')]
     public function projectGetIssues(
         #[Schema(description: "The project machine name (e.g. 'drupal', 'token', 'pathauto').")]
         string $machineName,
@@ -90,7 +91,7 @@ class ToolRegistry
         return (new GetProjectIssuesAction($this->client))($project, ProjectIssueType::from($type), $core, $limit)->jsonSerialize();
     }
 
-    #[McpTool(name: 'project_get_releases', description: 'List releases for a Drupal.org project.')]
+    #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'project_get_releases', description: 'List releases for a Drupal.org project.')]
     public function projectGetReleases(
         #[Schema(description: "The project machine name (e.g. 'drupal', 'token', 'pathauto').")]
         string $machineName
@@ -102,7 +103,7 @@ class ToolRegistry
         return (new GetProjectReleasesAction($this->client))($project)->jsonSerialize();
     }
 
-    #[McpTool(name: 'project_get_release_notes', description: 'Get release notes for a project version.')]
+    #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'project_get_release_notes', description: 'Get release notes for a project version.')]
     public function projectGetReleaseNotes(
         #[Schema(description: "The project machine name (e.g. 'drupal', 'token', 'pathauto').")]
         string $machineName,
@@ -116,7 +117,7 @@ class ToolRegistry
         return (new GetProjectReleaseNotesAction($this->client))($project, $version)->jsonSerialize();
     }
 
-    #[McpTool(name: 'maintainer_get_issues', description: 'Get open issues for a Drupal.org maintainer.')]
+    #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'maintainer_get_issues', description: 'Get open issues for a Drupal.org maintainer.')]
     public function maintainerGetIssues(
         #[Schema(description: 'The Drupal.org username of the maintainer.')]
         string $user,
@@ -126,7 +127,7 @@ class ToolRegistry
         return (new GetMaintainerIssuesAction())($user, MaintainerIssueType::from($type))->jsonSerialize();
     }
 
-    #[McpTool(name: 'mr_list', description: 'List merge requests for an issue fork.')]
+    #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'mr_list', description: 'List merge requests for an issue fork.')]
     public function mrList(
         #[Schema(description: 'The Drupal.org issue node ID.', pattern: self::NID_PATTERN)]
         string $nid,
@@ -136,7 +137,7 @@ class ToolRegistry
         return (new ListMergeRequestsAction($this->client, new GitLabClient()))($nid, MergeRequestState::from($state))->jsonSerialize();
     }
 
-    #[McpTool(name: 'mr_diff', description: 'Get the unified diff for a merge request.')]
+    #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'mr_diff', description: 'Get the unified diff for a merge request.')]
     public function mrDiff(
         #[Schema(description: 'The Drupal.org issue node ID.', pattern: self::NID_PATTERN)]
         string $nid,
@@ -146,7 +147,7 @@ class ToolRegistry
         return (new GetMergeRequestDiffAction($this->client, new GitLabClient()))($nid, $mrIid)->jsonSerialize();
     }
 
-    #[McpTool(name: 'mr_files', description: 'Get changed files for a merge request.')]
+    #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'mr_files', description: 'Get changed files for a merge request.')]
     public function mrFiles(
         #[Schema(description: 'The Drupal.org issue node ID.', pattern: self::NID_PATTERN)]
         string $nid,
@@ -156,7 +157,7 @@ class ToolRegistry
         return (new GetMergeRequestFilesAction($this->client, new GitLabClient()))($nid, $mrIid)->jsonSerialize();
     }
 
-    #[McpTool(name: 'mr_status', description: 'Get CI pipeline status for a merge request.')]
+    #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'mr_status', description: 'Get CI pipeline status for a merge request.')]
     public function mrStatus(
         #[Schema(description: 'The Drupal.org issue node ID.', pattern: self::NID_PATTERN)]
         string $nid,
@@ -166,7 +167,7 @@ class ToolRegistry
         return (new GetMergeRequestStatusAction($this->client, new GitLabClient()))($nid, $mrIid)->jsonSerialize();
     }
 
-    #[McpTool(name: 'mr_logs', description: 'Get failed CI job logs for a merge request.')]
+    #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'mr_logs', description: 'Get failed CI job logs for a merge request.')]
     public function mrLogs(
         #[Schema(description: 'The Drupal.org issue node ID.', pattern: self::NID_PATTERN)]
         string $nid,
