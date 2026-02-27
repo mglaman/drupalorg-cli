@@ -37,7 +37,7 @@ class GetIssueAction implements ActionInterface
             }
             $uri = (string) ($ref->uri ?? '');
             if ($uri === '') {
-                $uri = sprintf('%scomment/%s.json', Client::API_URL, $cid);
+                $uri = sprintf('%scomment/%s', Client::API_URL, $cid);
             }
             $commentRefs[] = ['cid' => $cid, 'uri' => $uri];
         }
