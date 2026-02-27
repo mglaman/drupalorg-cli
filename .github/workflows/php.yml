@@ -159,8 +159,8 @@ jobs:
         run: php drupalorg.phar project:releases address
       - name: skill:install
         run: |
-          php drupalorg.phar skill:install --path=~/.claude/skills
-          test -f ~/.claude/skills/drupalorg-cli/SKILL.md
-          test -f ~/.claude/skills/drupalorg-cli/references/work-on-issue.md
-          test -f ~/.claude/skills/drupalorg-cli/references/patch-contribution.md
-          test -f ~/.claude/skills/drupalorg-cli/references/gitlab-mr-contribution.md
+          php drupalorg.phar skill:install --path=$HOME/.claude/skills
+          test -f $HOME/.claude/skills/drupalorg-cli/SKILL.md
+          test -f $HOME/.claude/skills/drupalorg-cli/references/work-on-issue.md
+          test -f $HOME/.claude/skills/drupalorg-cli/references/patch-contribution.md
+          test -f $HOME/.claude/skills/drupalorg-cli/references/gitlab-mr-contribution.md
