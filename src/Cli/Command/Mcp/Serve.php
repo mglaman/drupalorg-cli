@@ -5,6 +5,7 @@ namespace mglaman\DrupalOrgCli\Command\Mcp;
 use Composer\InstalledVersions;
 use Mcp\Server;
 use Mcp\Server\Transport\StdioTransport;
+use mglaman\DrupalOrg\Mcp\ToolRegistry;
 use mglaman\DrupalOrgCli\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -27,11 +28,10 @@ class Serve extends Command
             $version = '0.0.0';
         }
 
+        $toolRegistryDir = dirname((string) (new \ReflectionClass(ToolRegistry::class))->getFileName());
+
         $server = Server::builder()
-            ->setDiscovery(
-                dirname(__DIR__, 4),
-                ['src/Api/Mcp']
-            )
+            ->setDiscovery($toolRegistryDir, ['.'])
             ->setServerInfo('Drupal.org CLI', $version)
             ->build();
 
