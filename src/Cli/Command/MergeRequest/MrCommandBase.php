@@ -17,12 +17,17 @@ abstract class MrCommandBase extends IssueCommandBase
     {
         $this
             ->addArgument('nid', InputArgument::OPTIONAL, 'The issue node ID')
-            ->addArgument('mr-iid', InputArgument::REQUIRED, 'The merge request IID');
+            ->addArgument('mr-iid', InputArgument::OPTIONAL, 'The merge request IID');
     }
 
     protected function initialize(InputInterface $input, OutputInterface $output): void
     {
         parent::initialize($input, $output);
-        $this->mrIid = (int) $this->stdIn->getArgument('mr-iid');
+
+        $mrIid = $this->stdIn->getArgument('mr-iid');
+        if ($mrIid === null || $mrIid === '') {
+            throw new \RuntimeException('Argument mr-iid is required.');
+        }
+        $this->mrIid = (int) $mrIid;
     }
 }
