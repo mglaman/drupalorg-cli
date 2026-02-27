@@ -4,7 +4,6 @@ namespace mglaman\DrupalOrgCli\Command\Skill;
 
 use mglaman\DrupalOrgCli\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Install extends Command
@@ -14,49 +13,76 @@ class Install extends Command
     {
         $this
             ->setName('skill:install')
-            ->addOption(
-                'path',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Destination directory for the skill file.',
-                '.claude/skills'
-            )
-            ->setDescription('Installs the drupalorg-cli agent skill into your project.');
+            ->setDescription('Installs the drupalorg-cli agent skill into .claude/skills/drupalorg-cli/ in the current directory.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $skillSource = __DIR__ . '/../../../../SKILL.md';
-        $content = file_get_contents($skillSource);
+        $skillSourceDir = __DIR__ . '/../../../../skills/drupalorg-cli';
+        $cwd = (string) getcwd();
+        $destDir = $cwd . DIRECTORY_SEPARATOR . '.claude' . DIRECTORY_SEPARATOR . 'skills' . DIRECTORY_SEPARATOR . 'drupalorg-cli';
+
+        if (!is_dir($destDir) && !mkdir($destDir, 0755, true) && !is_dir($destDir)) {
+            $this->stdErr->writeln(sprintf('<error>Failed to create directory: %s</error>', $destDir));
+            return 1;
+        }
+
+        $skillMdSrc = $skillSourceDir . DIRECTORY_SEPARATOR . 'SKILL.md';
+        $skillMdDest = $destDir . DIRECTORY_SEPARATOR . 'SKILL.md';
+        $content = file_get_contents($skillMdSrc);
         if ($content === false) {
-            $this->stdErr->writeln(sprintf('<error>Could not read skill source: %s</error>', $skillSource));
+            $this->stdErr->writeln(sprintf('<error>Could not read skill source: %s</error>', $skillMdSrc));
+            return 1;
+        }
+        if (file_put_contents($skillMdDest, $content) === false) {
+            $this->stdErr->writeln(sprintf('<error>Failed to write skill file: %s</error>', $skillMdDest));
+            return 1;
+        }
+        $this->stdOut->writeln(sprintf('<comment>Skill installed to %s</comment>', $skillMdDest));
+
+        $refSrcDir = $skillSourceDir . DIRECTORY_SEPARATOR . 'references';
+        $refDestDir = $destDir . DIRECTORY_SEPARATOR . 'references';
+        if (!is_dir($refDestDir) && !mkdir($refDestDir, 0755, true) && !is_dir($refDestDir)) {
+            $this->stdErr->writeln(sprintf('<error>Failed to create directory: %s</error>', $refDestDir));
             return 1;
         }
 
-        $basePath = trim((string) $this->stdIn->getOption('path'));
-        if ($basePath === '') {
-            $this->stdErr->writeln('<error>The --path option must not be empty.</error>');
-            return 1;
-        }
-        $normalizedBase = rtrim($basePath, '/\\');
-        if ($normalizedBase === '' || (strlen($normalizedBase) === 2 && ctype_alpha($normalizedBase[0]) && $normalizedBase[1] === ':')) {
-            $this->stdErr->writeln('<error>The --path option must not point to a filesystem root.</error>');
-            return 1;
-        }
-        $dir = $normalizedBase . DIRECTORY_SEPARATOR . 'drupalorg-cli';
-        $fullPath = $dir . '/SKILL.md';
-
-        if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
-            $this->stdErr->writeln(sprintf('<error>Failed to create directory: %s</error>', $dir));
+        if (!is_dir($refSrcDir) || !is_readable($refSrcDir)) {
+            $this->stdErr->writeln(sprintf('<error>Skill references directory is missing or not readable: %s</error>', $refSrcDir));
             return 1;
         }
 
-        if (file_put_contents($fullPath, $content) === false) {
-            $this->stdErr->writeln(sprintf('<error>Failed to write skill file: %s</error>', $fullPath));
+        try {
+            foreach (new \DirectoryIterator($refSrcDir) as $fileInfo) {
+                if ($fileInfo->isDot() || !$fileInfo->isFile() || $fileInfo->getExtension() !== 'md') {
+                    continue;
+                }
+                $refSrc = $fileInfo->getPathname();
+                $refDest = $refDestDir . DIRECTORY_SEPARATOR . $fileInfo->getFilename();
+                if (!copy($refSrc, $refDest)) {
+                    $lastError = error_get_last();
+                    $errorDetail = (is_array($lastError) && $lastError['message'] !== '')
+                        ? ' Underlying error: ' . $lastError['message']
+                        : '';
+                    $this->stdErr->writeln(sprintf(
+                        '<error>Failed to copy reference file from %s to %s.%s</error>',
+                        $refSrc,
+                        $refDest,
+                        $errorDetail
+                    ));
+                    return 1;
+                }
+                $this->stdOut->writeln(sprintf('<comment>Reference installed to %s</comment>', $refDest));
+            }
+        } catch (\UnexpectedValueException $e) {
+            $this->stdErr->writeln(sprintf(
+                '<error>Failed to read skill references directory: %s (%s)</error>',
+                $refSrcDir,
+                $e->getMessage()
+            ));
             return 1;
         }
 
-        $this->stdOut->writeln(sprintf('<comment>Skill installed to %s</comment>', $fullPath));
         return 0;
     }
 }

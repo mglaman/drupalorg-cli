@@ -1,10 +1,10 @@
 {
   "directories": [
-    "src"
+    "src",
+    "skills"
   ],
   "files": [
-    "vendor/symfony/console/Resources/bin/hiddeninput.exe",
-    "SKILL.md"
+    "vendor/symfony/console/Resources/bin/hiddeninput.exe"
   ],
   "finder": [
     {
