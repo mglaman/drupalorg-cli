@@ -27,7 +27,7 @@ Commands that fetch data accept `--format` / `-f`:
 | `text` | Human-readable plain text (default) | All commands |
 | `json` | Machine-readable JSON | Most commands |
 | `md`   | Markdown suitable for display or copy-paste | `issue:show`, `issue:get-fork`, `mr:list`, `mr:status`, `project:issues`, `project:releases`, `project:release-notes`, `maintainer:issues` |
-| `llm`  | Structured XML optimised for agent consumption | `issue:show`, `issue:get-fork`, `mr:list`, `mr:status`, `project:issues`, `project:releases`, `project:release-notes`, `maintainer:issues` |
+| `llm`  | Structured XML optimised for agent consumption | `issue:show` (add `--with-comments` to include comment thread), `issue:get-fork`, `mr:list`, `mr:status`, `project:issues`, `project:releases`, `project:release-notes`, `maintainer:issues` |
 
 **Agents should always pass `--format=llm`** to get rich, structured output
 with clearly labelled fields, contributor lists, and change records.
@@ -39,6 +39,9 @@ with clearly labelled fields, contributor lists, and change records.
 ```bash
 # Fetch full details for an issue
 drupalorg issue:show <nid> --format=llm
+
+# Fetch issue details including all comments (skips system-generated messages)
+drupalorg issue:show <nid> --with-comments --format=llm
 
 # Show the GitLab issue fork URLs and branches
 # nid is optional; auto-detected from the branch name if omitted

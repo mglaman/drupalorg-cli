@@ -33,6 +33,21 @@ class MarkdownFormatter extends AbstractFormatter
         $lines[] = '## Summary';
         $lines[] = '';
         $lines[] = strip_tags($result->bodyValue ?? '');
+        if ($result->comments !== []) {
+            $lines[] = '';
+            $lines[] = '## Comments';
+            foreach ($result->comments as $index => $comment) {
+                $lines[] = '';
+                $lines[] = sprintf(
+                    '### Comment #%d — %s (%s)',
+                    $index + 1,
+                    $comment->authorName,
+                    date('c', $comment->created)
+                );
+                $lines[] = '';
+                $lines[] = strip_tags($comment->bodyValue ?? '');
+            }
+        }
         return implode("\n", $lines);
     }
 

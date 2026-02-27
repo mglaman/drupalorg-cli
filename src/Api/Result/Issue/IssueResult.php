@@ -2,11 +2,15 @@
 
 namespace mglaman\DrupalOrg\Result\Issue;
 
+use mglaman\DrupalOrg\Entity\IssueComment;
 use mglaman\DrupalOrg\Entity\IssueNode;
 use mglaman\DrupalOrg\Result\ResultInterface;
 
 class IssueResult implements ResultInterface
 {
+    /**
+     * @param IssueComment[] $comments
+     */
     public function __construct(
         public readonly string $nid,
         public readonly string $title,
@@ -20,10 +24,14 @@ class IssueResult implements ResultInterface
         public readonly string $fieldProjectMachineName,
         public readonly ?string $authorId,
         public readonly ?string $bodyValue,
+        public readonly array $comments = [],
     ) {
     }
 
-    public static function fromIssueNode(IssueNode $issue): self
+    /**
+     * @param IssueComment[] $comments
+     */
+    public static function fromIssueNode(IssueNode $issue, array $comments = []): self
     {
         return new self(
             nid: $issue->nid,
@@ -38,6 +46,7 @@ class IssueResult implements ResultInterface
             fieldProjectMachineName: $issue->fieldProjectMachineName,
             authorId: $issue->authorId,
             bodyValue: $issue->bodyValue,
+            comments: $comments,
         );
     }
 
@@ -56,6 +65,7 @@ class IssueResult implements ResultInterface
             'field_project_machine_name' => $this->fieldProjectMachineName,
             'author_id' => $this->authorId,
             'body_value' => $this->bodyValue,
+            'comments' => array_map(static fn(IssueComment $c) => $c->jsonSerialize(), $this->comments),
         ];
     }
 }

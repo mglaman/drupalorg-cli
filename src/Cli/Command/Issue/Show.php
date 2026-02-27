@@ -26,13 +26,15 @@ class Show extends Command
                 'Output options: text, json, md, llm. Defaults to text.',
                 'text'
             )
+            ->addOption('with-comments', null, InputOption::VALUE_NONE, 'Also fetch issue comments.')
             ->setDescription('Show a given issue information.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $nid = $this->stdIn->getArgument('nid');
-        $result = (new GetIssueAction($this->client))($nid);
+        $withComments = (bool) $this->stdIn->getOption('with-comments');
+        $result = (new GetIssueAction($this->client))($nid, $withComments);
         $format = $this->stdIn->getOption('format');
 
         if ($this->writeFormatted($result, (string) $format)) {
@@ -49,6 +51,19 @@ class Show extends Command
         $this->stdOut->writeln(sprintf('Created: %s', date('r', $result->created)));
         $this->stdOut->writeln(sprintf('Updated: %s', date('r', $result->changed)));
         $this->stdOut->writeln(sprintf("\nIssue summary:\n%s", strip_tags($result->bodyValue ?? '')));
+        if ($result->comments !== []) {
+            $this->stdOut->writeln('');
+            foreach ($result->comments as $index => $comment) {
+                $this->stdOut->writeln(sprintf(
+                    "Comment #%d by %s  (%s)",
+                    $index + 1,
+                    $comment->authorName,
+                    date('r', $comment->created)
+                ));
+                $this->stdOut->writeln(strip_tags($comment->bodyValue ?? ''));
+                $this->stdOut->writeln('');
+            }
+        }
         return 0;
     }
 }

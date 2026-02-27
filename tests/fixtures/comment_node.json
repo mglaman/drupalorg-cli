@@ -1,0 +1,9 @@
+{
+  "cid": "15671234",
+  "subject": "Example comment subject",
+  "comment_body": { "value": "<p>Comment body.</p>", "format": "1" },
+  "created": "1700000000",
+  "name": "testuser",
+  "author": { "uri": "https://www.drupal.org/api-d7/user/99999", "id": "99999", "resource": "user" },
+  "node": { "uri": "https://www.drupal.org/api-d7/node/3383637", "id": "3383637", "resource": "node" }
+}

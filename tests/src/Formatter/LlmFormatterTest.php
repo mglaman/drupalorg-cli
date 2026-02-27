@@ -2,6 +2,7 @@
 
 namespace mglaman\DrupalOrg\Tests\Formatter;
 
+use mglaman\DrupalOrg\Entity\IssueComment;
 use mglaman\DrupalOrg\Entity\IssueNode;
 use mglaman\DrupalOrg\Entity\Release;
 use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
@@ -92,6 +93,53 @@ class LlmFormatterTest extends TestCase
         self::assertStringContainsString('<description>', $output);
         self::assertStringNotContainsString('<p>', $output);
         self::assertStringContainsString('Issue body content.', $output);
+    }
+
+    public function testIssueResultWithComments(): void
+    {
+        $comment = new IssueComment(
+            cid: '15671234',
+            bodyValue: '<p>LGTM <strong>with</strong> nits.</p>',
+            created: 1700000000,
+            authorId: '99999',
+            authorName: 'reviewer',
+        );
+        $result = new IssueResult(
+            nid: '3383637',
+            title: 'Schedule transition button size',
+            created: 1693195104,
+            changed: 1727653295,
+            fieldIssueStatus: 1,
+            fieldIssueCategory: 1,
+            fieldIssuePriority: 200,
+            fieldIssueVersion: '11.x-dev',
+            fieldIssueComponent: 'Claro theme',
+            fieldProjectMachineName: 'drupal',
+            authorId: '3643629',
+            bodyValue: '<p>Issue body.</p>',
+            comments: [$comment],
+        );
+
+        $formatter = new LlmFormatter();
+        $output = $formatter->format($result);
+
+        self::assertStringContainsString('<comments>', $output);
+        self::assertStringContainsString('<comment>', $output);
+        self::assertStringContainsString('<number>1</number>', $output);
+        self::assertStringContainsString('<author>reviewer</author>', $output);
+        self::assertStringContainsString('<created>', $output);
+        self::assertStringContainsString('LGTM', $output);
+        self::assertStringContainsString('<![CDATA[', $output);
+        self::assertStringContainsString('<strong>', $output);
+        self::assertStringContainsString('</comments>', $output);
+    }
+
+    public function testIssueResultWithoutCommentsHasNoCommentsBlock(): void
+    {
+        $formatter = new LlmFormatter();
+        $output = $formatter->format(self::makeIssueResult());
+
+        self::assertStringNotContainsString('<comments>', $output);
     }
 
     public function testProjectIssuesResult(): void
