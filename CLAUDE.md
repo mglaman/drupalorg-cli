@@ -1,6 +1,6 @@
 # drupalorg-cli
 
-PHP 8.2+ Symfony Console CLI that wraps Drupal.org's REST and JSON:API endpoints. Distributed as a phar.
+PHP 8.1+ Symfony Console CLI that wraps Drupal.org's REST and JSON:API endpoints. Distributed as a phar.
 
 ## Goal
 
@@ -60,7 +60,7 @@ composer box-install && composer box-build  # Build phar
 - PSR-2 code style (line length not enforced)
 - PHPStan level 6 with strict + deprecation rules
 - Never edit `composer.lock` directly — use `composer require` / `composer update`
-- Use PHP 8.1+ features: constructor promotion, `readonly` classes, union types, strict typing (`declare(strict_types=1)`)
+- Use PHP 8.1+ features: constructor promotion, `readonly` classes, union types, strict typing (`declare(strict_types=1)`); the phar build requires PHP 8.2 but the library itself targets 8.1
 - Use concurrent async Guzzle requests (`requestAsync` + `Utils::settle()`) when fetching multiple Drupal.org nodes
 - When adding a new `ResultInterface` implementation, register it in `AbstractFormatter::format()` and add the corresponding abstract method; every concrete formatter (`MarkdownFormatter`, `LlmFormatter`) is then forced to implement it at compile time
 - For `--format=llm` output, wrap logical sections in XML-style delimiters (e.g., `<issue>...</issue>`, `<context>...</context>`) to aid LLM consumption
