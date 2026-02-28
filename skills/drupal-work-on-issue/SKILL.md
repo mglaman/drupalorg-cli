@@ -35,15 +35,30 @@ Report to the user:
 - Issue title, status, project machine name
 - Whether a fork exists and which branches are available
 
-**[PAUSE]** Ask the user:
-1. "Does your current working directory contain the `<project>` repository?" (show `git remote get-url origin` to verify)
-2. "Which branch should I check out?" (list branches from the fork output; if none exist, note that and ask how to proceed)
+**Directory detection:** Before prompting the user, read `CLAUDE.md` in the current directory.
+If it documents the path to the `<project>` module or repository, `cd` there automatically
+and skip the directory prompt. Only fall back to running `git remote get-url origin` and
+asking the user if `CLAUDE.md` provides no guidance.
+
+**Branch selection:** Count branches from the `issue:get-fork` output that match `<nid>-*`:
+- **Exactly one match** → select it automatically; no prompt needed.
+- **Multiple matches** → list them and ask the user which to check out.
+- **No matches** → note that no branches exist yet and ask the user how to proceed
+  (e.g. create a new branch from the upstream project default branch).
+
+**[PAUSE]** Only pause here if the working directory could not be determined automatically
+OR if multiple branches exist. Present your findings and wait for confirmation before
+proceeding.
 
 ---
 
 ### Step 2: Set up remote and check out the branch
 
-Once the user confirms the directory and branch:
+> **Important:** All `git` and `drupalorg` commands from this point forward must be run from
+> the project module directory (not the Drupal site root). Ensure you have `cd`'d into the
+> correct directory before executing any command below.
+
+Once the directory and branch are confirmed:
 
 ```bash
 drupalorg issue:setup-remote <nid>
@@ -56,11 +71,21 @@ Report the branch that is now active.
 
 ### Step 3: Inspect the current MR state
 
+> **Important:** Run all commands from the project module directory.
+
 ```bash
 drupalorg mr:list <nid> --format=llm
 ```
 
-For the relevant MR (confirm with user if multiple exist):
+**If `mr:list` returns no MRs:**
+- Report "No MR exists yet for this issue."
+- Skip the MR inspection commands below.
+- Proceed directly to the work loop (Step 4).
+- After the first `git push`, capture the GitLab MR-creation URL printed in the push
+  output and surface it to the user. Then re-run `drupalorg mr:list <nid> --format=llm`
+  to pick up the newly created MR IID before polling pipeline status.
+
+**If one or more MRs exist**, for the relevant MR (confirm with user if multiple exist):
 
 ```bash
 drupalorg mr:files <nid> <mr-iid>
@@ -80,20 +105,31 @@ Summarise:
 
 ### Step 4: Work loop
 
+> **Important:** Run all `git` and `drupalorg` commands from the project module directory.
+
 Iterate until the pipeline is green or the user asks to stop:
 
 1. Make the requested code changes.
-2. Commit:
+2. Before committing, inspect the project's commit style:
    ```bash
-   git add -p
-   git commit -m "Issue #<nid> by <username>: <short description>"
+   git log --oneline -5
    ```
-3. Push: `git push`
-4. Poll pipeline:
+   Match the observed style (e.g. conventional commits, `Issue #<nid> by <username>:`, etc.)
+   rather than defaulting to any fixed template.
+3. Stage only the files you actually modified:
+   ```bash
+   git add <specific-changed-files>
+   ```
+4. Commit using the inferred message style:
+   ```bash
+   git commit -m "<message matching project style>"
+   ```
+5. Push: `git push`
+6. Poll pipeline:
    ```bash
    drupalorg mr:status <nid> <mr-iid> --format=llm
    ```
-5. If failing, fetch logs and fix:
+7. If failing, fetch logs and fix:
    ```bash
    drupalorg mr:logs <nid> <mr-iid>
    ```
