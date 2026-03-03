@@ -13,42 +13,59 @@ class Install extends Command
     {
         $this
             ->setName('skill:install')
-            ->setDescription('Installs the drupalorg-cli agent skill into .claude/skills/drupalorg-cli/ in the current directory.');
+            ->setDescription('Installs all drupalorg-cli agent skills into .claude/skills/ in the current directory.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $skillSourceDir = __DIR__ . '/../../../../skills/drupalorg-cli';
+        $skillsRootSrc = __DIR__ . '/../../../../skills';
         $cwd = (string) getcwd();
-        $destDir = $cwd . DIRECTORY_SEPARATOR . '.claude' . DIRECTORY_SEPARATOR . 'skills' . DIRECTORY_SEPARATOR . 'drupalorg-cli';
+        $skillsRootDest = $cwd . DIRECTORY_SEPARATOR . '.claude' . DIRECTORY_SEPARATOR . 'skills';
 
+        foreach (new \DirectoryIterator($skillsRootSrc) as $skillDir) {
+            if ($skillDir->isDot() || !$skillDir->isDir()) {
+                continue;
+            }
+            $result = $this->installSkill(
+                $skillDir->getPathname(),
+                $skillsRootDest . DIRECTORY_SEPARATOR . $skillDir->getFilename()
+            );
+            if ($result !== 0) {
+                return $result;
+            }
+        }
+
+        return 0;
+    }
+
+    private function installSkill(string $srcDir, string $destDir): int
+    {
         if (!is_dir($destDir) && !mkdir($destDir, 0755, true) && !is_dir($destDir)) {
             $this->stdErr->writeln(sprintf('<error>Failed to create directory: %s</error>', $destDir));
             return 1;
         }
 
-        $skillMdSrc = $skillSourceDir . DIRECTORY_SEPARATOR . 'SKILL.md';
-        $skillMdDest = $destDir . DIRECTORY_SEPARATOR . 'SKILL.md';
-        $content = file_get_contents($skillMdSrc);
+        $srcFile = $srcDir . DIRECTORY_SEPARATOR . 'SKILL.md';
+        $destFile = $destDir . DIRECTORY_SEPARATOR . 'SKILL.md';
+        $content = file_get_contents($srcFile);
         if ($content === false) {
-            $this->stdErr->writeln(sprintf('<error>Could not read skill source: %s</error>', $skillMdSrc));
+            $this->stdErr->writeln(sprintf('<error>Could not read skill source: %s</error>', $srcFile));
             return 1;
         }
-        if (file_put_contents($skillMdDest, $content) === false) {
-            $this->stdErr->writeln(sprintf('<error>Failed to write skill file: %s</error>', $skillMdDest));
+        if (file_put_contents($destFile, $content) === false) {
+            $this->stdErr->writeln(sprintf('<error>Failed to write skill file: %s</error>', $destFile));
             return 1;
         }
-        $this->stdOut->writeln(sprintf('<comment>Skill installed to %s</comment>', $skillMdDest));
+        $this->stdOut->writeln(sprintf('<comment>Skill installed to %s</comment>', $destFile));
 
-        $refSrcDir = $skillSourceDir . DIRECTORY_SEPARATOR . 'references';
+        $refSrcDir = $srcDir . DIRECTORY_SEPARATOR . 'references';
+        if (!is_dir($refSrcDir)) {
+            return 0;
+        }
+
         $refDestDir = $destDir . DIRECTORY_SEPARATOR . 'references';
         if (!is_dir($refDestDir) && !mkdir($refDestDir, 0755, true) && !is_dir($refDestDir)) {
             $this->stdErr->writeln(sprintf('<error>Failed to create directory: %s</error>', $refDestDir));
-            return 1;
-        }
-
-        if (!is_dir($refSrcDir) || !is_readable($refSrcDir)) {
-            $this->stdErr->writeln(sprintf('<error>Skill references directory is missing or not readable: %s</error>', $refSrcDir));
             return 1;
         }
 
@@ -82,28 +99,6 @@ class Install extends Command
             ));
             return 1;
         }
-
-        // Install the standalone /drupal-work-on-issue skill.
-        $woiSrcDir = __DIR__ . '/../../../../skills/drupal-work-on-issue';
-        $woiDestDir = $cwd . DIRECTORY_SEPARATOR . '.claude' . DIRECTORY_SEPARATOR . 'skills' . DIRECTORY_SEPARATOR . 'drupal-work-on-issue';
-
-        if (!is_dir($woiDestDir) && !mkdir($woiDestDir, 0755, true) && !is_dir($woiDestDir)) {
-            $this->stdErr->writeln(sprintf('<error>Failed to create directory: %s</error>', $woiDestDir));
-            return 1;
-        }
-
-        $woiSrc = $woiSrcDir . DIRECTORY_SEPARATOR . 'SKILL.md';
-        $woiDest = $woiDestDir . DIRECTORY_SEPARATOR . 'SKILL.md';
-        $woiContent = file_get_contents($woiSrc);
-        if ($woiContent === false) {
-            $this->stdErr->writeln(sprintf('<error>Could not read skill source: %s</error>', $woiSrc));
-            return 1;
-        }
-        if (file_put_contents($woiDest, $woiContent) === false) {
-            $this->stdErr->writeln(sprintf('<error>Failed to write skill file: %s</error>', $woiDest));
-            return 1;
-        }
-        $this->stdOut->writeln(sprintf('<comment>Skill installed to %s</comment>', $woiDest));
 
         return 0;
     }
