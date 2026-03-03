@@ -105,6 +105,28 @@ class Install extends Command
         }
         $this->stdOut->writeln(sprintf('<comment>Skill installed to %s</comment>', $woiDest));
 
+        // Install the standalone /drupalorg-issue-summary-update skill.
+        $issueSummarySrcDir = __DIR__ . '/../../../../skills/drupalorg-issue-summary-update';
+        $issueSummaryDestDir = $cwd . DIRECTORY_SEPARATOR . '.claude' . DIRECTORY_SEPARATOR . 'skills' . DIRECTORY_SEPARATOR . 'drupalorg-issue-summary-update';
+
+        if (!is_dir($issueSummaryDestDir) && !mkdir($issueSummaryDestDir, 0755, true) && !is_dir($issueSummaryDestDir)) {
+            $this->stdErr->writeln(sprintf('<error>Failed to create directory: %s</error>', $issueSummaryDestDir));
+            return 1;
+        }
+
+        $issueSummarySrc = $issueSummarySrcDir . DIRECTORY_SEPARATOR . 'SKILL.md';
+        $issueSummaryDest = $issueSummaryDestDir . DIRECTORY_SEPARATOR . 'SKILL.md';
+        $issueSummaryContent = file_get_contents($issueSummarySrc);
+        if ($issueSummaryContent === false) {
+            $this->stdErr->writeln(sprintf('<error>Could not read skill source: %s</error>', $issueSummarySrc));
+            return 1;
+        }
+        if (file_put_contents($issueSummaryDest, $issueSummaryContent) === false) {
+            $this->stdErr->writeln(sprintf('<error>Failed to write skill file: %s</error>', $issueSummaryDest));
+            return 1;
+        }
+        $this->stdOut->writeln(sprintf('<comment>Skill installed to %s</comment>', $issueSummaryDest));
+
         return 0;
     }
 }
