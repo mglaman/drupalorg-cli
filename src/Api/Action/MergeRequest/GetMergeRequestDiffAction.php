@@ -2,13 +2,14 @@
 
 namespace mglaman\DrupalOrg\Action\MergeRequest;
 
+use mglaman\DrupalOrg\GitLab\MergeRequestRef;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestDiffResult;
 
 class GetMergeRequestDiffAction extends AbstractMergeRequestAction
 {
-    public function __invoke(string $nid, int $mrIid): MergeRequestDiffResult
+    public function __invoke(string $nid, int $mrIid, ?MergeRequestRef $ref = null): MergeRequestDiffResult
     {
-        [$projectId] = $this->resolveGitLabProject($nid);
+        [$projectId] = $ref !== null ? $this->resolveFromRef($ref) : $this->resolveGitLabProject($nid);
 
         $mr = $this->gitLabClient->getMergeRequest($projectId, $mrIid);
         $diffs = $this->gitLabClient->getMergeRequestDiffs($projectId, $mrIid);
