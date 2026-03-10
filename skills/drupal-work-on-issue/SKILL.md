@@ -65,6 +65,21 @@ drupalorg issue:setup-remote <nid>
 drupalorg issue:checkout <nid> <branch>
 ```
 
+**SSH remote URL check:** `issue:setup-remote` sets the remote URL to HTTPS
+(`https://git.drupal.org/issue/<project>-<nid>.git`). Contributors using SSH authentication
+must switch to the SSH equivalent before pushing. After the remote is set:
+
+```bash
+git remote get-url drupalorg
+```
+
+- If the URL starts with `https://`, warn the user and offer to convert it:
+  ```bash
+  git remote set-url drupalorg git@git.drupal.org:issue/<project>-<nid>.git
+  ```
+  where `<project>` and `<nid>` match the values from the HTTPS URL.
+- If it already starts with `git@`, no action needed.
+
 Report the branch that is now active.
 
 ---
@@ -72,6 +87,17 @@ Report the branch that is now active.
 ### Step 3: Inspect the current MR state
 
 > **Important:** Run all commands from the project module directory.
+
+**Diff the branch first** to understand what has already been changed vs. what is still
+missing. Determine the upstream default branch from the fork data (e.g. `main`, `10.3.x`),
+then run:
+
+```bash
+git diff origin/<default-branch>...HEAD
+```
+
+Read this diff carefully before analysing the MR — it is the authoritative record of what
+the branch already contains. Do not assume a file is unchanged without checking the diff.
 
 ```bash
 drupalorg mr:list <nid> --format=llm
@@ -110,26 +136,33 @@ Summarise:
 Iterate until the pipeline is green or the user asks to stop:
 
 1. Make the requested code changes.
-2. Before committing, inspect the project's commit style:
+2. If `vendor/bin/phpcs` is available, run it on the module directory and fix any violations
+   before proceeding:
+   ```bash
+   vendor/bin/phpcs <module-path>
+   ```
+   Do **not** stage or commit files while PHPCS reports errors. Skip this step if PHPCS is
+   not installed.
+3. Before committing, inspect the project's commit style:
    ```bash
    git log --oneline -5
    ```
    Match the observed style (e.g. conventional commits, `Issue #<nid> by <username>:`, etc.)
    rather than defaulting to any fixed template.
-3. Stage only the files you actually modified:
+4. Stage only the files you actually modified:
    ```bash
    git add <specific-changed-files>
    ```
-4. Commit using the inferred message style:
+5. Commit using the inferred message style:
    ```bash
    git commit -m "<message matching project style>"
    ```
-5. Push: `git push`
-6. Poll pipeline:
+6. Push: `git push`
+7. Poll pipeline:
    ```bash
    drupalorg mr:status <nid> <mr-iid> --format=llm
    ```
-7. If failing, fetch logs and fix:
+8. If failing, fetch logs and fix:
    ```bash
    drupalorg mr:logs <nid> <mr-iid>
    ```
