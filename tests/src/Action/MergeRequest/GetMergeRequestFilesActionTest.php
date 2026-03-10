@@ -64,7 +64,7 @@ class GetMergeRequestFilesActionTest extends TestCase
         $client->method('getNode')->with('3383637')->willReturn(self::makeIssueNode());
 
         $gitLabClient = $this->createMock(GitLabClient::class);
-        $gitLabClient->method('getProject')->with('issue/drupal-3383637')->willReturn(self::makeProject());
+        $gitLabClient->method('getProject')->with('project/drupal')->willReturn(self::makeProject());
         $gitLabClient->method('getMergeRequestDiffs')->with(12345, 7)->willReturn([
             self::makeFileDiff('src/Foo.php'),
             self::makeFileDiff('src/Bar.php', newFile: true),

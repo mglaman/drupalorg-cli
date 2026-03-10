@@ -70,7 +70,7 @@ class ListMergeRequestsActionTest extends TestCase
         $client->method('getNode')->with('3383637')->willReturn(self::makeIssueNode());
 
         $gitLabClient = $this->createMock(GitLabClient::class);
-        $gitLabClient->method('getProject')->with('issue/drupal-3383637')->willReturn(self::makeProject());
+        $gitLabClient->method('getProject')->with('project/drupal')->willReturn(self::makeProject());
         $gitLabClient->expects($this->once())
             ->method('getMergeRequests')
             ->with(12345, ['per_page' => 100, 'state' => 'opened'])
@@ -80,7 +80,7 @@ class ListMergeRequestsActionTest extends TestCase
         $result = $action('3383637', MergeRequestState::Opened);
 
         self::assertInstanceOf(MergeRequestListResult::class, $result);
-        self::assertSame('issue/drupal-3383637', $result->projectPath);
+        self::assertSame('project/drupal', $result->projectPath);
         self::assertCount(1, $result->mergeRequests);
         self::assertInstanceOf(MergeRequestItem::class, $result->mergeRequests[0]);
         self::assertSame(7, $result->mergeRequests[0]->iid);

@@ -70,6 +70,27 @@ class GetMergeRequestDiffActionTest extends TestCase
         return new GetMergeRequestDiffAction($client, $gitLabClient);
     }
 
+    public function testResolvesMainProjectNotIssueFork(): void
+    {
+        $client = $this->createMock(Client::class);
+        $client->method('getNode')->willReturn(self::makeIssueNode());
+
+        $gitLabClient = $this->createMock(GitLabClient::class);
+        $gitLabClient->expects($this->once())
+            ->method('getProject')
+            ->with('project/drupal')
+            ->willReturn(self::makeProject());
+        $gitLabClient->method('getMergeRequest')->willReturn(self::makeMr());
+        $gitLabClient->method('getMergeRequestDiffs')->willReturn([
+            self::makeFileDiff("--- a/foo.php\n+++ b/foo.php\n@@ -1 +1 @@\n-old\n+new\n"),
+        ]);
+
+        $action = new GetMergeRequestDiffAction($client, $gitLabClient);
+        $result = $action('3383637', 7);
+
+        self::assertSame(7, $result->iid);
+    }
+
     public function testUnifiedDiffConcatenation(): void
     {
         $client = $this->createMock(Client::class);
