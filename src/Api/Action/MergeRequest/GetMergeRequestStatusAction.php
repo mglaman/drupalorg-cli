@@ -2,13 +2,14 @@
 
 namespace mglaman\DrupalOrg\Action\MergeRequest;
 
+use mglaman\DrupalOrg\GitLab\MergeRequestRef;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestStatusResult;
 
 class GetMergeRequestStatusAction extends AbstractMergeRequestAction
 {
-    public function __invoke(string $nid, int $mrIid): MergeRequestStatusResult
+    public function __invoke(string $nid, int $mrIid, ?MergeRequestRef $ref = null): MergeRequestStatusResult
     {
-        [$projectId] = $this->resolveGitLabProject($nid);
+        [$projectId] = $ref !== null ? $this->resolveFromRef($ref) : $this->resolveGitLabProject($nid);
 
         $pipelines = $this->gitLabClient->getMergeRequestPipelines($projectId, $mrIid);
 

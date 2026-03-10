@@ -30,7 +30,7 @@ class GetStatus extends MrCommandBase
         $format = (string) ($this->stdIn->getOption('format') ?? 'text');
 
         $action = new GetMergeRequestStatusAction($this->client, new GitLabClient());
-        $result = $action($this->nid, $this->mrIid);
+        $result = $action($this->nid ?? '', $this->mrIid, $this->mrRef);
 
         if ($this->writeFormatted($result, $format)) {
             return 0;

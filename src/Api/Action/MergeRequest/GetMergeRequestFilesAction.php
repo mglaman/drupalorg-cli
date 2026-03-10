@@ -2,13 +2,14 @@
 
 namespace mglaman\DrupalOrg\Action\MergeRequest;
 
+use mglaman\DrupalOrg\GitLab\MergeRequestRef;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestFilesResult;
 
 class GetMergeRequestFilesAction extends AbstractMergeRequestAction
 {
-    public function __invoke(string $nid, int $mrIid): MergeRequestFilesResult
+    public function __invoke(string $nid, int $mrIid, ?MergeRequestRef $ref = null): MergeRequestFilesResult
     {
-        [$projectId] = $this->resolveGitLabProject($nid);
+        [$projectId] = $ref !== null ? $this->resolveFromRef($ref) : $this->resolveGitLabProject($nid);
 
         $diffs = $this->gitLabClient->getMergeRequestDiffs($projectId, $mrIid);
 

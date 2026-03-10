@@ -76,26 +76,39 @@ drupalorg issue:link <nid>
 
 ### Merge Request commands
 
+The first argument can be a Drupal.org issue NID, a `project-path!iid` ref
+(e.g. `project/drupal!708`), or a full GitLab MR URL. When using a ref that
+includes the MR IID (`!iid`), the second `<mr-iid>` argument is not needed.
+
+> **zsh users:** Escape `!` or quote the argument to prevent history expansion:
+> `project/drupal\!708` or `'project/drupal!708'`
+
 ```bash
 # List merge requests for a Drupal.org issue fork
 # --state: opened (default), closed, merged, all
 # nid is optional; auto-detected from the branch name if omitted
 drupalorg mr:list [nid] [--state=opened] --format=llm
+# List MRs by project path (no issue NID needed)
+drupalorg mr:list project/drupal --format=llm
 
 # Show the unified diff for a merge request
 # Supports --format=text (default), json
 drupalorg mr:diff <nid> <mr-iid>
+drupalorg mr:diff 'project/drupal!708'
 
 # List changed files in a merge request
 # Supports --format=text (default), json
 drupalorg mr:files <nid> <mr-iid>
+drupalorg mr:files 'project/drupal!708'
 
 # Show the pipeline status for a merge request
 drupalorg mr:status <nid> <mr-iid> --format=llm
+drupalorg mr:status 'project/drupal!708' --format=llm
 
 # Show failed job traces from the latest pipeline for a merge request
 # Supports --format=text (default), json
 drupalorg mr:logs <nid> <mr-iid>
+drupalorg mr:logs 'project/drupal!708'
 ```
 
 ### Project commands
