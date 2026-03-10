@@ -6,6 +6,8 @@ use mglaman\DrupalOrg\IssueTrait;
 use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
 use mglaman\DrupalOrg\Result\Issue\IssueResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
+use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestDiffResult;
+use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestFilesResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestListResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestStatusResult;
 use mglaman\DrupalOrg\Result\Project\ProjectIssuesResult;
@@ -134,6 +136,40 @@ class MarkdownFormatter extends AbstractFormatter
         if ($result->pipelineUrl !== null && $result->pipelineUrl !== '') {
             $lines[] = "- **Pipeline URL:** {$result->pipelineUrl}";
         }
+        return implode("\n", $lines);
+    }
+
+    protected function formatMergeRequestFiles(MergeRequestFilesResult $result): string
+    {
+        $lines = [];
+        $lines[] = "# MR !{$result->iid} Changed Files";
+        $lines[] = '';
+        foreach ($result->files as $file) {
+            $path = (string) $file['path'];
+            $annotations = [];
+            if ((bool) $file['new_file']) {
+                $annotations[] = '*(new)*';
+            }
+            if ((bool) $file['deleted_file']) {
+                $annotations[] = '*(deleted)*';
+            }
+            if ((bool) $file['renamed_file']) {
+                $annotations[] = '*(renamed)*';
+            }
+            $suffix = $annotations !== [] ? ' ' . implode(' ', $annotations) : '';
+            $lines[] = "- {$path}{$suffix}";
+        }
+        return implode("\n", $lines);
+    }
+
+    protected function formatMergeRequestDiff(MergeRequestDiffResult $result): string
+    {
+        $lines = [];
+        $lines[] = "# MR !{$result->iid} Diff (`{$result->sourceBranch}` → `{$result->targetBranch}`)";
+        $lines[] = '';
+        $lines[] = '```diff';
+        $lines[] = $result->diff;
+        $lines[] = '```';
         return implode("\n", $lines);
     }
 }

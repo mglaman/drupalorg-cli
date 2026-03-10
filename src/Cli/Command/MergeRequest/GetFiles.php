@@ -20,7 +20,7 @@ class GetFiles extends MrCommandBase
                 'format',
                 'f',
                 InputOption::VALUE_OPTIONAL,
-                'Output format: text, json. Defaults to text.',
+                'Output format: text, json, md, llm. Defaults to text.',
                 'text'
             );
         $this->configureNidAndMrIid();
@@ -33,8 +33,7 @@ class GetFiles extends MrCommandBase
         $action = new GetMergeRequestFilesAction($this->client, new GitLabClient());
         $result = $action($this->nid ?? '', $this->mrIid, $this->mrRef);
 
-        if ($format === 'json') {
-            $this->stdOut->writeln((string) json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        if ($this->writeFormatted($result, $format)) {
             return 0;
         }
 

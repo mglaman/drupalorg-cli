@@ -6,6 +6,8 @@ use mglaman\DrupalOrg\IssueTrait;
 use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
 use mglaman\DrupalOrg\Result\Issue\IssueResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
+use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestDiffResult;
+use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestFilesResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestListResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestStatusResult;
 use mglaman\DrupalOrg\Result\Project\ProjectIssuesResult;
@@ -178,6 +180,40 @@ XML;
   <pipeline_id>{$pipelineId}</pipeline_id>
   <status>{$status}</status>
   <pipeline_url>{$pipelineUrl}</pipeline_url>
+</drupal_context>
+XML;
+    }
+
+    protected function formatMergeRequestFiles(MergeRequestFilesResult $result): string
+    {
+        $filesXml = '';
+        foreach ($result->files as $file) {
+            $path = $this->xmlEscape((string) $file['path']);
+            $newFile = (bool) $file['new_file'] ? 'true' : 'false';
+            $deletedFile = (bool) $file['deleted_file'] ? 'true' : 'false';
+            $renamedFile = (bool) $file['renamed_file'] ? 'true' : 'false';
+            $filesXml .= "    <file>\n";
+            $filesXml .= "      <path>{$path}</path>\n";
+            $filesXml .= "      <new_file>{$newFile}</new_file>\n";
+            $filesXml .= "      <deleted_file>{$deletedFile}</deleted_file>\n";
+            $filesXml .= "      <renamed_file>{$renamedFile}</renamed_file>\n";
+            $filesXml .= "    </file>\n";
+        }
+        return "<drupal_context>\n  <merge_request_iid>{$result->iid}</merge_request_iid>\n  <changed_files>\n{$filesXml}  </changed_files>\n</drupal_context>";
+    }
+
+    protected function formatMergeRequestDiff(MergeRequestDiffResult $result): string
+    {
+        $sourceBranch = $this->xmlEscape($result->sourceBranch);
+        $targetBranch = $this->xmlEscape($result->targetBranch);
+        $diff = $this->cdataWrap($result->diff);
+
+        return <<<XML
+<drupal_context>
+  <merge_request_iid>{$result->iid}</merge_request_iid>
+  <source_branch>{$sourceBranch}</source_branch>
+  <target_branch>{$targetBranch}</target_branch>
+  <diff>{$diff}</diff>
 </drupal_context>
 XML;
     }
