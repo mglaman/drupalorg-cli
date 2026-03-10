@@ -20,8 +20,7 @@ abstract class AbstractMergeRequestAction implements ActionInterface
     protected function resolveGitLabProject(string $nid): array
     {
         $issue = $this->client->getNode($nid);
-        $remoteName = $issue->fieldProjectMachineName . '-' . $nid;
-        $projectPath = 'issue/' . $remoteName;
+        $projectPath = 'project/' . $issue->fieldProjectMachineName;
         $project = $this->gitLabClient->getProject($projectPath);
         return [(int) $project->id, $projectPath];
     }
