@@ -26,8 +26,8 @@ Commands that fetch data accept `--format` / `-f`:
 |--------|-------------|---------|
 | `text` | Human-readable plain text (default) | All commands |
 | `json` | Machine-readable JSON | Most commands |
-| `md`   | Markdown suitable for display or copy-paste | `issue:show`, `issue:get-fork`, `mr:list`, `mr:status`, `project:issues`, `project:releases`, `project:release-notes`, `maintainer:issues` |
-| `llm`  | Structured XML optimised for agent consumption | `issue:show` (add `--with-comments` to include comment thread), `issue:get-fork`, `mr:list`, `mr:status`, `project:issues`, `project:releases`, `project:release-notes`, `maintainer:issues` |
+| `md`   | Markdown suitable for display or copy-paste | `issue:show`, `issue:get-fork`, `mr:list`, `mr:status`, `mr:files`, `mr:diff`, `project:issues`, `project:releases`, `project:release-notes`, `maintainer:issues` |
+| `llm`  | Structured XML optimised for agent consumption | `issue:show` (add `--with-comments` to include comment thread), `issue:get-fork`, `mr:list`, `mr:status`, `mr:files`, `mr:diff`, `project:issues`, `project:releases`, `project:release-notes`, `maintainer:issues` |
 
 **Agents should always pass `--format=llm`** to get rich, structured output
 with clearly labelled fields, contributor lists, and change records.
@@ -92,14 +92,14 @@ drupalorg mr:list [nid] [--state=opened] --format=llm
 drupalorg mr:list project/drupal --format=llm
 
 # Show the unified diff for a merge request
-# Supports --format=text (default), json
-drupalorg mr:diff <nid> <mr-iid>
-drupalorg mr:diff 'project/drupal!708'
+# Supports --format=text (default), json, md, llm
+drupalorg mr:diff <nid> <mr-iid> --format=llm
+drupalorg mr:diff 'project/drupal!708' --format=llm
 
 # List changed files in a merge request
-# Supports --format=text (default), json
-drupalorg mr:files <nid> <mr-iid>
-drupalorg mr:files 'project/drupal!708'
+# Supports --format=text (default), json, md, llm
+drupalorg mr:files <nid> <mr-iid> --format=llm
+drupalorg mr:files 'project/drupal!708' --format=llm
 
 # Show the pipeline status for a merge request
 drupalorg mr:status <nid> <mr-iid> --format=llm
