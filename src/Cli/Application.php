@@ -13,10 +13,15 @@ class Application extends ParentApplication
      */
     public function __construct()
     {
-        try {
-            $version = InstalledVersions::getPrettyVersion('mglaman/drupalorg-cli');
-        } catch (\OutOfBoundsException $e) {
-            $version = '0.0.0';
+        // '@package_version@' is replaced by Box at phar build time with the git tag.
+        // When running from a Composer installation, fall back to InstalledVersions.
+        $version = '@package_version@';
+        if ($version === '@package_version@') {
+            try {
+                $version = InstalledVersions::getPrettyVersion('mglaman/drupalorg-cli') ?? 'dev';
+            } catch (\OutOfBoundsException $e) {
+                $version = 'dev';
+            }
         }
         parent::__construct('Drupal.org CLI', $version);
         $this->setDefaultTimezone();
