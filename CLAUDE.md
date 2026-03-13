@@ -20,7 +20,7 @@ This CLI reads from Drupal.org and automates local merge request workflows. Its 
 | `maintainer:issues` | `mi` | Lists issues for a user |
 | `maintainer:release-notes` | `rn`, `mrn` | Generates release notes from git log |
 | `project:issues` | `pi` | Lists issues for a project |
-| `project:search` | `ps` | Searches issues for a project by title keyword |
+| `issue:search` | `is` | Searches issues by title keyword (optional project scope) |
 | `project:releases` | | Lists available releases |
 | `project:release-notes` | `prn` | Displays release notes for a release |
 | `project:link` | | Opens project page in browser |

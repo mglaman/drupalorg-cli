@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace mglaman\DrupalOrgCli\Command\Project;
+namespace mglaman\DrupalOrgCli\Command\Issue;
 
-use mglaman\DrupalOrg\Action\Project\SearchProjectIssuesAction;
+use mglaman\DrupalOrg\Action\Issue\SearchIssuesAction;
+use mglaman\DrupalOrgCli\Command\Project\ProjectCommandBase;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Helper\TableSeparator;
 use Symfony\Component\Console\Input\InputArgument;
@@ -12,7 +13,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class ProjectSearch extends ProjectCommandBase
+class Search extends ProjectCommandBase
 {
     private const STATUS_MAP = [
         'all' => [],
@@ -25,8 +26,8 @@ class ProjectSearch extends ProjectCommandBase
     protected function configure(): void
     {
         $this
-            ->setName('project:search')
-            ->setAliases(['ps'])
+            ->setName('issue:search')
+            ->setAliases(['is'])
             ->addArgument('project', InputArgument::OPTIONAL, 'Project machine name (auto-detected from git remote if omitted)')
             ->addArgument('query', InputArgument::OPTIONAL, 'Search text to filter issue titles')
             ->addOption(
@@ -81,7 +82,7 @@ class ProjectSearch extends ProjectCommandBase
         $status = (string) $this->stdIn->getOption('status');
         $statuses = self::STATUS_MAP[$status] ?? self::STATUS_MAP['open'];
 
-        $action = new SearchProjectIssuesAction($this->client);
+        $action = new SearchIssuesAction($this->client);
         $result = $action(
             $this->projectData,
             $query,

@@ -10,6 +10,7 @@ use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestDiffResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestFilesResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestListResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestStatusResult;
+use mglaman\DrupalOrg\Result\Issue\IssueSearchResult;
 use mglaman\DrupalOrg\Result\Project\ProjectIssuesResult;
 use mglaman\DrupalOrg\Result\Project\ProjectReleasesResult;
 
@@ -49,6 +50,20 @@ class MarkdownFormatter extends AbstractFormatter
                 $lines[] = '';
                 $lines[] = strip_tags($comment->bodyValue ?? '');
             }
+        }
+        return implode("\n", $lines);
+    }
+
+    protected function formatIssueSearch(IssueSearchResult $result): string
+    {
+        $lines = [];
+        $heading = $result->projectTitle ?? 'Issue Search Results';
+        $lines[] = "# {$heading}";
+        $lines[] = '';
+        foreach ($result->issues as $issue) {
+            $status = $this->getIssueStatusLabel($issue->fieldIssueStatus);
+            $url = "https://www.drupal.org/node/{$issue->nid}";
+            $lines[] = "- **{$issue->nid}** [{$status}] [{$issue->title}]({$url})";
         }
         return implode("\n", $lines);
     }
