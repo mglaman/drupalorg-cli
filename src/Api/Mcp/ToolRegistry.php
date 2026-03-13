@@ -19,6 +19,7 @@ use mglaman\DrupalOrg\Action\MergeRequest\ListMergeRequestsAction;
 use mglaman\DrupalOrg\Action\Project\GetProjectIssuesAction;
 use mglaman\DrupalOrg\Action\Project\GetProjectReleaseNotesAction;
 use mglaman\DrupalOrg\Action\Project\GetProjectReleasesAction;
+use mglaman\DrupalOrg\Action\Issue\SearchIssuesAction;
 use mglaman\DrupalOrg\Client;
 use mglaman\DrupalOrg\Enum\MaintainerIssueType;
 use mglaman\DrupalOrg\Enum\MergeRequestState;
@@ -91,6 +92,22 @@ class ToolRegistry
             throw new \RuntimeException("Project '$machineName' not found.");
         }
         return (new GetProjectIssuesAction($this->client))($project, ProjectIssueType::from($type), $core, $limit)->jsonSerialize();
+    }
+
+    #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'issue_search', description: 'Search issues for a Drupal.org project by title keyword.')]
+    public function issueSearch(
+        #[Schema(description: "The project machine name (e.g. 'drupal', 'token', 'pathauto').")]
+        string $machineName,
+        #[Schema(description: 'The search text to filter issue titles.')]
+        string $query,
+        #[Schema(description: 'Maximum number of issues to return.', minimum: 1, maximum: 100)]
+        int $limit = 20
+    ): mixed {
+        $project = $this->client->getProject($machineName);
+        if ($project === null) {
+            throw new \RuntimeException("Project '$machineName' not found.");
+        }
+        return (new SearchIssuesAction($this->client))($project, $query, [], $limit)->jsonSerialize();
     }
 
     #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'project_get_releases', description: 'List releases for a Drupal.org project.')]

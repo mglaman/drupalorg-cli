@@ -118,6 +118,11 @@ drupalorg mr:logs 'project/drupal!708'
 # type: all (default) or rtbc; --core defaults to 8.x; --limit defaults to 10
 drupalorg project:issues [project] [type] --format=llm
 
+# Search issues for a project by title keyword
+# project is optional; auto-detected from git remote if omitted
+# --status: all (default), open, closed, rtbc, review; --limit defaults to 20
+drupalorg project:search [project] <query> [--status=all] [--limit=20] --format=llm
+
 # List available releases for a project
 drupalorg project:releases <project> --format=llm
 

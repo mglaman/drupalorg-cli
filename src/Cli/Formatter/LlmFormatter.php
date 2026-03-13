@@ -10,6 +10,7 @@ use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestDiffResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestFilesResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestListResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestStatusResult;
+use mglaman\DrupalOrg\Result\Issue\IssueSearchResult;
 use mglaman\DrupalOrg\Result\Project\ProjectIssuesResult;
 use mglaman\DrupalOrg\Result\Project\ProjectReleasesResult;
 
@@ -64,6 +65,25 @@ class LlmFormatter extends AbstractFormatter
   <description>{$description}</description>{$commentsXml}
 </drupal_context>
 XML;
+    }
+
+    protected function formatIssueSearch(IssueSearchResult $result): string
+    {
+        $items = '';
+        foreach ($result->issues as $issue) {
+            $title = $this->xmlEscape($issue->title);
+            $status = $this->getIssueStatusLabel($issue->fieldIssueStatus);
+            $items .= "    <item>\n";
+            $items .= "      <nid>{$issue->nid}</nid>\n";
+            $items .= "      <title>{$title}</title>\n";
+            $items .= "      <status>{$status}</status>\n";
+            $items .= "      <url>https://www.drupal.org/node/{$issue->nid}</url>\n";
+            $items .= "    </item>\n";
+        }
+        $projectXml = $result->projectTitle !== null
+            ? '  <project>' . $this->xmlEscape($result->projectTitle) . "</project>\n"
+            : '';
+        return "<drupal_context>\n{$projectXml}  <items>\n{$items}  </items>\n</drupal_context>";
     }
 
     protected function formatProjectIssues(ProjectIssuesResult $result): string
