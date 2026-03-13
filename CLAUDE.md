@@ -20,6 +20,7 @@ This CLI reads from Drupal.org and automates local merge request workflows. Its 
 | `maintainer:issues` | `mi` | Lists issues for a user |
 | `maintainer:release-notes` | `rn`, `mrn` | Generates release notes from git log |
 | `project:issues` | `pi` | Lists issues for a project |
+| `project:search` | `ps` | Searches issues for a project by title keyword |
 | `project:releases` | | Lists available releases |
 | `project:release-notes` | `prn` | Displays release notes for a release |
 | `project:link` | | Opens project page in browser |
@@ -67,5 +68,6 @@ composer box-install && composer box-build  # Build phar
 
 ## Skills
 
+- `/drupalorg-issue-search` — Search for Drupal.org issues by keyword, combining API search, Drupal.org issue queue scraping, and web search
 - `/phpstan-fix` — Run PHPStan and fix all reported errors in `src/`
 - `/pr-check` — Run the full local CI suite before opening a PR
