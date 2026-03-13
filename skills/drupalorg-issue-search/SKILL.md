@@ -9,7 +9,7 @@ description: >
 ## Usage
 
 ```
-/drupalorg-issue-search <query> [--project=<project>] [--status=all] [--skip=web,api,drupal]
+/drupalorg-issue-search <query> [--project=<project>] [--status=all] [--skip=web_search,api_search,drupalorg_scrape]
 ```
 
 ## Instructions
@@ -17,7 +17,7 @@ description: >
 1. **Parse inputs**: Extract the search `query` and optional flags:
    - `--project`: project machine name
    - `--status`: issue status filter (default: `all`)
-   - `--skip`: comma-separated list of channels to skip. Valid values: `api`, `drupal`, `web`. For example `--skip=web` skips the web search, `--skip=api,web` runs only the Drupal.org scrape.
+   - `--skip`: comma-separated list of channels to skip. Valid values: `api_search`, `drupalorg_scrape`, `web_search`. For example `--skip=web_search` skips the web search, `--skip=api_search,web_search` runs only the Drupal.org scrape.
 
 2. **Detect project**: If `--project` is not provided, try to infer the project machine name from the current git remote:
    ```bash
@@ -27,16 +27,16 @@ description: >
 
 3. **Run enabled searches in parallel** (skip any channel listed in `--skip`):
 
-   a. **API search** (channel: `api`) — run the CLI command:
+   a. **API search** (channel: `api_search`) — run the CLI command:
    ```bash
-   drupalorg project:search <query> --status=<status> --format=json
+   php drupalorg issue:search <query> --status=<status> --format=json
    ```
    If a project is known, include it as the first argument:
    ```bash
-   drupalorg project:search <project> <query> --status=<status> --format=json
+   php drupalorg issue:search <project> <query> --status=<status> --format=json
    ```
 
-   b. **Drupal.org issue queue scrape** (channel: `drupal`) — if a project is known, fetch the project's issue search page directly using `WebFetch`:
+   b. **Drupal.org issue queue scrape** (channel: `drupalorg_scrape`) — if a project is known, fetch the project's issue search page directly using `WebFetch`:
    ```
    URL: https://www.drupal.org/project/issues/<project>?text=<query words joined by +>&status=All
    Prompt: Extract all issue NIDs (numeric IDs from URLs like /node/XXXX or /issues/XXXX), titles, and statuses from this page. Return as a compact list.
@@ -44,7 +44,7 @@ description: >
    Replace spaces in the query with `+` for the URL parameter. This channel searches issue titles and bodies server-side, so it can find older and closed issues that the API search misses.
    If no project is known, skip this channel.
 
-   c. **Web search** (channel: `web`) — search the web:
+   c. **Web search** (channel: `web_search`) — search the web:
    - If project is known: `<query> site:https://www.drupal.org/project/issues/<project>`
    - If project is unknown: `<query> site:https://www.drupal.org/project/issues/`
 
