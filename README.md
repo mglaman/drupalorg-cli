@@ -34,39 +34,28 @@ To activate it, either source the completion file or add it to the system-wide c
 In your `.bashrc` (or `.profile`) add
 
 ```
-source [...]/vendor/mglaman/drupalorg-cli/drupalorg-cli-completion.sh
+source [...]/vendor/mglaman/drupalorg-cli/drupalorg-cli-completion.bash
 ```
 
 ### Installing (Zsh) completion
 
-Create `_drupalorg` in a directory on your `$fpath` (e.g. `~/.zsh/completion/` or `/usr/local/share/zsh/site-functions/`):
+`drupalorg` comes with namespace-aware completion. Copy the Zsh completion file to `~/.zsh/completions/_drupalorg`:
 
 ```sh
+curl -L https://raw.githubusercontent.com/mglaman/drupalorg-cli/refs/heads/main/drupalorg-cli-completion.zsh -o ~/.zsh/completions/_drupalorg
 mkdir -p ~/.zsh/completions
-cat > ~/.zsh/completions/_drupalorg <<'EOF'
-#compdef drupalorg
-local -a commands
-local i seen_command=0
-commands=(${=$(drupalorg complete 2>/dev/null)})
-
-for (( i = 2; i < CURRENT; i++ )); do
-  if [[ ${words[i]} != -* ]]; then
-    seen_command=1
-    break
-  fi
-done
-
-(( seen_command )) && return 1
-compadd -- $commands
-EOF
+cp /path/to/drupalorg-cli/drupalorg-cli-completion.zsh ~/.zsh/completions/_drupalorg
 ```
 
-In your `~/.zshrc` add
+In your `~/.zshrc` add (if not already present):
+
 ```sh
 fpath=(~/.zsh/completions $fpath)
 autoload -Uz compinit
 compinit
 ```
+
+Restart your shell or run `source ~/.zshrc`.
 
 ## Updating
 
