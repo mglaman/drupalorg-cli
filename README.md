@@ -37,13 +37,44 @@ In your `.bashrc` (or `.profile`) add
 source [...]/vendor/mglaman/drupalorg-cli/drupalorg-cli-completion.sh
 ```
 
+### Installing (Zsh) completion
+
+Create `_drupalorg` in a directory on your `$fpath` (e.g. `~/.zsh/completion/` or `/usr/local/share/zsh/site-functions/`):
+
+```sh
+mkdir -p ~/.zsh/completions
+cat > ~/.zsh/completions/_drupalorg <<'EOF'
+#compdef drupalorg
+local -a commands
+local i seen_command=0
+commands=(${=$(drupalorg complete 2>/dev/null)})
+
+for (( i = 2; i < CURRENT; i++ )); do
+  if [[ ${words[i]} != -* ]]; then
+    seen_command=1
+    break
+  fi
+done
+
+(( seen_command )) && return 1
+compadd -- $commands
+EOF
+```
+
+In your `~/.zshrc` add
+```sh
+fpath=(~/.zsh/completions $fpath)
+autoload -Uz compinit
+compinit
+```
+
 ## Updating
 
 Automatic updating is not yet supported. You will need to manually download new releases.
 
 ## Usage
 
-Use the 'list' command to see available commands. 
+Use the 'list' command to see available commands.
 
 ```
 drupalorg list
