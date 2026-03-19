@@ -154,10 +154,20 @@ drupalorg maintainer:release-notes <ref1> [ref2] [--format=json|md|html]
 ```bash
 # Install the drupalorg-cli agent skill into .claude/skills/drupalorg-cli/
 drupalorg skill:install
-
-# Clear the local API cache
-drupalorg cache:clear
 ```
+
+## Cache Bypass
+
+Drupal.org uses HTTP caching (CDN/Varnish). If you need fresh data — e.g. after a
+new comment was posted — pass `--no-cache` to any command:
+
+```bash
+drupalorg issue:show <nid> --with-comments --format=llm --no-cache
+drupalorg mr:list [nid] --format=llm --no-cache
+```
+
+`--no-cache` sends `Cache-Control: no-cache, no-store, must-revalidate` and
+`Pragma: no-cache` headers so the upstream CDN returns a fresh response.
 
 ## Error Handling
 
