@@ -43,8 +43,8 @@ class Checkout extends IssueCommandBase
                     ),
                     true
                 );
-                // ask() returns null when the input stream is closed; treat null as the default (true).
-                $shouldSetup = $helper->ask($input, $output, $question) ?? true;
+                // ask() returns mixed; cast to bool and fall back to the default (true) on null.
+                $shouldSetup = (bool) ($helper->ask($input, $output, $question) ?? true);
             }
             if (!$shouldSetup) {
                 $this->stdErr->writeln(
