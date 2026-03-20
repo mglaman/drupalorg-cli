@@ -4,6 +4,8 @@ namespace mglaman\DrupalOrgCli;
 
 use Composer\InstalledVersions;
 use Symfony\Component\Console\Application as ParentApplication;
+use Symfony\Component\Console\Input\InputDefinition;
+use Symfony\Component\Console\Input\InputOption;
 
 class Application extends ParentApplication
 {
@@ -21,6 +23,18 @@ class Application extends ParentApplication
         parent::__construct('Drupal.org CLI', $version);
         $this->setDefaultTimezone();
         $this->addCommands($this->getCommands());
+    }
+
+    protected function getDefaultInputDefinition(): InputDefinition
+    {
+        $definition = parent::getDefaultInputDefinition();
+        $definition->addOption(new InputOption(
+            'no-cache',
+            null,
+            InputOption::VALUE_NONE,
+            'Bypass Drupal.org HTTP caching and fetch a fresh response.'
+        ));
+        return $definition;
     }
 
     /**

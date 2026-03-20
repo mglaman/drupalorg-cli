@@ -45,7 +45,8 @@ abstract class Command extends BaseCommand
         ) : $output;
         $this->stdIn = $input;
         self::$interactive = $input->isInteractive();
-        $this->client = new Client();
+        $noCache = $input->hasOption('no-cache') && (bool) $input->getOption('no-cache');
+        $this->client = new Client($noCache);
     }
 
     protected function debug(string $message): void

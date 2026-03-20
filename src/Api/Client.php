@@ -22,7 +22,7 @@ class Client
      */
     public const API_URL = 'https://www.drupal.org/api-d7/';
 
-    public function __construct()
+    public function __construct(bool $noCache = false)
     {
         $stack = HandlerStack::create();
         $stack->push(GuzzleRetryMiddleware::factory([
@@ -31,16 +31,22 @@ class Client
             'default_retry_multiplier' => 1.5,
         ]), 'retry');
 
+        $headers = [
+            'User-Agent' => 'DrupalOrgCli/0.0.1',
+            'Accept' => 'application/json',
+            'Accept-Encoding' => '*',
+        ];
+        if ($noCache) {
+            $headers['Cache-Control'] = 'no-cache, no-store, max-age=0';
+            $headers['Pragma'] = 'no-cache';
+        }
+
         $this->client = new \GuzzleHttp\Client(
             [
                 'base_uri' => self::API_URL,
                 'cookies' => true,
                 'handler' => $stack,
-                'headers' => [
-                    'User-Agent' => 'DrupalOrgCli/0.0.1',
-                    'Accept' => 'application/json',
-                    'Accept-Encoding' => '*',
-                ],
+                'headers' => $headers,
             ]
         );
     }
