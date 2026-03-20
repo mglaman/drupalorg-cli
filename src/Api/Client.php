@@ -37,7 +37,7 @@ class Client
             'Accept-Encoding' => '*',
         ];
         if ($noCache) {
-            $headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+            $headers['Cache-Control'] = 'no-cache, no-store, max-age=0';
             $headers['Pragma'] = 'no-cache';
         }
 
