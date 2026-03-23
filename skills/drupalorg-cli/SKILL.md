@@ -115,8 +115,9 @@ drupalorg mr:logs 'project/drupal!708'
 
 ```bash
 # List open issues for a project
-# type: all (default) or rtbc; --core defaults to 8.x; --limit defaults to 10
-drupalorg project:issues [project] [type] --format=llm
+# type: all (default), rtbc, or review; --core defaults to 8.x; --limit defaults to 10
+# --category filters by issue type: bug, task, feature, support, plan (omit for all categories)
+drupalorg project:issues [project] [type] [--category=bug|task|feature|support|plan] --format=llm
 
 # Search issues for a project by title keyword
 # project is optional; auto-detected from git remote if omitted
