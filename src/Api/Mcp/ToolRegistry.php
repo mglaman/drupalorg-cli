@@ -23,6 +23,7 @@ use mglaman\DrupalOrg\Action\Issue\SearchIssuesAction;
 use mglaman\DrupalOrg\Client;
 use mglaman\DrupalOrg\Enum\MaintainerIssueType;
 use mglaman\DrupalOrg\Enum\MergeRequestState;
+use mglaman\DrupalOrg\Enum\ProjectIssueCategory;
 use mglaman\DrupalOrg\Enum\ProjectIssueType;
 use mglaman\DrupalOrg\GitLab\Client as GitLabClient;
 
@@ -85,13 +86,16 @@ class ToolRegistry
         #[Schema(description: "Core compatibility branch to filter by (e.g. '10.x', '11.x').")]
         string $core = '10.x',
         #[Schema(description: 'Maximum number of issues to return.', minimum: 1, maximum: 100)]
-        int $limit = 50
+        int $limit = 50,
+        #[Schema(description: 'Filter issues by category.', enum: ['bug', 'task', 'feature', 'support', 'plan'])]
+        ?string $category = null
     ): mixed {
         $project = $this->client->getProject($machineName);
         if ($project === null) {
             throw new \RuntimeException("Project '$machineName' not found.");
         }
-        return (new GetProjectIssuesAction($this->client))($project, ProjectIssueType::from($type), $core, $limit)->jsonSerialize();
+        $issueCategory = $category !== null ? ProjectIssueCategory::from($category) : null;
+        return (new GetProjectIssuesAction($this->client))($project, ProjectIssueType::from($type), $core, $limit, $issueCategory)->jsonSerialize();
     }
 
     #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'issue_search', description: 'Search issues for a Drupal.org project by title keyword.')]
