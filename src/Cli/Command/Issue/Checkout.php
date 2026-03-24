@@ -96,20 +96,24 @@ class Checkout extends IssueCommandBase
                 $this->stdErr->writeln('<error>No branches found for this issue on the fork.</error>');
                 return 1;
             }
-            if (!self::$interactive) {
+            if (count($issueBranches) === 1) {
+                $branchArg = $issueBranches[0];
+                $this->stdOut->writeln(sprintf('<info>Auto-selected branch %s.</info>', $branchArg));
+            } elseif (!self::$interactive) {
                 $this->stdErr->writeln('<error>No branch specified. Available branches:</error>');
                 foreach ($issueBranches as $b) {
                     $this->stdErr->writeln('  ' . $b);
                 }
                 return 1;
+            } else {
+                /** @var \Symfony\Component\Console\Helper\QuestionHelper $helper */
+                $helper = $this->getHelper('question');
+                $question = new \Symfony\Component\Console\Question\ChoiceQuestion(
+                    'Select a branch to check out:',
+                    $issueBranches
+                );
+                $branchArg = $helper->ask($input, $output, $question);
             }
-            /** @var \Symfony\Component\Console\Helper\QuestionHelper $helper */
-            $helper = $this->getHelper('question');
-            $question = new \Symfony\Component\Console\Question\ChoiceQuestion(
-                'Select a branch to check out:',
-                $issueBranches
-            );
-            $branchArg = $helper->ask($input, $output, $question);
         }
 
         $checkoutProcess = new Process([
