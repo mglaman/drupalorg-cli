@@ -70,6 +70,17 @@ class Checkout extends IssueCommandBase
             );
             // Refresh fork data after setup so branches are populated.
             $fork = $action($this->nid);
+        } else {
+            // Remote already exists; fetch to ensure tracking refs are up-to-date.
+            $fetchProcess = new Process(['git', 'fetch', $fork->remoteName]);
+            $fetchProcess->run();
+            if (!$fetchProcess->isSuccessful()) {
+                $fetchOutput = trim($fetchProcess->getErrorOutput() . $fetchProcess->getOutput());
+                $this->stdErr->writeln(
+                    sprintf('<error>Failed to fetch remote %s: %s</error>', $fork->remoteName, $fetchOutput)
+                );
+                return 1;
+            }
         }
 
         // Filter branches to those starting with the issue NID.
