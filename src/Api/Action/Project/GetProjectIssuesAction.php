@@ -6,6 +6,7 @@ use mglaman\DrupalOrg\Action\ActionInterface;
 use mglaman\DrupalOrg\Client;
 use mglaman\DrupalOrg\Entity\IssueNode;
 use mglaman\DrupalOrg\Entity\Project;
+use mglaman\DrupalOrg\Enum\ProjectIssueCategory;
 use mglaman\DrupalOrg\Enum\ProjectIssueType;
 use mglaman\DrupalOrg\Request;
 use mglaman\DrupalOrg\Result\Project\ProjectIssuesResult;
@@ -16,7 +17,7 @@ class GetProjectIssuesAction implements ActionInterface
     {
     }
 
-    public function __invoke(Project $project, ProjectIssueType $type, string $core, int $limit): ProjectIssuesResult
+    public function __invoke(Project $project, ProjectIssueType $type, string $core, int $limit, ?ProjectIssueCategory $category = null): ProjectIssuesResult
     {
         $rawReleases = $this->client->requestRaw(new Request('node.json', [
             'field_release_project' => $project->nid,
@@ -47,6 +48,10 @@ class GetProjectIssuesAction implements ActionInterface
             if (strpos($release->field_release_version, $core) === 0) {
                 $apiParams['field_issue_version']['value'][] = $release->field_release_version;
             }
+        }
+
+        if ($category !== null) {
+            $apiParams['field_issue_category'] = $category->categoryId();
         }
 
         $rawIssues = $this->client->requestRaw(new Request('node.json', $apiParams));

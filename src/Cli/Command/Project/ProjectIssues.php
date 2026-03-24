@@ -3,6 +3,7 @@
 namespace mglaman\DrupalOrgCli\Command\Project;
 
 use mglaman\DrupalOrg\Action\Project\GetProjectIssuesAction;
+use mglaman\DrupalOrg\Enum\ProjectIssueCategory;
 use mglaman\DrupalOrg\Enum\ProjectIssueType;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Helper\TableSeparator;
@@ -41,6 +42,13 @@ class ProjectIssues extends ProjectCommandBase
                 '10'
             )
             ->addOption(
+                'category',
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'Issue category: bug, task, feature, support, plan',
+                null
+            )
+            ->addOption(
                 'format',
                 'f',
                 InputOption::VALUE_OPTIONAL,
@@ -59,11 +67,14 @@ class ProjectIssues extends ProjectCommandBase
         OutputInterface $output
     ): int {
         $action = new GetProjectIssuesAction($this->client);
+        $categoryOption = $this->stdIn->getOption('category');
+        $category = $categoryOption !== null ? ProjectIssueCategory::from((string) $categoryOption) : null;
         $result = $action(
             $this->projectData,
             ProjectIssueType::from((string) $this->stdIn->getArgument('type')),
             (string) $this->stdIn->getOption('core'),
-            (int) $this->stdIn->getOption('limit')
+            (int) $this->stdIn->getOption('limit'),
+            $category
         );
 
         if ($this->writeFormatted($result, (string) $this->stdIn->getOption('format'))) {
