@@ -75,8 +75,9 @@ class Checkout extends IssueCommandBase
             $fetchProcess = new Process(['git', 'fetch', $fork->remoteName]);
             $fetchProcess->run();
             if (!$fetchProcess->isSuccessful()) {
+                $fetchOutput = trim($fetchProcess->getErrorOutput() . $fetchProcess->getOutput());
                 $this->stdErr->writeln(
-                    sprintf('<error>Failed to fetch remote %s: %s</error>', $fork->remoteName, $fetchProcess->getErrorOutput())
+                    sprintf('<error>Failed to fetch remote %s: %s</error>', $fork->remoteName, $fetchOutput)
                 );
                 return 1;
             }
