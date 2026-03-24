@@ -48,9 +48,11 @@ class Application extends ParentApplication
         }
 
         $commands[] = new \SelfUpdate\SelfUpdateCommand(
-            $this->getName(),
-            $this->getVersion(),
-            'mglaman/drupalorg-cli'
+            new \SelfUpdate\SelfUpdateManager(
+                $this->getName(),
+                $this->getVersion(),
+                'mglaman/drupalorg-cli'
+            )
         );
         $commands[] = new Command\Completion();
         $commands[] = new Command\Issue\Link();
