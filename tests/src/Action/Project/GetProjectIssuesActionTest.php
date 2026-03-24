@@ -6,8 +6,10 @@ use mglaman\DrupalOrg\Action\Project\GetProjectIssuesAction;
 use mglaman\DrupalOrg\Client;
 use mglaman\DrupalOrg\Entity\IssueNode;
 use mglaman\DrupalOrg\Entity\Project;
+use mglaman\DrupalOrg\Enum\ProjectIssueCategory;
 use mglaman\DrupalOrg\Enum\ProjectIssueType;
 use mglaman\DrupalOrg\Result\Project\ProjectIssuesResult;
+use mglaman\DrupalOrg\Request;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -42,6 +44,46 @@ class GetProjectIssuesActionTest extends TestCase
                 (object) ['nid' => '200', 'field_issue_status' => '1', 'title' => 'Test issue'],
             ],
         ];
+    }
+
+    public function testInvokeWithCategory(): void
+    {
+        $project = Project::fromStdClass(self::projectFixture());
+
+        $client = $this->createMock(Client::class);
+        $capturedParams = [];
+        $client->method('requestRaw')->willReturnCallback(
+            function (Request $request) use (&$capturedParams) {
+                $capturedParams[] = $request->getOptions();
+                return (object) ['list' => []];
+            }
+        );
+
+        $action = new GetProjectIssuesAction($client);
+        $action($project, ProjectIssueType::All, '8.x', 10, ProjectIssueCategory::Bug);
+
+        // Second call is the issues request — it should include field_issue_category = 1 (Bug)
+        self::assertArrayHasKey('field_issue_category', $capturedParams[1]);
+        self::assertSame(1, $capturedParams[1]['field_issue_category']);
+    }
+
+    public function testInvokeWithoutCategoryDoesNotAddParam(): void
+    {
+        $project = Project::fromStdClass(self::projectFixture());
+
+        $client = $this->createMock(Client::class);
+        $capturedParams = [];
+        $client->method('requestRaw')->willReturnCallback(
+            function (Request $request) use (&$capturedParams) {
+                $capturedParams[] = $request->getOptions();
+                return (object) ['list' => []];
+            }
+        );
+
+        $action = new GetProjectIssuesAction($client);
+        $action($project, ProjectIssueType::All, '8.x', 10);
+
+        self::assertArrayNotHasKey('field_issue_category', $capturedParams[1]);
     }
 
     public function testInvoke(): void
