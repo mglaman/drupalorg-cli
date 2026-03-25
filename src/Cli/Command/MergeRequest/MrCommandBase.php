@@ -2,12 +2,17 @@
 
 namespace mglaman\DrupalOrgCli\Command\MergeRequest;
 
+use mglaman\DrupalOrg\Action\MergeRequest\ListMergeRequestsAction;
+use mglaman\DrupalOrg\Enum\MergeRequestState;
+use mglaman\DrupalOrg\GitLab\Client as GitLabClient;
 use mglaman\DrupalOrg\GitLab\MergeRequestRef;
+use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestItem;
 use mglaman\DrupalOrgCli\Command\Command;
 use mglaman\DrupalOrgCli\Command\Issue\IssueCommandBase;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Question\ChoiceQuestion;
 
 abstract class MrCommandBase extends IssueCommandBase
 {
@@ -50,9 +55,50 @@ abstract class MrCommandBase extends IssueCommandBase
         parent::initialize($input, $output);
 
         $mrIid = $this->stdIn->getArgument('mr-iid');
-        if ($mrIid === null || $mrIid === '') {
-            throw new \RuntimeException('Argument mr-iid is required.');
+        if ($mrIid !== null && $mrIid !== '') {
+            $this->mrIid = (int) $mrIid;
+            return;
         }
-        $this->mrIid = (int) $mrIid;
+
+        // mr-iid not provided — auto-select from open merge requests.
+        $listAction = new ListMergeRequestsAction($this->client, new GitLabClient());
+        $listResult = $listAction($this->nid, MergeRequestState::Opened);
+        $mergeRequests = $listResult->mergeRequests;
+
+        if ($mergeRequests === []) {
+            throw new \RuntimeException('No open merge requests found for this issue.');
+        }
+
+        if (count($mergeRequests) === 1) {
+            $this->mrIid = $mergeRequests[0]->iid;
+            $this->stdOut->writeln(sprintf(
+                '<info>Auto-selected MR !%d: %s</info>',
+                $mergeRequests[0]->iid,
+                $mergeRequests[0]->title
+            ));
+            return;
+        }
+
+        // Multiple open MRs.
+        if (!self::$interactive) {
+            $this->stdErr->writeln('<error>Multiple open merge requests found. Specify one of:</error>');
+            foreach ($mergeRequests as $mr) {
+                $this->stdErr->writeln(sprintf('  !%d — %s', $mr->iid, $mr->title));
+            }
+            throw new \RuntimeException('Argument mr-iid is required when multiple merge requests are open.');
+        }
+
+        $choices = array_map(
+            static fn(MergeRequestItem $mr) => sprintf('!%d — %s', $mr->iid, $mr->title),
+            $mergeRequests
+        );
+        /** @var \Symfony\Component\Console\Helper\QuestionHelper $helper */
+        $helper = $this->getHelper('question');
+        $question = new ChoiceQuestion('Select a merge request:', $choices);
+        $selected = (string) $helper->ask($input, $output, $question);
+        if (!preg_match('/^!(\d+)/', $selected, $matches)) {
+            throw new \RuntimeException('Failed to extract merge request IID from selection.');
+        }
+        $this->mrIid = (int) $matches[1];
     }
 }
