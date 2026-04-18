@@ -81,6 +81,8 @@ Available commands:
   project:link                         Opens project page
   project:release-notes (prn)          View release notes for a release
   project:releases                     Lists available releases
+ skill
+  skill:install                        Installs all drupalorg-cli agent skills into .claude/skills/ in the current directory.
 ````
 
 ## Getting Started
