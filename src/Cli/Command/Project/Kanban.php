@@ -2,6 +2,7 @@
 
 namespace mglaman\DrupalOrgCli\Command\Project;
 
+use mglaman\DrupalOrg\Action\Project\GetProjectKanbanLinkAction;
 use mglaman\DrupalOrgCli\BrowserTrait;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -21,7 +22,9 @@ class Kanban extends ProjectCommandBase
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->openUrl('https://contribkanban.com/board/' . $this->projectName, $this->stdErr, $this->stdOut);
+        $action = new GetProjectKanbanLinkAction();
+        $result = $action($this->projectName);
+        $this->openUrl($result->url, $this->stdErr, $this->stdOut);
         return 0;
     }
 }

@@ -6,7 +6,7 @@ A command line tool for interfacing with Drupal.org. Uses the Drupal.org REST AP
 
 ## Requirements
 
-* PHP 7.2 or higher, with cURL support
+* PHP 8.1 or higher, with cURL support
 * [Git](https://git-scm.com/) - Currently required to apply and create patches. Very useful for contributing patches back to an issue.
 
 ## Installation
@@ -15,7 +15,16 @@ A command line tool for interfacing with Drupal.org. Uses the Drupal.org REST AP
 
 1. Download the `drupalorg.phar` file from the [latest release](https://github.com/mglaman/drupalorg-cli/releases/latest).
 
+   ```bash
+   curl -OL https://github.com/mglaman/drupalorg-cli/releases/latest/download/drupalorg.phar
+   ```
+
 2. Rename the file to `drupalorg`, ensure it is executable, and move it into a directory in your PATH (use `echo $PATH` to see your options).
+
+   ```bash
+   chmod +x drupalorg.phar
+   mv drupalorg.phar /usr/local/bin/drupalorg
+   ```
 
 3. Run `drupalorg` and verify you can see the list of available commands.
 
@@ -87,10 +96,6 @@ Available commands:
   list                                 Lists commands
  cache
   cache:clear (cc)                     Clears caches
- ci
- drupalci
-  drupalci:list (ci:l)                 Lists test results for an issue
-  drupalci:watch (ci:w)                Watches a Drupal CI job
  issue
   issue:apply                          Applies the latest patch from an issue.
   issue:branch                         Creates a branch for the issue.
@@ -106,10 +111,8 @@ Available commands:
   project:link                         Opens project page
   project:release-notes (prn)          View release notes for a release
   project:releases                     Lists available releases
- tci
- travisci
-  travisci:list (tci:l)                Lists Travis Ci builds for a Drupal project
-  travisci:watch (tci:w)               Watches a Travis CI job
+ skill
+  skill:install                        Installs all drupalorg-cli agent skills into .claude/skills/ in the current directory.
 ````
 
 ## Getting Started

@@ -3,10 +3,10 @@
 namespace mglaman\DrupalOrgCli\Command;
 
 use mglaman\DrupalOrg\Client;
-use mglaman\DrupalOrg\RawResponse;
-use mglaman\DrupalOrg\Response;
-use mglaman\DrupalOrgCli\Cache;
-use Psr\Cache\CacheItemInterface;
+use mglaman\DrupalOrg\Result\ResultInterface;
+use mglaman\DrupalOrgCli\Formatter\JsonFormatter;
+use mglaman\DrupalOrgCli\Formatter\LlmFormatter;
+use mglaman\DrupalOrgCli\Formatter\MarkdownFormatter;
 use Symfony\Component\Console\Command\Command as BaseCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
@@ -45,7 +45,8 @@ abstract class Command extends BaseCommand
         ) : $output;
         $this->stdIn = $input;
         self::$interactive = $input->isInteractive();
-        $this->client = new Client();
+        $noCache = $input->hasOption('no-cache') && (bool) $input->getOption('no-cache');
+        $this->client = new Client($noCache);
     }
 
     protected function debug(string $message): void
@@ -55,94 +56,19 @@ abstract class Command extends BaseCommand
         }
     }
 
-    protected function getCacheItem(string $cid): CacheItemInterface
+    protected function writeFormatted(ResultInterface $result, string $format): bool
     {
-        return Cache::getCache()->getItem($cid);
-    }
-
-    protected function getNode(string $nid, bool $reset = false): RawResponse
-    {
-        $cid = implode('--', ['node', $nid]);
-        $cached = $this->getCacheItem($cid);
-        if (!$cached->isHit() || $reset) {
-            $this->debug("Cache MISS for $cid");
-            $cached->set($this->client->getNode($nid));
-            $cached->expiresAfter(600);
-        } else {
-            $this->debug("Cache HIT for $cid");
+        if ($format === 'text') {
+            return false;
         }
-        return $cached->get();
-    }
-
-    protected function getProject(
-        string $machineName,
-        bool $reset = false
-    ): Response {
-        $cid = implode('--', ['project', $machineName]);
-        $cached = $this->getCacheItem($cid);
-        if (!$cached->isHit() || $reset) {
-            $this->debug("Cache MISS for $cid");
-            $cached->set($this->client->getProject($machineName));
-            $cached->expiresAfter(21600);
-        } else {
-            $this->debug("Cache HIT for $cid");
-        }
-        return $cached->get();
-    }
-
-    protected function getFile(string $fid, bool $reset = false): RawResponse
-    {
-        $cid = implode('--', ['file', $fid]);
-        $cached = $this->getCacheItem($cid);
-        if (!$cached->isHit() || $reset) {
-            $this->debug("Cache MISS for $cid");
-            $cached->set($this->client->getFile($fid));
-        } else {
-            $this->debug("Cache HIT for $cid");
-        }
-        return $cached->get();
-    }
-
-    protected function getPiftJob(
-        string $jobId,
-        bool $reset = false
-    ): RawResponse {
-        $cid = implode('--', ['pift', $jobId]);
-        $cached = $this->getCacheItem($cid);
-        if (!$cached->isHit() || $reset) {
-            $this->debug("Cache MISS for $cid");
-            $data = $this->client->getPiftJob($jobId);
-            $this->debug($data->get('status'));
-            if ($data->get('status') === 'complete') {
-                $cached->set($data);
-                $cached->expiresAfter(60);
-            }
-        } else {
-            $this->debug("Cache HIT for $cid");
-        }
-        return $cached->get();
-    }
-
-    /**
-     * Wrapper method to get PIFT jobs, using cache.
-     *
-     * @param array<string, mixed> $options
-     * @param bool $reset
-     *
-     * @return false|\mglaman\DrupalOrg\RawResponse|mixed
-     */
-    protected function getPiftJobs(array $options, bool $reset = false)
-    {
-        $cid = implode('--', ['pift--jobs--', implode('--', $options)]);
-        $cached = $this->getCacheItem($cid);
-        if (!$cached->isHit() || $reset) {
-            $this->debug("Cache MISS for $cid");
-            $cached->set($this->client->getPiftJobs($options));
-            $cached->expiresAfter(60);
-        } else {
-            $this->debug("Cache HIT for $cid");
-        }
-        return $cached->get();
+        $formatter = match ($format) {
+            'json' => new JsonFormatter(),
+            'md', 'markdown' => new MarkdownFormatter(),
+            'llm' => new LlmFormatter(),
+            default => throw new \InvalidArgumentException("Unknown format: $format"),
+        };
+        $this->stdOut->writeln($formatter->format($result));
+        return true;
     }
 
     /**

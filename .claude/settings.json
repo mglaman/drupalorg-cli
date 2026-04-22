@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "file=$(echo \"$CLAUDE_TOOL_INPUT\" | python3 -c \"import sys,json; d=json.load(sys.stdin); print(d.get('file_path',''))\" 2>/dev/null); if echo \"$file\" | grep -q 'src/.*\\.php$'; then vendor/bin/phpcs src && vendor/bin/phpstan analyse src; fi"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "file=$(echo \"$CLAUDE_TOOL_INPUT\" | python3 -c \"import sys,json; d=json.load(sys.stdin); print(d.get('file_path',''))\" 2>/dev/null); if echo \"$file\" | grep -q 'composer\\.lock$'; then echo 'ERROR: composer.lock must only be modified by Composer commands (e.g. composer require, composer update).' >&2; exit 2; fi"
+          }
+        ]
+      }
+    ]
+  }
+}

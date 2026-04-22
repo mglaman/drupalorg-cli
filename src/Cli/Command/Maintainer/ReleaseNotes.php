@@ -2,7 +2,9 @@
 
 namespace mglaman\DrupalOrgCli\Command\Maintainer;
 
-use Gitter\Client;
+use CzProject\GitPhp\Git;
+use CzProject\GitPhp\GitRepository;
+use mglaman\DrupalOrg\Action\Maintainer\GetMaintainerReleaseNotesAction;
 use mglaman\DrupalOrgCli\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -19,33 +21,11 @@ class ReleaseNotes extends Command
 {
 
     /**
-     * @var \Gitter\Repository
+     * @var \CzProject\GitPhp\GitRepository
      */
-    protected \Gitter\Repository $repository;
+    protected GitRepository $repository;
 
     protected string $cwd;
-
-    /**
-     * @var array<string, string>
-     */
-    protected array $nids = [];
-
-    /**
-     * @var array<string, int>
-     */
-    protected array $users = [];
-
-    /**
-     * @var array<int, string>
-     */
-    protected array $categoryLabelMap = [
-        0 => 'Misc',
-        1 => 'Bug',
-        2 => 'Task',
-        3 => 'Feature',
-        4 => 'Support',
-        5 => 'Plan',
-    ];
 
     protected function configure(): void
     {
@@ -83,8 +63,8 @@ class ReleaseNotes extends Command
             $process->run();
             $repository_dir = trim($process->getOutput());
             $this->cwd = $repository_dir;
-            $client = new Client();
-            $this->repository = $client->getRepository($this->cwd);
+            $client = new Git();
+            $this->repository = $client->open($this->cwd);
         } catch (\Exception $e) {
             $this->stdOut->writeln('You must run this from a Git repository');
             exit(1);
@@ -97,69 +77,33 @@ class ReleaseNotes extends Command
     ): int {
         $ref1 = $this->stdIn->getArgument('ref1');
         $ref2 = $this->stdIn->getArgument('ref2');
-        $tags = $this->repository->getTags();
-        if (!$this->stdIn->hasArgument('ref1')) {
+
+        if ($ref1 === null || $ref1 === '') {
             // @todo
             $this->stdOut->writeln('Please provide both arguments, for now.');
             return 1;
         }
 
-        if (!in_array($ref1, $tags, true)) {
-            $this->stdOut->writeln(sprintf('The %s tag is not valid.', $ref1));
-            return 1;
-        }
-        if (($ref2 !== 'HEAD') && !in_array($ref2, $tags, true)) {
-            $this->stdOut->writeln(sprintf('The %s tag is not valid.', $ref2));
-            return 1;
-        }
-
-        $gitLog = $this->runProcess([
-            'git',
-            'log',
-            '-s',
-            '--pretty=format:%s',
-            "$ref1..$ref2",
-        ]);
-        if ($gitLog->getExitCode() !== 0) {
-            var_export($gitLog->getErrorOutput());
-            $this->stdOut->writeln('Error getting commit log');
-            return 1;
-        }
-
         $format = $this->stdIn->getOption('format');
 
-        $changes = array_filter(explode(PHP_EOL, trim($gitLog->getOutput())));
-
-        $processedChanges = [];
-        foreach ($changes as $change) {
-            $nidsMatches = [];
-            preg_match('/#(\d+)/S', $change, $nidsMatches);
-
-            if (isset($nidsMatches[1]) && !isset($this->nids[$nidsMatches[1]])) {
-                $this->nids[$nidsMatches[1]] = $nidsMatches[1];
-                $issue = $this->getNode($nidsMatches[1]);
-                // There should always be an issue category, but if not default to `Task.`
-                $issueCategory = $issue->get('field_issue_category') ?? 'Task';
-                $issueCategoryLabel = $this->categoryLabelMap[$issueCategory];
-                $processedChanges[$issueCategoryLabel][$nidsMatches[1]] = $this->formatLine(
-                    $change,
-                    $format
-                );
-            }
-        }
-        ksort($processedChanges);
-
-        // Work out what the project name is.
-        $project = trim($this->getProjectName());
-        if ($project === '') {
+        $action = new GetMaintainerReleaseNotesAction($this->client);
+        try {
+            $result = $action($this->repository, $this->cwd, $ref1, $ref2);
+        } catch (\InvalidArgumentException $e) {
+            $this->stdOut->writeln($e->getMessage());
+            return 1;
+        } catch (\RuntimeException $e) {
+            $this->stdOut->writeln($e->getMessage());
             return 1;
         }
+
+        $project = $result->project;
         $ref1url = "https://www.drupal.org/project/{$project}/releases/$ref1";
 
         switch ($format) {
             case 'json':
                 $this->stdOut->writeln(
-                    json_encode($processedChanges, JSON_PRETTY_PRINT)
+                    json_encode($result->categorizedChanges, JSON_PRETTY_PRINT)
                 );
                 break;
 
@@ -168,7 +112,7 @@ class ReleaseNotes extends Command
                 $this->stdOut->writeln('/Add a summary here/');
                 $this->stdOut->writeln('');
                 $this->stdOut->writeln(
-                    sprintf('### Contributors (%s)', count($this->users))
+                    sprintf('### Contributors (%s)', count($result->contributors))
                 );
                 $this->stdOut->writeln('');
                 $this->stdOut->writeln(
@@ -176,12 +120,9 @@ class ReleaseNotes extends Command
                         ', ',
                         array_map(
                             function ($username) use ($format): string {
-                                return $this->formatUsername(
-                                    $username,
-                                    $format
-                                );
+                                return $this->formatUsername($username, $format);
                             },
-                            array_keys($this->users)
+                            array_keys($result->contributors)
                         )
                     )
                 );
@@ -191,7 +132,7 @@ class ReleaseNotes extends Command
                 $this->stdOut->writeln(
                     sprintf(
                         '**Issues**: %s issues resolved.',
-                        count($this->nids)
+                        count($result->nidList)
                     )
                 );
                 $this->stdOut->writeln('');
@@ -199,11 +140,23 @@ class ReleaseNotes extends Command
                     sprintf('Changes since [%s](%s):', $ref1, $ref1url)
                 );
                 $this->stdOut->writeln('');
-                foreach ($processedChanges as $changeCategory => $changeCategoryItems) {
+                foreach ($result->categorizedChanges as $changeCategory => $changeCategoryItems) {
                     $this->stdOut->writeln(sprintf('#### %s', $changeCategory));
                     $this->stdOut->writeln('');
                     foreach ($changeCategoryItems as $change) {
-                        $this->stdOut->writeln(sprintf('* %s', $change));
+                        $this->stdOut->writeln(sprintf('* %s', $this->formatLine($change, $format)));
+                    }
+                    $this->stdOut->writeln('');
+                }
+                if ($result->changeRecords !== []) {
+                    $this->stdOut->writeln('### Change Records');
+                    $this->stdOut->writeln('');
+                    foreach ($result->changeRecords as $record) {
+                        if ($record->url !== '') {
+                            $this->stdOut->writeln(sprintf('* [%s](%s)', $record->title, $record->url));
+                        } else {
+                            $this->stdOut->writeln(sprintf('* %s', $record->title));
+                        }
                     }
                     $this->stdOut->writeln('');
                 }
@@ -213,7 +166,7 @@ class ReleaseNotes extends Command
             default:
                 $this->stdOut->writeln('<p><em>Add a summary here</em></p>');
                 $this->stdOut->writeln(
-                    sprintf('<h3>Contributors (%s)</h3>', count($this->users))
+                    sprintf('<h3>Contributors (%s)</h3>', count($result->contributors))
                 );
                 $this->stdOut->writeln(
                     sprintf(
@@ -222,12 +175,9 @@ class ReleaseNotes extends Command
                             ', ',
                             array_map(
                                 function ($username) use ($format): string {
-                                    return $this->formatUsername(
-                                        $username,
-                                        $format
-                                    );
+                                    return $this->formatUsername($username, $format);
                                 },
-                                array_keys($this->users)
+                                array_keys($result->contributors)
                             )
                         )
                     )
@@ -236,7 +186,7 @@ class ReleaseNotes extends Command
                 $this->stdOut->writeln(
                     sprintf(
                         '<p><strong>Issues:</strong> %s issues resolved.</p>',
-                        count($this->nids)
+                        count($result->nidList)
                     )
                 );
                 $this->stdOut->writeln(
@@ -247,15 +197,28 @@ class ReleaseNotes extends Command
                     )
                 );
 
-                foreach ($processedChanges as $changeCategory => $changeCategoryItems) {
+                foreach ($result->categorizedChanges as $changeCategory => $changeCategoryItems) {
                     $this->stdOut->writeln(
                         sprintf('<h4>%s</h4>', $changeCategory)
                     );
                     $this->stdOut->writeln('<ul>');
                     foreach ($changeCategoryItems as $change) {
                         $this->stdOut->writeln(
-                            sprintf('  <li>%s</li>', $change)
+                            sprintf('  <li>%s</li>', $this->formatLine($change, $format))
                         );
+                    }
+                    $this->stdOut->writeln('</ul>');
+                }
+
+                if ($result->changeRecords !== []) {
+                    $this->stdOut->writeln('<h3>Change Records</h3>');
+                    $this->stdOut->writeln('<ul>');
+                    foreach ($result->changeRecords as $record) {
+                        if ($record->url !== '') {
+                            $this->stdOut->writeln(sprintf('  <li><a href="%s">%s</a></li>', htmlspecialchars($record->url), htmlspecialchars($record->title)));
+                        } else {
+                            $this->stdOut->writeln(sprintf('  <li>%s</li>', htmlspecialchars($record->title)));
+                        }
                     }
                     $this->stdOut->writeln('</ul>');
                 }
@@ -281,8 +244,6 @@ class ReleaseNotes extends Command
 
     protected function formatLine(string $value, string $format): string
     {
-        $value = preg_replace('/^(Patch |- |Issue ){0,3}/', '', $value);
-
         $baseUrl = 'https://www.drupal.org/node/$1';
 
         if ($format === 'html') {
@@ -293,74 +254,6 @@ class ReleaseNotes extends Command
             $replacement = '#$1';
         }
 
-        $value = preg_replace('/#(\d+)/S', $replacement, $value);
-
-        // Anything between by and ':' is a comma-separated list of usernames.
-        $value = preg_replace_callback(
-            '/by ([^:]+):/S',
-            function (array $matches) use ($format): string {
-                $out = [];
-                // Separate the different usernames.
-                foreach (explode(',', $matches[1]) as $user) {
-                    $user = trim($user);
-
-                    if (!isset($this->users[$user])) {
-                        $this->users[$user] = 1;
-                    } else {
-                        $this->users[$user]++;
-                    }
-
-                    $out[] = $this->formatUsername($user, $format);
-                }
-
-                return 'by ' . implode(', ', $out) . ':';
-            },
-            $value
-        );
-
-        return $value;
-    }
-
-    /**
-     * Extract the project name from the current git repository.
-     *
-     * @return string
-     *   The d.o project name.
-     */
-    protected function getProjectName(): string
-    {
-        // Execute the command "git config --get remote.origin.url".
-        $gitCmd = $this->runProcess(['git', 'config', '--get', 'remote.origin.url']);
-        if ($gitCmd->getExitCode() !== 0) {
-            $this->stdOut->writeln(
-                "The 'git config' command returned an error."
-            );
-            return '';
-        }
-
-        // Check to see if this is a drupal.org project. If not, the remote origin
-        // may be on GitHub. So just use the directory name.
-        if (!strpos($gitCmd->getOutput(), 'drupal.org')) {
-            $parts = explode(DIRECTORY_SEPARATOR, getcwd());
-            return end($parts);
-        }
-
-        // Sandbox projects cannot have releases.
-        if (strpos($gitCmd->getOutput(), 'drupal.org/sandbox')) {
-            $this->stdOut->writeln("Sandbox projects cannot have releases.");
-            return '';
-        }
-
-        // The URL will be in one of these formats:
-        // * [username]@git.drupal.org:project/[projectname].git
-        // * https://git.drupal.org/project/[projectname].git
-        $path = str_replace('.git', '', $gitCmd->getOutput());
-        if ($path === '') {
-            $this->stdOut->writeln("The commits URL could not be discovered.");
-            return '';
-        }
-        $path = explode('/', $path);
-        $path = array_pop($path);
-        return $path ?? '';
+        return preg_replace('/#(\d+)/S', $replacement, $value);
     }
 }

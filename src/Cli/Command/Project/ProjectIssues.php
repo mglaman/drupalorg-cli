@@ -2,7 +2,9 @@
 
 namespace mglaman\DrupalOrgCli\Command\Project;
 
-use mglaman\DrupalOrg\Request;
+use mglaman\DrupalOrg\Action\Project\GetProjectIssuesAction;
+use mglaman\DrupalOrg\Enum\ProjectIssueCategory;
+use mglaman\DrupalOrg\Enum\ProjectIssueType;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Helper\TableSeparator;
 use Symfony\Component\Console\Input\InputArgument;
@@ -22,7 +24,7 @@ class ProjectIssues extends ProjectCommandBase
             ->addArgument(
                 'type',
                 InputArgument::OPTIONAL,
-                'Type of issues: all, rtbc',
+                'Type of issues: all, rtbc, review',
                 'all'
             )
             ->addOption(
@@ -39,6 +41,20 @@ class ProjectIssues extends ProjectCommandBase
                 'Limit',
                 '10'
             )
+            ->addOption(
+                'category',
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'Issue category: bug, task, feature, support, plan',
+                null
+            )
+            ->addOption(
+                'format',
+                'f',
+                InputOption::VALUE_OPTIONAL,
+                'Output options: text, json, md, llm. Defaults to text.',
+                'text'
+            )
             ->setDescription('Lists issues for a project.');
     }
 
@@ -50,48 +66,22 @@ class ProjectIssues extends ProjectCommandBase
         InputInterface $input,
         OutputInterface $output
     ): int {
-        $options = [
-            'field_release_project' => $this->projectData->nid,
-            'type' => 'project_release',
-            'sort' => 'nid',
-            'direction' => 'DESC',
-            'limit' => 100,
-        ];
-        $releases = $this->client->request(new Request('node.json', $options))
-            ->getList();
+        $action = new GetProjectIssuesAction($this->client);
+        $categoryOption = $this->stdIn->getOption('category');
+        $category = $categoryOption !== null ? ProjectIssueCategory::from((string) $categoryOption) : null;
+        $result = $action(
+            $this->projectData,
+            ProjectIssueType::from((string) $this->stdIn->getArgument('type')),
+            (string) $this->stdIn->getOption('core'),
+            (int) $this->stdIn->getOption('limit'),
+            $category
+        );
 
-        $api_params = [
-            'type' => 'project_issue',
-            'field_project' => $this->projectData->nid,
-            'field_issue_status[value]' => [1, 8, 13, 14, 16],
-            'sort' => 'field_issue_priority',
-            'direction' => 'DESC',
-            'limit' => $this->stdIn->getOption('limit'),
-        ];
-
-        switch ($this->stdIn->getArgument('type')) {
-            case 'rtbc':
-                $api_params['field_issue_status[value]'] = [14];
-                break;
-            case 'review':
-                $api_params['field_issue_status[value]'] = [8];
-                break;
-            default:
-                $api_params['field_issue_status[value]'] = [1, 8, 13, 14, 16];
+        if ($this->writeFormatted($result, (string) $this->stdIn->getOption('format'))) {
+            return 0;
         }
 
-        foreach ($releases as $release) {
-            if (strpos(
-                $release->field_release_version,
-                $this->stdIn->getOption('core')
-            ) === 0) {
-                $api_params['field_issue_version']['value'][] = $release->field_release_version;
-            }
-        }
-
-        $issues = $this->client->request(new Request('node.json', $api_params));
-
-        $output->writeln("<info>{$this->projectData->title}</info>");
+        $output->writeln("<info>{$result->projectTitle}</info>");
         $table = new Table($this->stdOut);
         $table->setHeaders(
             [
@@ -101,20 +91,18 @@ class ProjectIssues extends ProjectCommandBase
             ]
         );
 
-        $list = $issues->getList();
-        $iterator = $list->getIterator();
-        while ($iterator->valid()) {
-            $item = $iterator->current();
+        $issueList = $result->issues;
+        $count = count($issueList);
+        for ($i = 0; $i < $count; $i++) {
+            $item = $issueList[$i];
             $table->addRow(
                 [
                     $item->nid,
-                    $this->getIssueStatus((int)$item->field_issue_status),
+                    $this->getIssueStatus($item->fieldIssueStatus),
                     $item->title . PHP_EOL . '<comment>https://www.drupal.org/node/' . $item->nid . '</comment>',
                 ]
             );
-            $iterator->next();
-
-            if ($iterator->valid()) {
+            if ($i < $count - 1) {
                 $table->addRow(new TableSeparator());
             }
         }

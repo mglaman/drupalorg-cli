@@ -1,9 +1,9 @@
 {
   "directories": [
-    "src"
+    "src",
+    "skills"
   ],
   "files": [
-    "vendor/autoload.php",
     "vendor/symfony/console/Resources/bin/hiddeninput.exe"
   ],
   "finder": [

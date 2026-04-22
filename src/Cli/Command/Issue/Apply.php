@@ -2,7 +2,8 @@
 
 namespace mglaman\DrupalOrgCli\Command\Issue;
 
-use mglaman\DrupalOrg\RawResponse;
+use mglaman\DrupalOrg\Action\Issue\GetLatestIssuePatchAction;
+use mglaman\DrupalOrg\Result\Issue\IssuePatchResult;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -36,16 +37,15 @@ class Apply extends IssueCommandBase
         InputInterface $input,
         OutputInterface $output
     ): int {
-        $nid = $this->stdIn->getArgument('nid');
-        $issue = $this->getNode($nid);
+        $action = new GetLatestIssuePatchAction($this->client);
+        $result = $action($this->nid);
 
-        $patchFileUrl = $this->getPatchFileUrl($issue);
-        $patchFileContents = file_get_contents($patchFileUrl);
-        $patchFileName = $this->getCleanIssueTitle($issue) . '.patch';
+        $patchFileContents = file_get_contents($result->patchUrl);
+        $patchFileName = $result->patchFileName;
         file_put_contents($patchFileName, $patchFileContents);
 
         if ($this->repository !== null) {
-            $exitCode = $this->applyWithGit($issue, $patchFileName);
+            $exitCode = $this->applyWithGit($result, $patchFileName);
         } elseif ((int)shell_exec("command -v patch; echo $?") === 0) {
             $exitCode = $this->applyWithPatch($patchFileName);
         } else {
@@ -60,20 +60,35 @@ class Apply extends IssueCommandBase
     }
 
     protected function applyWithGit(
-        RawResponse $issue,
+        IssuePatchResult $result,
         string $patchFileName
     ): int {
-        // Validate the issue versions branch, create or checkout issue branch.
-        $issueBranchCommand = $this->getApplication()->find('issue:branch');
-        $issueBranchCommand->run($this->stdIn, $this->stdOut);
-
-        $branchName = $this->buildBranchName($issue);
+        $branchName = $result->branchName;
         $tempBranchName = $branchName . '-patch-temp';
+
+        // Validate the issue version branch and create or checkout the issue branch.
+        $branches = $this->repository->getBranches() ?? [];
+        if (!in_array($result->issueVersionBranch, $branches, true)) {
+            $this->stdErr->writeln(
+                sprintf(
+                    '<error>The issue version branch %s is not available.</error>',
+                    $result->issueVersionBranch
+                )
+            );
+            return 1;
+        }
+        if (!in_array($branchName, $branches, true)) {
+            $this->stdOut->writeln(
+                sprintf('<info>Creating the %s branch</info>', $branchName)
+            );
+            $this->repository->checkout($result->issueVersionBranch);
+            $this->repository->createBranch($branchName, true);
+        }
 
         // Check out the root development branch to create a temporary merge branch
         // where we will apply the patch, and then three way merge to existing issue
         // branch.
-        $issueVersionBranch = $this->getIssueVersionBranchName($issue);
+        $issueVersionBranch = $result->issueVersionBranch;
         $this->repository->checkout($issueVersionBranch);
         $this->stdOut->writeln(
             sprintf(
@@ -81,8 +96,7 @@ class Apply extends IssueCommandBase
                 "Creating temp branch $tempBranchName"
             )
         );
-        $this->repository->createBranch($tempBranchName);
-        $this->repository->checkout($tempBranchName);
+        $this->repository->createBranch($tempBranchName, true);
 
         $applyPatchProcess = $this->runProcess(
             [sprintf('git apply -v --index %s', $patchFileName)]
@@ -95,6 +109,7 @@ class Apply extends IssueCommandBase
         $this->stdOut->writeln(
             sprintf('<comment>%s</comment>', "Committing $patchFileName")
         );
+        $this->repository->addFile($patchFileName);
         $this->repository->commit($patchFileName);
 
         // Check out existing issue branch for three way merge.
@@ -137,11 +152,5 @@ class Apply extends IssueCommandBase
             return 1;
         }
         return $process->getExitCode();
-    }
-
-    protected function getPatchFileUrl(RawResponse $issue): string
-    {
-        $patchFile = $this->getLatestFile($issue);
-        return $patchFile->get('url');
     }
 }

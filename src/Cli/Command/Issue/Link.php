@@ -8,6 +8,7 @@
 
 namespace mglaman\DrupalOrgCli\Command\Issue;
 
+use mglaman\DrupalOrg\Action\Issue\GetIssueLinkAction;
 use mglaman\DrupalOrgCli\BrowserTrait;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -31,7 +32,9 @@ class Link extends IssueCommandBase
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->openUrl('https://www.drupal.org/node/' . $this->nid, $this->stdErr, $this->stdOut);
+        $action = new GetIssueLinkAction();
+        $result = $action($this->nid);
+        $this->openUrl($result->url, $this->stdErr, $this->stdOut);
         return 0;
     }
 }

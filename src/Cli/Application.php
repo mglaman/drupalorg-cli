@@ -2,8 +2,10 @@
 
 namespace mglaman\DrupalOrgCli;
 
+use Composer\InstalledVersions;
 use Symfony\Component\Console\Application as ParentApplication;
-use Symfony\Component\Console\Command\HelpCommand;
+use Symfony\Component\Console\Input\InputDefinition;
+use Symfony\Component\Console\Input\InputOption;
 
 class Application extends ParentApplication
 {
@@ -14,15 +16,25 @@ class Application extends ParentApplication
     public function __construct()
     {
         try {
-            $version = \Jean85\PrettyVersions::getVersion(
-                'mglaman/drupalorg-cli'
-            )->getPrettyVersion();
+            $version = InstalledVersions::getPrettyVersion('mglaman/drupalorg-cli');
         } catch (\OutOfBoundsException $e) {
             $version = '0.0.0';
         }
         parent::__construct('Drupal.org CLI', $version);
         $this->setDefaultTimezone();
         $this->addCommands($this->getCommands());
+    }
+
+    protected function getDefaultInputDefinition(): InputDefinition
+    {
+        $definition = parent::getDefaultInputDefinition();
+        $definition->addOption(new InputOption(
+            'no-cache',
+            null,
+            InputOption::VALUE_NONE,
+            'Bypass Drupal.org HTTP caching and fetch a fresh response.'
+        ));
+        return $definition;
     }
 
     /**
@@ -35,24 +47,39 @@ class Application extends ParentApplication
             return $commands;
         }
 
-        $commands[] = new Command\CacheClear();
+        $commands[] = new \SelfUpdate\SelfUpdateCommand(
+            new \SelfUpdate\SelfUpdateManager(
+                $this->getName(),
+                $this->getVersion(),
+                'mglaman/drupalorg-cli'
+            )
+        );
         $commands[] = new Command\Completion();
-        $commands[] = new Command\DrupalCi\ListResults();
-        $commands[] = new Command\DrupalCi\Watch();
         $commands[] = new Command\Issue\Link();
         $commands[] = new Command\Issue\Branch();
         $commands[] = new Command\Issue\Patch();
         $commands[] = new Command\Issue\Interdiff();
         $commands[] = new Command\Issue\Apply();
+        $commands[] = new Command\Issue\Show();
         $commands[] = new Command\Project\Link();
         $commands[] = new Command\Project\Kanban();
         $commands[] = new Command\Project\ProjectIssues();
+        $commands[] = new Command\Issue\Search();
         $commands[] = new Command\Project\Releases();
         $commands[] = new Command\Project\ReleaseNotes();
-        $commands[] = new Command\TravisCi\ListBuilds();
-        $commands[] = new Command\TravisCi\Watch();
         $commands[] = new Command\Maintainer\Issues();
         $commands[] = new Command\Maintainer\ReleaseNotes();
+        $commands[] = new Command\Skill\Install();
+        $commands[] = new Command\Issue\GetFork();
+        $commands[] = new Command\Issue\SetupRemote();
+        $commands[] = new Command\Issue\Checkout();
+        $commands[] = new Command\MergeRequest\ListMergeRequests();
+        $commands[] = new Command\MergeRequest\GetDiff();
+        $commands[] = new Command\MergeRequest\GetFiles();
+        $commands[] = new Command\MergeRequest\GetStatus();
+        $commands[] = new Command\MergeRequest\GetLogs();
+        $commands[] = new Command\Mcp\Serve();
+        $commands[] = new Command\Mcp\Config();
         return $commands;
     }
 

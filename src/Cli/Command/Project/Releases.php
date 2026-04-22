@@ -2,10 +2,13 @@
 
 namespace mglaman\DrupalOrgCli\Command\Project;
 
+use mglaman\DrupalOrg\Action\Project\GetProjectReleasesAction;
+use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
 
@@ -16,6 +19,13 @@ class Releases extends ProjectCommandBase
         $this
           ->setName('project:releases')
           ->addArgument('project', InputArgument::OPTIONAL, 'The project machine name')
+          ->addOption(
+              'format',
+              'f',
+              InputOption::VALUE_OPTIONAL,
+              'Output options: text, json, md, llm. Defaults to text.',
+              'text'
+          )
           ->setDescription('Lists available releases');
     }
 
@@ -25,9 +35,13 @@ class Releases extends ProjectCommandBase
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $releases = $this->client->getProjectReleases($this->projectData->nid, [
-          'field_release_update_status' => 0,
-        ])->get('list');
+        $action = new GetProjectReleasesAction($this->client);
+        $result = $action($this->projectData);
+
+        if ($this->writeFormatted($result, (string) $this->stdIn->getOption('format'))) {
+            return 0;
+        }
+
         $table = new Table($this->stdOut);
         $table->setHeaders([
           'Project',
@@ -39,7 +53,7 @@ class Releases extends ProjectCommandBase
         ]);
 
         $release_versions = [];
-        foreach ($releases as $release) {
+        foreach ($result->releases as $release) {
             $releaseDate = (new \DateTime())->setTimestamp($release->created);
             $now = new \DateTime();
             $difference = $now->diff($releaseDate);
@@ -54,34 +68,34 @@ class Releases extends ProjectCommandBase
                 $message = "Release due";
             }
 
-            if ($release->field_release_version_extra !== null) {
+            if ($release->fieldReleaseVersionExtra !== null) {
                 $securty = '<error>✗ Not covered</error>';
             } else {
                 $securty = '<info>✓ Covered</info>';
             }
 
             $table->addRow([
-              $this->projectData->title,
+              $result->projectTitle,
               $securty,
-              $release->field_release_version,
+              $release->fieldReleaseVersion,
               "<$format>" . date('M j, Y', $release->created) . " ($message)</$format>",
-              $release->field_release_short_description ?? 'Needs short description',
+              $release->fieldReleaseShortDescription ?? 'Needs short description',
               'https://www.drupal.org/project/' . $this->projectName,
             ]);
-            $release_versions[$release->field_release_version] = '';
+            $release_versions[$release->fieldReleaseVersion] = '';
         }
         $table->render();
 
         $release_versions['cancel'] = '';
-
         $helper = $this->getHelper('question');
+        assert($helper instanceof QuestionHelper);
         $question = new ChoiceQuestion(
             "View release notes? [cancel]",
             $release_versions,
             'cancel'
         );
-        $answer = $helper->ask($this->stdIn, $this->stdOut, $question);
-        if ($answer != 'cancel') {
+        $answer = $helper->ask($input, $output, $question);
+        if ($answer !== 'cancel') {
             $command = $this->getApplication()->find('project:release-notes');
             $sub_input = new ArgvInput([
             'application' => 'drupalorgcli',

@@ -2,11 +2,14 @@
 
 namespace mglaman\DrupalOrgCli\Command\Maintainer;
 
+use mglaman\DrupalOrg\Action\Maintainer\GetMaintainerIssuesAction;
+use mglaman\DrupalOrg\Enum\MaintainerIssueType;
 use mglaman\DrupalOrgCli\Command\Command;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Helper\TableSeparator;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Issues extends Command
@@ -25,8 +28,15 @@ class Issues extends Command
             ->addArgument(
                 'type',
                 InputArgument::OPTIONAL,
-                'Type of issues: all, rtbc',
-                'all'
+                'Type of issues: any, rtbc',
+                'any'
+            )
+            ->addOption(
+                'format',
+                'f',
+                InputOption::VALUE_OPTIONAL,
+                'Output options: text, json, md, llm. Defaults to text.',
+                'text'
             )
             ->setDescription('Lists issues for a user, based on maintainer.');
     }
@@ -38,11 +48,16 @@ class Issues extends Command
         InputInterface $input,
         OutputInterface $output
     ): int {
-        $feed = \Feed::load($this->getFeedUrl());
-        /** @var array{'title': string, 'link': string, 'description': string, 'language': string, 'item': array<int, mixed>} $feedArray */
-        $feedArray = $feed->toArray();
+        $user = $this->stdIn->getArgument('user');
 
-        $output->writeln("<info>{$feedArray['title']}</info>");
+        $action = new GetMaintainerIssuesAction();
+        $result = $action($user, MaintainerIssueType::from((string) $this->stdIn->getArgument('type')));
+
+        if ($this->writeFormatted($result, (string) $this->stdIn->getOption('format'))) {
+            return 0;
+        }
+
+        $output->writeln("<info>{$result->feedTitle}</info>");
 
         $table = new Table($this->stdOut);
         $table->setStyle('symfony-style-guide');
@@ -53,20 +68,12 @@ class Issues extends Command
             ]
         );
 
-        $totalItems = count($feedArray['item']);
+        $totalItems = count($result->items);
         $count = 0;
-        foreach ($feedArray['item'] as $item) {
-            $descriptionDom = new \DOMDocument();
-            $descriptionDom->loadHTML($item['description']);
-
-            $linkParts = parse_url($item['link']);
-            $pathPaths = array_values(
-                array_filter(explode('/', $linkParts['path']))
-            );
-
+        foreach ($result->items as $item) {
             $table->addRow(
                 [
-                    $pathPaths[1],
+                    $item['project'],
                     $item['title'] . PHP_EOL . '<comment>' . $item['link'] . '</comment>',
                 ]
             );
@@ -78,45 +85,5 @@ class Issues extends Command
         $table->render();
 
         return 0;
-    }
-
-    protected function getIssueValue(\DOMXPath $xpath, string $class): string
-    {
-        $nodes = $xpath->query("//div[contains(@class,\"$class\")]//div");
-        return $nodes->item(2)->nodeValue;
-    }
-
-    protected function getIssueStatus(\DOMXPath $xpath): string
-    {
-        $value = $this->getIssueValue($xpath, 'field-name-field-issue-status');
-
-        switch ($value) {
-            case 'Active':
-                return '<comment>Active</comment>';
-            case 'Fixed':
-                return '<info>Fixed</info>';
-            case 'Needs work':
-                return '<error>Needs Work</error>';
-            case 'Needs review':
-                return '<question>Needs Review</question>';
-            case 'Postponed (maintainer needs more info)':
-                return '<comment>Postponed [NMI]</comment>';
-            case 'Reviewed & tested by the community':
-                return '<info>RTBC</info>';
-            default:
-                return $value;
-        }
-    }
-
-    protected function getFeedUrl(): string
-    {
-        $uid = $this->stdIn->getArgument('user');
-        switch ($this->stdIn->getArgument('type')) {
-            case 'rtbc':
-                return "https://www.drupal.org/project/user/$uid/feed?status[0]=14";
-            case 'all':
-            default:
-                return "https://www.drupal.org/project/user/$uid/feed";
-        }
     }
 }

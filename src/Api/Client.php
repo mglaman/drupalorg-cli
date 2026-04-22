@@ -2,6 +2,13 @@
 
 namespace mglaman\DrupalOrg;
 
+use GuzzleHttp\HandlerStack;
+use GuzzleRetry\GuzzleRetryMiddleware;
+use mglaman\DrupalOrg\Entity\File;
+use mglaman\DrupalOrg\Entity\IssueNode;
+use mglaman\DrupalOrg\Entity\Project;
+use mglaman\DrupalOrg\Entity\Release;
+
 class Client
 {
 
@@ -15,90 +22,98 @@ class Client
      */
     public const API_URL = 'https://www.drupal.org/api-d7/';
 
-    public function __construct()
+    public function __construct(bool $noCache = false)
     {
+        $stack = HandlerStack::create();
+        $stack->push(GuzzleRetryMiddleware::factory([
+            'max_retry_attempts' => 5,
+            'retry_on_status' => [429, 503],
+            'default_retry_multiplier' => 1.5,
+        ]), 'retry');
+
+        $headers = [
+            'User-Agent' => 'DrupalOrgCli/0.0.1',
+            'Accept' => 'application/json',
+            'Accept-Encoding' => '*',
+        ];
+        if ($noCache) {
+            $headers['Cache-Control'] = 'no-cache, no-store, max-age=0';
+            $headers['Pragma'] = 'no-cache';
+        }
+
         $this->client = new \GuzzleHttp\Client(
             [
                 'base_uri' => self::API_URL,
                 'cookies' => true,
-                'headers' => [
-                    'User-Agent' => 'DrupalOrgCli/0.0.1',
-                    'Accept' => 'application/json',
-                    'Accept-Encoding' => '*',
-                ],
+                'handler' => $stack,
+                'headers' => $headers,
             ]
         );
     }
 
+    public function getGuzzleClient(): \GuzzleHttp\Client
+    {
+        return $this->client;
+    }
+
     /**
-     * @param Request $request
-     *
-     * @return \mglaman\DrupalOrg\Response
      * @throws \Exception
      */
-    public function request(Request $request): Response
+    private function request(Request $request): \stdClass
     {
         $res = $this->client->request('GET', $request->getUrl());
-        if ($res->getStatusCode() == 200) {
-            return new Response($res->getBody()->getContents());
+        if ($res->getStatusCode() === 200) {
+            return \json_decode($res->getBody()->getContents(), false, 512, JSON_THROW_ON_ERROR);
         }
 
         throw new \Exception('Error code', $res->getStatusCode());
     }
 
-    public function getNode(string $nid): Response
-    {
-        return $this->request(new Request('node/' . $nid));
-    }
-
-    public function getFile(string $fid): Response
-    {
-        return $this->request(new Request('file/' . $fid));
-    }
-
-    public function getPiftJob(string $jobId): Response
-    {
-        return $this->request(
-            new Request(
-                'pift_ci_job/' . $jobId,
-                [
-                    'time' => time(),
-                ]
-            )
-        );
-    }
-
     /**
-     * @param array<string, mixed> $options
+     * Perform a raw request and return the decoded JSON response.
+     *
+     * @throws \Exception
      */
-    public function getPiftJobs(array $options): Response
+    public function requestRaw(Request $request): \stdClass
     {
-        $options += [
-            'sort' => 'job_id',
-            'direction' => 'DESC',
-        ];
-
-        return $this->request(new Request('pift_ci_job.json', $options));
-    }
-
-    public function getProject(string $machineName): Response
-    {
-        $request = new Request(
-            'node.json',
-            [
-                'field_project_machine_name' => $machineName,
-            ]
-        );
         return $this->request($request);
     }
 
+    public function getNode(string $nid): IssueNode
+    {
+        return IssueNode::fromStdClass($this->request(new Request('node/' . $nid)));
+    }
+
+    public function getFile(string $fid): File
+    {
+        return File::fromStdClass($this->request(new Request('file/' . $fid)));
+    }
+
+    public function getProject(string $machineName): ?Project
+    {
+        $data = $this->request(
+            new Request(
+                'node.json',
+                [
+                    'field_project_machine_name' => $machineName,
+                ]
+            )
+        );
+        $list = (array) ($data->list ?? []);
+        if ($list === []) {
+            return null;
+        }
+        return Project::fromStdClass($list[0]);
+    }
+
     /**
      * @param array<string, mixed> $options
+     * @return Release[]
      */
     public function getProjectReleases(
         string $projectNid,
         array $options = []
-    ): Response {
+    ): array {
         $options += [
             'field_release_project' => $projectNid,
             'type' => 'project_release',
@@ -109,6 +124,10 @@ class Client
             'limit' => 20,
         ];
 
-        return $this->request(new Request('node.json', $options));
+        $data = $this->request(new Request('node.json', $options));
+        return array_map(
+            static fn(\stdClass $release) => Release::fromStdClass($release),
+            (array) ($data->list ?? [])
+        );
     }
 }

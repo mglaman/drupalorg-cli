@@ -1,0 +1,20 @@
+{
+  "nid": "3571658",
+  "title": "drupal 10.6.3",
+  "type": "project_release",
+  "created": "1770279556",
+  "field_release_version": "10.6.3",
+  "field_release_version_extra": null,
+  "field_release_short_description": "Supports Drupal 10 sites until they can be upgraded to Drupal 11.",
+  "field_release_project": {
+    "uri": "https://www.drupal.org/api-d7/node/3060",
+    "id": "3060",
+    "resource": "node"
+  },
+  "field_release_build_type": "static",
+  "body": {
+    "value": "<p>Release notes content.</p>",
+    "summary": "",
+    "format": "1"
+  }
+}
