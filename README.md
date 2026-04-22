@@ -43,8 +43,38 @@ To activate it, either source the completion file or add it to the system-wide c
 In your `.bashrc` (or `.profile`) add
 
 ```
-source [...]/vendor/mglaman/drupalorg-cli/drupalorg-cli-completion.sh
+source [...]/vendor/mglaman/drupalorg-cli/drupalorg-cli-completion.bash
 ```
+
+### Installing (Zsh) completion
+
+`drupalorg` comes with namespace-aware completion out of the box. If [`jq`](https://jqlang.org/) is installed, the Zsh completion script upgrades itself to use `drupalorg list --format=json` once per shell session and can complete:
+
+* commands and namespace-prefixed commands
+* documented long and short options (i.e. flags)
+* command aliases such as `is` and `pi`
+* positional argument placeholders such as `<nid>`
+
+In those placeholders, angle brackets mean the argument is required, and square brackets mean it is optional. For example, `<nid>` is required and `[nid]` is optional.
+
+Without `jq`, the script falls back to the original command and namespace completion behavior.
+
+Copy the Zsh completion file to `~/.zsh/completions/_drupalorg`:
+
+```sh
+mkdir -p ~/.zsh/completions
+curl -L https://raw.githubusercontent.com/mglaman/drupalorg-cli/refs/heads/main/drupalorg-cli-completion.zsh -o ~/.zsh/completions/_drupalorg
+```
+
+In your `~/.zshrc` add (if not already present):
+
+```sh
+fpath=(~/.zsh/completions $fpath)
+autoload -Uz compinit
+compinit
+```
+
+Restart your shell or run `source ~/.zshrc`.
 
 ## Updating
 
@@ -52,7 +82,7 @@ Automatic updating is not yet supported. You will need to manually download new 
 
 ## Usage
 
-Use the 'list' command to see available commands. 
+Use the 'list' command to see available commands.
 
 ```
 drupalorg list
