@@ -12,7 +12,7 @@
         "dg/rss-php": "^1.2",
         "guzzlehttp/guzzle": "^6.1 || ^7.3",
         "jolicode/jolinotif": "^2.3",
-        "mcp/sdk": "^0.4",
+        "mcp/sdk": "^0.5",
         "psr/log": "^3.0",
         "symfony/console": "^6.0 || ^7.0",
         "symfony/process": "^6.0 || ^7.0"
