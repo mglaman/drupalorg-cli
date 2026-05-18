@@ -8,6 +8,7 @@ class Project
         public readonly string $nid,
         public readonly string $title,
         public readonly string $machineName,
+        public readonly bool $hasIssueQueue = true,
     ) {
     }
 
@@ -17,6 +18,7 @@ class Project
             nid: (string) ($data->nid ?? ''),
             title: (string) ($data->title ?? ''),
             machineName: (string) ($data->field_project_machine_name ?? ''),
+            hasIssueQueue: (bool) ($data->field_project_has_issue_queue ?? true),
         );
     }
 }

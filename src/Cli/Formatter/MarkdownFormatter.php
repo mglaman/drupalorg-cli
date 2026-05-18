@@ -3,6 +3,8 @@
 namespace mglaman\DrupalOrgCli\Formatter;
 
 use mglaman\DrupalOrg\IssueTrait;
+use mglaman\DrupalOrg\Result\GitLab\GitLabIssueResult;
+use mglaman\DrupalOrg\Result\GitLab\GitLabIssuesResult;
 use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
 use mglaman\DrupalOrg\Result\Issue\IssueResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
@@ -185,6 +187,42 @@ class MarkdownFormatter extends AbstractFormatter
         $lines[] = '```diff';
         $lines[] = $result->diff;
         $lines[] = '```';
+        return implode("\n", $lines);
+    }
+
+    protected function formatGitLabIssue(GitLabIssueResult $result): string
+    {
+        $issue = $result->issue;
+        $lines = [];
+        $lines[] = "# {$issue->title}";
+        $lines[] = '';
+        $lines[] = "- **State:** {$issue->state}";
+        $lines[] = "- **Author:** {$issue->author}";
+        if ($issue->assignees !== []) {
+            $lines[] = '- **Assignees:** ' . implode(', ', $issue->assignees);
+        }
+        if ($issue->labels !== []) {
+            $lines[] = '- **Labels:** ' . implode(', ', $issue->labels);
+        }
+        $lines[] = "- **Created:** {$issue->createdAt}";
+        $lines[] = "- **Updated:** {$issue->updatedAt}";
+        $lines[] = "- **URL:** {$issue->webUrl}";
+        $lines[] = '';
+        $lines[] = '## Description';
+        $lines[] = '';
+        $lines[] = $issue->description;
+        return implode("\n", $lines);
+    }
+
+    protected function formatGitLabIssues(GitLabIssuesResult $result): string
+    {
+        $lines = [];
+        $lines[] = "# {$result->projectMachineName}";
+        $lines[] = '';
+        foreach ($result->issues as $issue) {
+            $labels = $issue->labels !== [] ? ' [' . implode(', ', $issue->labels) . ']' : '';
+            $lines[] = "- **#{$issue->iid}** [{$issue->state}]{$labels} [{$issue->title}]({$issue->webUrl})";
+        }
         return implode("\n", $lines);
     }
 }

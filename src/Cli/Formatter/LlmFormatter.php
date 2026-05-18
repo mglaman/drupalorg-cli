@@ -3,6 +3,8 @@
 namespace mglaman\DrupalOrgCli\Formatter;
 
 use mglaman\DrupalOrg\IssueTrait;
+use mglaman\DrupalOrg\Result\GitLab\GitLabIssueResult;
+use mglaman\DrupalOrg\Result\GitLab\GitLabIssuesResult;
 use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
 use mglaman\DrupalOrg\Result\Issue\IssueResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
@@ -236,6 +238,63 @@ XML;
   <diff>{$diff}</diff>
 </drupal_context>
 XML;
+    }
+
+    protected function formatGitLabIssue(GitLabIssueResult $result): string
+    {
+        $issue = $result->issue;
+        $title = $this->xmlEscape($issue->title);
+        $state = $this->xmlEscape($issue->state);
+        $author = $this->xmlEscape($issue->author);
+        $createdAt = $this->xmlEscape($issue->createdAt);
+        $updatedAt = $this->xmlEscape($issue->updatedAt);
+        $webUrl = $this->xmlEscape($issue->webUrl);
+        $description = $this->cdataWrap($issue->description);
+
+        $labelsXml = '';
+        foreach ($issue->labels as $label) {
+            $labelsXml .= '    <label>' . $this->xmlEscape($label) . "</label>\n";
+        }
+
+        $assigneesXml = '';
+        foreach ($issue->assignees as $assignee) {
+            $assigneesXml .= '    <assignee>' . $this->xmlEscape($assignee) . "</assignee>\n";
+        }
+
+        return <<<XML
+<gitlab_context>
+  <issue_id>{$issue->iid}</issue_id>
+  <title>{$title}</title>
+  <state>{$state}</state>
+  <author>{$author}</author>
+  <created_at>{$createdAt}</created_at>
+  <updated_at>{$updatedAt}</updated_at>
+  <url>{$webUrl}</url>
+  <labels>
+{$labelsXml}  </labels>
+  <assignees>
+{$assigneesXml}  </assignees>
+  <description>{$description}</description>
+</gitlab_context>
+XML;
+    }
+
+    protected function formatGitLabIssues(GitLabIssuesResult $result): string
+    {
+        $project = $this->xmlEscape($result->projectMachineName);
+        $items = '';
+        foreach ($result->issues as $issue) {
+            $title = $this->xmlEscape($issue->title);
+            $state = $this->xmlEscape($issue->state);
+            $url = $this->xmlEscape($issue->webUrl);
+            $items .= "    <item>\n";
+            $items .= "      <iid>{$issue->iid}</iid>\n";
+            $items .= "      <title>{$title}</title>\n";
+            $items .= "      <state>{$state}</state>\n";
+            $items .= "      <url>{$url}</url>\n";
+            $items .= "    </item>\n";
+        }
+        return "<gitlab_context>\n  <project>{$project}</project>\n  <issues>\n{$items}  </issues>\n</gitlab_context>";
     }
 
     private function toIso8601(int $timestamp): string
