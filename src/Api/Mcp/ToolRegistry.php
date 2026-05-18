@@ -212,7 +212,7 @@ class ToolRegistry
         if ($ref === null) {
             throw new \InvalidArgumentException("Invalid GitLab work item URL: $workItemUrl");
         }
-        return (new GetGitLabIssueAction())($ref)->jsonSerialize();
+        return (new GetGitLabIssueAction(new GitLabClient()))($ref)->jsonSerialize();
     }
 
     #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'gitlab_project_issues', description: 'List GitLab issues for a project that has migrated its issue queue to GitLab.')]
@@ -224,6 +224,6 @@ class ToolRegistry
         #[Schema(description: 'Maximum number of issues to return.', minimum: 1, maximum: 100)]
         int $limit = 25
     ): mixed {
-        return (new ListGitLabIssuesAction())($machineName, $state, $limit)->jsonSerialize();
+        return (new ListGitLabIssuesAction(new GitLabClient()))($machineName, $state, $limit)->jsonSerialize();
     }
 }

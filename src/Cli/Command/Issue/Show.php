@@ -4,6 +4,7 @@ namespace mglaman\DrupalOrgCli\Command\Issue;
 
 use mglaman\DrupalOrg\Action\GitLab\GetGitLabIssueAction;
 use mglaman\DrupalOrg\Action\Issue\GetIssueAction;
+use mglaman\DrupalOrg\GitLab\Client as GitLabClient;
 use mglaman\DrupalOrg\GitLab\WorkItemRef;
 use mglaman\DrupalOrg\IssueTrait;
 use mglaman\DrupalOrgCli\Command\Command;
@@ -39,7 +40,7 @@ class Show extends Command
 
         $ref = WorkItemRef::tryParse((string) $nid);
         if ($ref !== null) {
-            $result = (new GetGitLabIssueAction())($ref);
+            $result = (new GetGitLabIssueAction(new GitLabClient()))($ref);
             if ($this->writeFormatted($result, (string) $format)) {
                 return 0;
             }

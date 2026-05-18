@@ -4,6 +4,7 @@ namespace mglaman\DrupalOrgCli\Command\Project;
 
 use mglaman\DrupalOrg\Action\GitLab\ListGitLabIssuesAction;
 use mglaman\DrupalOrg\Action\Project\GetProjectIssuesAction;
+use mglaman\DrupalOrg\GitLab\Client as GitLabClient;
 use mglaman\DrupalOrg\Enum\ProjectIssueCategory;
 use mglaman\DrupalOrg\Enum\ProjectIssueType;
 use Symfony\Component\Console\Helper\Table;
@@ -72,7 +73,7 @@ class ProjectIssues extends ProjectCommandBase
 
         if (!$this->projectData->hasIssueQueue) {
             $this->stdErr->writeln('<comment>Project uses GitLab work items (no Drupal.org issue queue).</comment>');
-            $result = (new ListGitLabIssuesAction())($this->projectData->machineName, limit: $limit);
+            $result = (new ListGitLabIssuesAction(new GitLabClient()))($this->projectData->machineName, limit: $limit);
             if ($this->writeFormatted($result, $format)) {
                 return 0;
             }
