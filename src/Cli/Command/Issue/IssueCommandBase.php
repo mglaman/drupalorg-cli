@@ -4,6 +4,7 @@ namespace mglaman\DrupalOrgCli\Command\Issue;
 
 use CzProject\GitPhp\Git;
 use CzProject\GitPhp\GitRepository;
+use mglaman\DrupalOrg\GitLab\WorkItemRef;
 use mglaman\DrupalOrgCli\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -28,6 +29,8 @@ abstract class IssueCommandBase extends Command
      */
     protected string $nid;
 
+    protected ?WorkItemRef $workItemRef = null;
+
     /**
      * Whether this command requires a git repository.
      * When false, initRepo() is skipped if nid is provided as an argument.
@@ -40,7 +43,15 @@ abstract class IssueCommandBase extends Command
     ): void {
         parent::initialize($input, $output);
 
-        $this->nid = (string) $this->stdIn->getArgument('nid');
+        $nidArg = (string) $this->stdIn->getArgument('nid');
+        $ref = $nidArg !== '' ? WorkItemRef::tryParse($nidArg) : null;
+        if ($ref !== null) {
+            $this->workItemRef = $ref;
+            $this->nid = (string) $ref->issueId;
+            return;
+        }
+
+        $this->nid = $nidArg;
         if ($this->nid === '') {
             $this->debug(
                 "Argument nid not provided. Trying to get it from current branch name."

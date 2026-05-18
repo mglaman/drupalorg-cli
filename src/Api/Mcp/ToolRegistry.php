@@ -5,6 +5,8 @@ namespace mglaman\DrupalOrg\Mcp;
 use Mcp\Capability\Attribute\McpTool;
 use Mcp\Capability\Attribute\Schema;
 use Mcp\Schema\ToolAnnotations;
+use mglaman\DrupalOrg\Action\GitLab\GetGitLabIssueAction;
+use mglaman\DrupalOrg\Action\GitLab\ListGitLabIssuesAction;
 use mglaman\DrupalOrg\Action\Issue\GetIssueAction;
 use mglaman\DrupalOrg\Action\Issue\GetIssueBranchNameAction;
 use mglaman\DrupalOrg\Action\Issue\GetIssueForkAction;
@@ -26,6 +28,7 @@ use mglaman\DrupalOrg\Enum\MergeRequestState;
 use mglaman\DrupalOrg\Enum\ProjectIssueCategory;
 use mglaman\DrupalOrg\Enum\ProjectIssueType;
 use mglaman\DrupalOrg\GitLab\Client as GitLabClient;
+use mglaman\DrupalOrg\GitLab\WorkItemRef;
 
 class ToolRegistry
 {
@@ -198,5 +201,29 @@ class ToolRegistry
         int $mrIid
     ): mixed {
         return (new GetMergeRequestLogsAction($this->client, new GitLabClient()))($nid, $mrIid)->jsonSerialize();
+    }
+
+    #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'gitlab_issue_show', description: 'Get details of a GitLab work item by URL. Use for projects that have migrated their issue queue to GitLab.')]
+    public function gitlabIssueShow(
+        #[Schema(description: 'The GitLab work item or issue URL (e.g. https://git.drupalcode.org/project/ai_context/-/work_items/3586157).')]
+        string $workItemUrl
+    ): mixed {
+        $ref = WorkItemRef::tryParse($workItemUrl);
+        if ($ref === null) {
+            throw new \InvalidArgumentException("Invalid GitLab work item URL: $workItemUrl");
+        }
+        return (new GetGitLabIssueAction(new GitLabClient()))($ref)->jsonSerialize();
+    }
+
+    #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'gitlab_project_issues', description: 'List GitLab issues for a project that has migrated its issue queue to GitLab.')]
+    public function gitlabProjectIssues(
+        #[Schema(description: "The project machine name (e.g. 'ai_context', 'mcp_server').")]
+        string $machineName,
+        #[Schema(description: 'Issue state filter.', enum: ['opened', 'closed', 'all'])]
+        string $state = 'opened',
+        #[Schema(description: 'Maximum number of issues to return.', minimum: 1, maximum: 100)]
+        int $limit = 25
+    ): mixed {
+        return (new ListGitLabIssuesAction(new GitLabClient()))($machineName, $state, $limit)->jsonSerialize();
     }
 }

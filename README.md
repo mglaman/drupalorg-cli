@@ -2,7 +2,7 @@ Drupal.org CLI
 --------------
 [![Latest Stable Version](https://poser.pugx.org/mglaman/drupalorg-cli/v/stable)](https://packagist.org/packages/mglaman/drupalorg-cli) [![Total Downloads](https://poser.pugx.org/mglaman/drupalorg-cli/downloads)](https://packagist.org/packages/mglaman/drupalorg-cli) [![Latest Unstable Version](https://poser.pugx.org/mglaman/drupalorg-cli/v/unstable)](https://packagist.org/packages/mglaman/drupalorg-cli) [![License](https://poser.pugx.org/mglaman/drupalorg-cli/license)](https://packagist.org/packages/mglaman/drupalorg-cli)
 
-A command line tool for interfacing with Drupal.org. Uses the Drupal.org REST API.
+A command line tool for interfacing with Drupal.org and GitLab (git.drupalcode.org). Uses the Drupal.org REST API and GitLab REST API.
 
 ## Requirements
 
@@ -92,28 +92,65 @@ drupalorg list
 
 ````
 Available commands:
-  help                                 Displays help for a command
-  list                                 Lists commands
- cache
-  cache:clear (cc)                     Clears caches
+  help                      Display help for a command
+  list                      List commands
  issue
-  issue:apply                          Applies the latest patch from an issue.
-  issue:branch                         Creates a branch for the issue.
-  issue:interdiff                      Generate an interdiff for the issue from local changes.
-  issue:link                           Opens an issue
-  issue:patch                          Generate a patch for the issue from committed local changes.
+  issue:apply               Applies the latest patch from an issue.
+  issue:branch              Creates a branch for the issue.
+  issue:checkout            Check out a branch from the GitLab issue fork.
+  issue:get-fork            Show the GitLab issue fork URLs and branches.
+  issue:interdiff           Generate an interdiff for the issue from committed local changes.
+  issue:link                Opens an issue
+  issue:patch               Generate a patch for the issue from committed local changes.
+  issue:search        [is]  Searches issues for a project by title keyword.
+  issue:setup-remote        Add the GitLab issue fork as a git remote and fetch it.
+  issue:show                Show a given issue information.
  maintainer
-  maintainer:issues (mi)               Lists issues for a user, based on maintainer.
-  maintainer:release-notes (rn, mrn)   Generate release notes.
+  maintainer:issues   [mi]  Lists issues for a user, based on maintainer.
+  maintainer:release-notes  [rn|mrn] Generate release notes.
+ mcp
+  mcp:config                Output the Claude Desktop MCP configuration snippet.
+  mcp:serve                 Start a Model Context Protocol server over stdio.
+ mr
+  mr:diff                   Show the unified diff for a merge request.
+  mr:files                  List changed files in a merge request.
+  mr:list            [mrl]  List merge requests for a Drupal.org issue fork or project.
+  mr:logs                   Show failed job traces from the latest pipeline for a merge request.
+  mr:status                 Show the pipeline status for a merge request.
  project
-  project:issues (pi)                  Lists issues for a project.
-  project:kanban                       Opens project kanban
-  project:link                         Opens project page
-  project:release-notes (prn)          View release notes for a release
-  project:releases                     Lists available releases
+  project:issues      [pi]  Lists issues for a project.
+  project:kanban            Opens project kanban
+  project:link              Opens project page
+  project:release-notes [prn] View release notes for a release
+  project:releases          Lists available releases
  skill
-  skill:install                        Installs all drupalorg-cli agent skills into .claude/skills/ in the current directory.
+  skill:install             Installs all drupalorg-cli agent skills into .claude/skills/ in the current directory.
 ````
+
+## GitLab work items
+
+Some Drupal.org projects have migrated their issue queues to GitLab work items at `git.drupalcode.org`. These projects are detected automatically via `field_project_has_issue_queue` on the project node.
+
+**`project:issues`** fetches from the GitLab API instead of Drupal.org for these projects.
+
+The following commands accept a work item reference in place of a Drupal.org issue NID:
+
+```bash
+# Full URL
+drupalorg issue:show https://git.drupalcode.org/project/ai_context/-/work_items/3586157
+
+# Explicit path
+drupalorg issue:show project/ai_context#3586157
+
+# Shorthand (project/ prefix assumed)
+drupalorg issue:show ai_context#3586157
+```
+
+The same formats work for `issue:get-fork` and `mr:list`. MR URLs also work directly:
+
+```bash
+drupalorg mr:list https://git.drupalcode.org/project/ai_context/-/merge_requests/131
+```
 
 ## Getting Started
 

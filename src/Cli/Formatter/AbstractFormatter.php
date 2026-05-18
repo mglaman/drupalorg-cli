@@ -2,6 +2,8 @@
 
 namespace mglaman\DrupalOrgCli\Formatter;
 
+use mglaman\DrupalOrg\Result\GitLab\GitLabIssueResult;
+use mglaman\DrupalOrg\Result\GitLab\GitLabIssuesResult;
 use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
 use mglaman\DrupalOrg\Result\Issue\IssueResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
@@ -29,6 +31,8 @@ abstract class AbstractFormatter implements FormatterInterface
             $result instanceof MergeRequestStatusResult => $this->formatMergeRequestStatus($result),
             $result instanceof MergeRequestFilesResult => $this->formatMergeRequestFiles($result),
             $result instanceof MergeRequestDiffResult => $this->formatMergeRequestDiff($result),
+            $result instanceof GitLabIssueResult => $this->formatGitLabIssue($result),
+            $result instanceof GitLabIssuesResult => $this->formatGitLabIssues($result),
             default => throw new \InvalidArgumentException(
                 sprintf('Unsupported result type: %s', get_class($result))
             ),
@@ -45,4 +49,6 @@ abstract class AbstractFormatter implements FormatterInterface
     abstract protected function formatMergeRequestStatus(MergeRequestStatusResult $result): string;
     abstract protected function formatMergeRequestFiles(MergeRequestFilesResult $result): string;
     abstract protected function formatMergeRequestDiff(MergeRequestDiffResult $result): string;
+    abstract protected function formatGitLabIssue(GitLabIssueResult $result): string;
+    abstract protected function formatGitLabIssues(GitLabIssuesResult $result): string;
 }

@@ -31,7 +31,10 @@ class GetFork extends IssueCommandBase
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $action = new GetIssueForkAction($this->client, new GitLabClient());
-        $result = $action($this->nid);
+        $machineName = $this->workItemRef !== null
+            ? substr($this->workItemRef->projectPath, strlen('project/'))
+            : null;
+        $result = $action($this->nid, $machineName);
         $format = (string) $this->stdIn->getOption('format');
 
         if ($this->writeFormatted($result, $format)) {

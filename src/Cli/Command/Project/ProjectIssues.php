@@ -2,7 +2,9 @@
 
 namespace mglaman\DrupalOrgCli\Command\Project;
 
+use mglaman\DrupalOrg\Action\GitLab\ListGitLabIssuesAction;
 use mglaman\DrupalOrg\Action\Project\GetProjectIssuesAction;
+use mglaman\DrupalOrg\GitLab\Client as GitLabClient;
 use mglaman\DrupalOrg\Enum\ProjectIssueCategory;
 use mglaman\DrupalOrg\Enum\ProjectIssueType;
 use Symfony\Component\Console\Helper\Table;
@@ -66,6 +68,35 @@ class ProjectIssues extends ProjectCommandBase
         InputInterface $input,
         OutputInterface $output
     ): int {
+        $format = (string) $this->stdIn->getOption('format');
+        $limit = (int) $this->stdIn->getOption('limit');
+
+        if (!$this->projectData->hasIssueQueue) {
+            $this->stdErr->writeln('<comment>Project uses GitLab work items (no Drupal.org issue queue).</comment>');
+            $result = (new ListGitLabIssuesAction(new GitLabClient()))($this->projectData->machineName, limit: $limit);
+            if ($this->writeFormatted($result, $format)) {
+                return 0;
+            }
+            $output->writeln("<info>{$result->projectMachineName}</info>");
+            $table = new Table($this->stdOut);
+            $table->setHeaders(['ID', 'State', 'Title']);
+            $issues = $result->issues;
+            $count = count($issues);
+            for ($i = 0; $i < $count; $i++) {
+                $item = $issues[$i];
+                $table->addRow([
+                    '#' . $item->iid,
+                    $item->state,
+                    $item->title . PHP_EOL . '<comment>' . $item->webUrl . '</comment>',
+                ]);
+                if ($i < $count - 1) {
+                    $table->addRow(new TableSeparator());
+                }
+            }
+            $table->render();
+            return 0;
+        }
+
         $action = new GetProjectIssuesAction($this->client);
         $categoryOption = $this->stdIn->getOption('category');
         $category = $categoryOption !== null ? ProjectIssueCategory::from((string) $categoryOption) : null;
@@ -73,11 +104,11 @@ class ProjectIssues extends ProjectCommandBase
             $this->projectData,
             ProjectIssueType::from((string) $this->stdIn->getArgument('type')),
             (string) $this->stdIn->getOption('core'),
-            (int) $this->stdIn->getOption('limit'),
+            $limit,
             $category
         );
 
-        if ($this->writeFormatted($result, (string) $this->stdIn->getOption('format'))) {
+        if ($this->writeFormatted($result, $format)) {
             return 0;
         }
 

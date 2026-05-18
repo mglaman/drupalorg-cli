@@ -140,6 +140,31 @@ class Client
     }
 
     /**
+     * GET /projects/{path}/issues/{iid}
+     *
+     * @throws \Exception
+     */
+    public function getIssue(string $projectPath, int $iid): \stdClass
+    {
+        /** @var \stdClass $result */
+        $result = $this->get('projects/' . urlencode($projectPath) . '/issues/' . $iid);
+        return $result;
+    }
+
+    /**
+     * GET /projects/{path}/issues
+     *
+     * @param array<string, mixed> $params
+     * @return \stdClass[]
+     * @throws \Exception
+     */
+    public function getIssues(string $projectPath, array $params = []): array
+    {
+        $result = $this->get('projects/' . urlencode($projectPath) . '/issues', $params);
+        return is_array($result) ? $result : [];
+    }
+
+    /**
      * GET /projects/{id}/jobs/{job_id}/trace
      *
      * @throws \Exception

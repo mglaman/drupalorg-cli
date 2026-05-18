@@ -2,7 +2,10 @@
 
 namespace mglaman\DrupalOrgCli\Command\Issue;
 
+use mglaman\DrupalOrg\Action\GitLab\GetGitLabIssueAction;
 use mglaman\DrupalOrg\Action\Issue\GetIssueAction;
+use mglaman\DrupalOrg\GitLab\Client as GitLabClient;
+use mglaman\DrupalOrg\GitLab\WorkItemRef;
 use mglaman\DrupalOrg\IssueTrait;
 use mglaman\DrupalOrgCli\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -18,7 +21,7 @@ class Show extends Command
     {
         $this
             ->setName('issue:show')
-            ->addArgument('nid', InputArgument::REQUIRED, 'The issue node ID')
+            ->addArgument('nid', InputArgument::REQUIRED, 'The issue node ID or a GitLab work item URL')
             ->addOption(
                 'format',
                 'f',
@@ -33,9 +36,33 @@ class Show extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $nid = $this->stdIn->getArgument('nid');
+        $format = $this->stdIn->getOption('format');
+
+        $ref = WorkItemRef::tryParse((string) $nid);
+        if ($ref !== null) {
+            $result = (new GetGitLabIssueAction(new GitLabClient()))($ref);
+            if ($this->writeFormatted($result, (string) $format)) {
+                return 0;
+            }
+            $issue = $result->issue;
+            $this->stdOut->writeln(sprintf('Title: %s', $issue->title));
+            $this->stdOut->writeln(sprintf('State: %s', $issue->state));
+            $this->stdOut->writeln(sprintf('Author: %s', $issue->author));
+            if ($issue->assignees !== []) {
+                $this->stdOut->writeln(sprintf('Assignees: %s', implode(', ', $issue->assignees)));
+            }
+            if ($issue->labels !== []) {
+                $this->stdOut->writeln(sprintf('Labels: %s', implode(', ', $issue->labels)));
+            }
+            $this->stdOut->writeln(sprintf('Created: %s', $issue->createdAt));
+            $this->stdOut->writeln(sprintf('Updated: %s', $issue->updatedAt));
+            $this->stdOut->writeln(sprintf('URL: %s', $issue->webUrl));
+            $this->stdOut->writeln(sprintf("\nDescription:\n%s", $issue->description));
+            return 0;
+        }
+
         $withComments = (bool) $this->stdIn->getOption('with-comments');
         $result = (new GetIssueAction($this->client))($nid, $withComments);
-        $format = $this->stdIn->getOption('format');
 
         if ($this->writeFormatted($result, (string) $format)) {
             return 0;

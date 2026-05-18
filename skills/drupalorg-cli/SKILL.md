@@ -3,16 +3,33 @@ name: drupalorg-cli
 description: >
   CLI for Drupal.org issue lifecycle management. Use when fetching issue details,
   generating patches/interdiffs, listing project or maintainer issues, looking up
-  releases, or working with GitLab merge requests on issue forks. Pass --format=llm
-  to every read command for structured XML output optimised for agent consumption.
+  releases, or working with GitLab merge requests on issue forks. Also supports
+  projects that have migrated to GitLab work items. Pass --format=llm to every
+  read command for structured XML output optimised for agent consumption.
 ---
 
 ## Overview
 
-`drupalorg-cli` (invoked as `drupalorg`) wraps Drupal.org's REST and JSON:API
-endpoints. It covers the full contribution lifecycle: browsing issues, creating
+`drupalorg-cli` (invoked as `drupalorg`) wraps Drupal.org's REST and GitLab REST
+APIs. It covers the full contribution lifecycle: browsing issues, creating
 branches, generating patches and interdiffs, applying patches, working with GitLab
 issue forks and merge requests, and browsing releases.
+
+Some Drupal.org projects have migrated their issue queues to GitLab work items
+at `git.drupalcode.org`. These projects are detected automatically — `project:issues`
+fetches from the GitLab API instead of Drupal.org for them.
+
+### Work item references
+
+`issue:show`, `issue:get-fork`, and `mr:list` all accept a **WorkItemRef** in
+place of a plain Drupal.org NID:
+
+| Format | Example |
+|--------|---------|
+| D.o NID | `3586157` |
+| Shorthand | `ai_context#3586157` |
+| Explicit path | `project/ai_context#3586157` |
+| Full URL | `https://git.drupalcode.org/project/ai_context/-/work_items/3586157` |
 
 ```bash
 drupalorg <command> [arguments]
@@ -36,11 +53,14 @@ with clearly labelled fields, contributor lists, and change records.
 
 ### Issue commands
 
+`<nid>` accepts a D.o NID, shorthand (`ai_context#3586157`), or full GitLab work item URL.
+
 ```bash
-# Fetch full details for an issue
+# Fetch full details for an issue (D.o or GitLab work item)
 drupalorg issue:show <nid> --format=llm
 
 # Fetch issue details including all comments (skips system-generated messages)
+# Note: --with-comments only applies to D.o issues
 drupalorg issue:show <nid> --with-comments --format=llm
 
 # Show the GitLab issue fork URLs and branches
@@ -115,8 +135,10 @@ drupalorg mr:logs 'project/drupal!708'
 
 ```bash
 # List open issues for a project
+# For projects using GitLab work items, fetches from GitLab API automatically
 # type: all (default), rtbc, or review; --core defaults to 8.x; --limit defaults to 10
 # --category filters by issue type: bug, task, feature, support, plan (omit for all categories)
+# Note: type/core/category filters only apply to D.o issue queue projects
 drupalorg project:issues [project] [type] [--category=bug|task|feature|support|plan] --format=llm
 
 # Search issues for a project by title keyword
@@ -174,7 +196,8 @@ drupalorg mr:list [nid] --format=llm --no-cache
 
 | Error | Cause | Recovery |
 |-------|-------|----------|
-| `Node not found` | Invalid or private issue NID | Verify the NID on drupal.org |
+| `Node not found` | Invalid or private issue NID, or a GitLab work item NID passed to a D.o-only command | Use a WorkItemRef instead: `ai_context#3586157` |
+| `404 Project Not Found` (GitLab) | D.o issue NID used with a GitLab work item project — D.o node has no `field_project` | Pass the full work item URL or shorthand ref |
 | `No patch found on issue` | Issue has no file attachments | Check `issue:show` to confirm files exist |
 | `No branch configured` | `issue:patch` run outside a git repo or without a tracking branch | Run `issue:branch <nid>` first |
 | `Remote … does not exist` | `issue:checkout` run before `issue:setup-remote` | Run `issue:setup-remote <nid>` first |

@@ -15,10 +15,12 @@ class GetIssueForkAction implements ActionInterface
     ) {
     }
 
-    public function __invoke(string $nid): IssueForkResult
+    public function __invoke(string $nid, ?string $projectMachineName = null): IssueForkResult
     {
-        $issue = $this->client->getNode($nid);
-        $projectMachineName = $issue->fieldProjectMachineName;
+        if ($projectMachineName === null) {
+            $issue = $this->client->getNode($nid);
+            $projectMachineName = $issue->fieldProjectMachineName;
+        }
         $remoteName = $projectMachineName . '-' . $nid;
         $gitLabProjectPath = 'issue/' . $remoteName;
 
