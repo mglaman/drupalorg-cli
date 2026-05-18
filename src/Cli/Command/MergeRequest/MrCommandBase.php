@@ -54,6 +54,12 @@ abstract class MrCommandBase extends IssueCommandBase
 
         parent::initialize($input, $output);
 
+        // WorkItemRef parsed by IssueCommandBase — synthesize MergeRequestRef so
+        // MR actions use resolveFromRef() instead of resolveGitLabProject().
+        if ($this->workItemRef !== null && $this->mrRef === null) {
+            $this->mrRef = new MergeRequestRef($this->workItemRef->projectPath);
+        }
+
         $mrIid = $this->stdIn->getArgument('mr-iid');
         if ($mrIid !== null && $mrIid !== '') {
             $this->mrIid = (int) $mrIid;
