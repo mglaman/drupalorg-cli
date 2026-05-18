@@ -133,15 +133,20 @@ Some Drupal.org projects have migrated their issue queues to GitLab work items a
 
 **`project:issues`** fetches from the GitLab API instead of Drupal.org for these projects.
 
-The following commands accept a GitLab work item URL in place of a Drupal.org issue NID:
+The following commands accept a work item reference in place of a Drupal.org issue NID:
 
 ```bash
+# Full URL
 drupalorg issue:show https://git.drupalcode.org/project/ai_context/-/work_items/3586157
-drupalorg issue:get-fork https://git.drupalcode.org/project/ai_context/-/work_items/3586157
-drupalorg mr:list https://git.drupalcode.org/project/ai_context/-/work_items/3586157
+
+# Explicit path
+drupalorg issue:show project/ai_context#3586157
+
+# Shorthand (project/ prefix assumed)
+drupalorg issue:show ai_context#3586157
 ```
 
-MR URLs also work directly:
+The same formats work for `issue:get-fork` and `mr:list`. MR URLs also work directly:
 
 ```bash
 drupalorg mr:list https://git.drupalcode.org/project/ai_context/-/merge_requests/131
