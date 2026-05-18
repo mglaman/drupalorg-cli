@@ -17,6 +17,17 @@ the latest discussion in the comments.
 
 ## Instructions
 
+### Step 0: Detect issue type
+
+If `<nid>` looks like a GitLab work item reference — a URL containing
+`git.drupalcode.org`, or a shorthand like `ai_context#3586157` — stop immediately
+and tell the user:
+
+> "GitLab work items don't use the Drupal.org issue summary format (Problem/Motivation,
+> Proposed resolution, etc.). This skill only applies to Drupal.org issues."
+
+Do not proceed further.
+
 ### Step 1: Fetch issue with comments
 
 ```bash

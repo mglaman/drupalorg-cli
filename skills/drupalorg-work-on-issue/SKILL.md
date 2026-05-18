@@ -10,7 +10,14 @@ description: >
 
 **Purpose:** Agentic workflow for contributing to a Drupal.org issue via GitLab MR.
 
-**Usage:** `/drupalorg-work-on-issue <nid>`
+**Usage:** `/drupalorg-work-on-issue <nid-or-ref>`
+
+The argument can be:
+- A Drupal.org issue NID: `3586157`
+- A shorthand work item ref: `ai_context#3586157`
+- A full GitLab work item URL: `https://git.drupalcode.org/project/ai_context/-/work_items/3586157`
+
+All three formats are accepted by `issue:show`, `issue:get-fork`, and `mr:list`.
 
 ---
 
@@ -24,7 +31,7 @@ before proceeding.
 
 ### Step 1: Fetch issue and fork details
 
-Run both commands to gather context:
+Run both commands to gather context (substitute `<nid>` with whatever ref was provided):
 
 ```bash
 drupalorg issue:show <nid> --format=llm

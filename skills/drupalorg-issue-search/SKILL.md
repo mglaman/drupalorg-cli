@@ -19,11 +19,22 @@ description: >
    - `--status`: issue status filter (default: `all`)
    - `--skip`: comma-separated list of channels to skip. Valid values: `api_search`, `drupalorg_scrape`, `web_search`. For example `--skip=web_search` skips the web search, `--skip=api_search,web_search` runs only the Drupal.org scrape.
 
-2. **Detect project**: If `--project` is not provided, try to infer the project machine name from the current git remote:
+2. **Detect project and issue queue type**: If `--project` is not provided, try to infer the project machine name from the current git remote:
    ```bash
    git config --get remote.origin.url
    ```
    Extract the project name from the URL (pattern: `*/project-name.git`). If detection fails, proceed without a project filter.
+
+   Once the project name is known, check whether it uses GitLab work items:
+   ```bash
+   drupalorg project:issues <project> --limit=1 --format=json
+   ```
+   If the output contains a `"gitlab_issues"` key or the command prints
+   `"Project uses GitLab work items"` to stderr, the project has migrated.
+   In that case:
+   - Skip the `api_search` and `drupalorg_scrape` channels (they search the D.o issue queue, which is empty for this project).
+   - For `web_search`, target `site:git.drupalcode.org/project/<project>/-/issues` instead.
+   - Note to the user: "This project uses GitLab work items. Search results are from GitLab."
 
 3. **Run enabled searches in parallel** (skip any channel listed in `--skip`):
 
