@@ -25,6 +25,8 @@ This CLI reads from Drupal.org and automates local merge request workflows. Its 
 | `project:release-notes` | `prn` | Displays release notes for a release |
 | `project:link` | | Opens project page in browser |
 | `project:kanban` | | Opens project kanban in browser |
+| `skill:install` | | Installs discovery stubs into `.claude/skills/` |
+| `skill:get` | | Outputs current skill content for agent consumption |
 
 ## Architecture
 

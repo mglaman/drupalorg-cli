@@ -70,6 +70,7 @@ class Application extends ParentApplication
         $commands[] = new Command\Maintainer\Issues();
         $commands[] = new Command\Maintainer\ReleaseNotes();
         $commands[] = new Command\Skill\Install();
+        $commands[] = new Command\Skill\Get();
         $commands[] = new Command\Issue\GetFork();
         $commands[] = new Command\Issue\SetupRemote();
         $commands[] = new Command\Issue\Checkout();

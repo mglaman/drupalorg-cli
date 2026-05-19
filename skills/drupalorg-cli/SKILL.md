@@ -175,8 +175,12 @@ drupalorg maintainer:release-notes <ref1> [ref2] [--format=json|md|html]
 ### Utility commands
 
 ```bash
-# Install the drupalorg-cli agent skill into .claude/skills/drupalorg-cli/
+# Install discovery stubs into .claude/skills/ in the current directory
 drupalorg skill:install
+
+# Output current skill content (use instead of reading stale installed files)
+drupalorg skill:get <name>
+drupalorg skill:get <name> --full  # Include reference files
 ```
 
 ## Cache Bypass
