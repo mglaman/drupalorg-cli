@@ -175,8 +175,12 @@ drupalorg maintainer:release-notes <ref1> [ref2] [--format=json|md|html]
 ### Utility commands
 
 ```bash
-# Install the drupalorg-cli agent skill into .claude/skills/drupalorg-cli/
+# Install discovery stubs into .claude/skills/ in the current directory
 drupalorg skill:install
+
+# Output current skill content (use instead of reading stale installed files)
+drupalorg skill:get <name>
+drupalorg skill:get <name> --full  # Include reference files
 ```
 
 ## Cache Bypass
@@ -203,10 +207,21 @@ drupalorg mr:list [nid] --format=llm --no-cache
 | `Remote … does not exist` | `issue:checkout` run before `issue:setup-remote` | Run `issue:setup-remote <nid>` first |
 | `429 / 503` | Drupal.org rate limit or maintenance | The client retries automatically; wait and retry if it persists |
 
+## Available Skills
+
+Fetch any skill on demand — content always reflects the installed version:
+
+```bash
+drupalorg skill:get drupalorg-cli --full       # CLI reference + workflow references
+drupalorg skill:get drupalorg-issue-search     # Search issues across API, scrape, and web
+drupalorg skill:get drupalorg-issue-summary-update  # Analyse and update issue summaries
+drupalorg skill:get drupalorg-work-on-issue    # End-to-end GitLab MR contribution workflow
+```
+
 ## References
 
-Detailed workflow guides are in the `references/` directory alongside this file:
+Detailed workflow guides available via `--full`:
 
-- `references/work-on-issue.md` — End-to-end GitLab MR workflow ("Work on this issue")
-- `references/patch-contribution.md` — Classic patch-based contribution workflow
-- `references/gitlab-mr-contribution.md` — GitLab MR contribution workflow reference
+- `work-on-issue` — End-to-end GitLab MR workflow ("Work on this issue")
+- `patch-contribution` — Classic patch-based contribution workflow
+- `gitlab-mr-contribution` — GitLab MR contribution workflow reference
