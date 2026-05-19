@@ -124,7 +124,8 @@ Available commands:
   project:release-notes [prn] View release notes for a release
   project:releases          Lists available releases
  skill
-  skill:install             Installs all drupalorg-cli agent skills into .claude/skills/ in the current directory.
+  skill:install             Installs the drupalorg-cli discovery skill into .claude/skills/ in the current directory.
+  skill:get                 Outputs current skill content for agent consumption.
 ````
 
 ## GitLab work items
@@ -150,6 +151,42 @@ The same formats work for `issue:get-fork` and `mr:list`. MR URLs also work dire
 
 ```bash
 drupalorg mr:list https://git.drupalcode.org/project/ai_context/-/merge_requests/131
+```
+
+## AI agent skills
+
+`drupalorg-cli` ships with skills for Claude Code and other AI agents that support the [skills format](https://agentskills.io/home).
+
+### Install via [npx skills](https://www.skills.sh/)
+
+```bash
+npx skills add mglaman/drupalorg-cli
+```
+
+### Install via the CLI
+
+Run this inside your Drupal project directory:
+
+```bash
+drupalorg skill:install
+```
+
+Both methods install a discovery stub into `.claude/skills/drupalorg-cli/`. The stub tells agents to call `drupalorg skill:get` for current instructions, so skills never go stale between releases.
+
+### Available skills
+
+| Skill | Description |
+|---|---|
+| `drupalorg-cli` | Full CLI reference — commands, output formats, error handling |
+| `drupalorg-work-on-issue` | End-to-end GitLab MR contribution workflow |
+| `drupalorg-issue-search` | Search issues across API, Drupal.org scrape, and web |
+| `drupalorg-issue-summary-update` | Analyse and draft updated issue summaries |
+
+Fetch any skill on demand:
+
+```bash
+drupalorg skill:get drupalorg-cli
+drupalorg skill:get drupalorg-work-on-issue
 ```
 
 ## Getting Started
