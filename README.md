@@ -155,9 +155,9 @@ drupalorg mr:list https://git.drupalcode.org/project/ai_context/-/merge_requests
 
 ## AI agent skills
 
-`drupalorg-cli` ships with skills for Claude Code and other AI agents that support the [skills format](https://agent-browser.dev/skills).
+`drupalorg-cli` ships with skills for Claude Code and other AI agents that support the [skills format](https://agentskills.io/home).
 
-### Install via npx
+### Install via [npx skills](https://www.skills.sh/)
 
 ```bash
 npx skills add mglaman/drupalorg-cli
