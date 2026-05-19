@@ -19,25 +19,11 @@ class Install extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $skillsRootSrc = __DIR__ . '/../../../../skills';
+        $skillSrc = __DIR__ . '/../../../../skills/drupalorg-cli';
         $cwd = (string) getcwd();
-        $skillsRootDest = $cwd . DIRECTORY_SEPARATOR . '.claude' . DIRECTORY_SEPARATOR . 'skills';
+        $skillDest = $cwd . DIRECTORY_SEPARATOR . '.claude' . DIRECTORY_SEPARATOR . 'skills' . DIRECTORY_SEPARATOR . 'drupalorg-cli';
 
-        foreach (new \DirectoryIterator($skillsRootSrc) as $skillDir) {
-            if ($skillDir->isDot() || !$skillDir->isDir()) {
-                continue;
-            }
-            $result = $this->installDiscoveryStub(
-                $skillDir->getPathname(),
-                $skillDir->getFilename(),
-                $skillsRootDest . DIRECTORY_SEPARATOR . $skillDir->getFilename()
-            );
-            if ($result !== 0) {
-                return $result;
-            }
-        }
-
-        return 0;
+        return $this->installDiscoveryStub($skillSrc, 'drupalorg-cli', $skillDest);
     }
 
     private function installDiscoveryStub(string $srcDir, string $skillName, string $destDir): int

@@ -161,12 +161,13 @@ jobs:
         run: |
           php drupalorg.phar skill:install
           test -f .claude/skills/drupalorg-cli/SKILL.md
-          test -f .claude/skills/drupalorg-issue-search/SKILL.md
-          test -f .claude/skills/drupalorg-issue-summary-update/SKILL.md
-          test -f .claude/skills/drupalorg-work-on-issue/SKILL.md
+          test ! -d .claude/skills/drupalorg-issue-search
+          test ! -d .claude/skills/drupalorg-issue-summary-update
+          test ! -d .claude/skills/drupalorg-work-on-issue
           grep -q "drupalorg skill:get drupalorg-cli" .claude/skills/drupalorg-cli/SKILL.md
       - name: skill:get
         run: |
           php drupalorg.phar skill:get drupalorg-cli | grep -q "## Overview"
           php drupalorg.phar skill:get drupalorg-cli --full | grep -q "## Reference:"
-          php drupalorg.phar skill:get drupalorg-work-on-issue | grep -q "drupalorg skill:get"
+          php drupalorg.phar skill:get drupalorg-issue-search | grep -q "drupalorg-issue-search"
+          php drupalorg.phar skill:get drupalorg-work-on-issue | grep -q "drupalorg-work-on-issue"
