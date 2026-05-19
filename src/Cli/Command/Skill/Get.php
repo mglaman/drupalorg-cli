@@ -24,7 +24,7 @@ class Get extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $name = (string) $input->getArgument('name');
-        $skillFile = __DIR__ . '/../../../../skills/' . $name . '/SKILL.md';
+        $skillFile = __DIR__ . '/../../../../skill-data/' . $name . '/SKILL.md';
 
         if (!is_file($skillFile)) {
             $this->stdErr->writeln(sprintf('<error>Skill not found: %s</error>', $name));
@@ -44,7 +44,7 @@ class Get extends Command
         $this->stdOut->write($content);
 
         if ((bool) $input->getOption('full')) {
-            $refDir = __DIR__ . '/../../../../skills/' . $name . '/references';
+            $refDir = __DIR__ . '/../../../../skill-data/' . $name . '/references';
             if (is_dir($refDir)) {
                 foreach (new \DirectoryIterator($refDir) as $fileInfo) {
                     if ($fileInfo->isDot() || !$fileInfo->isFile() || $fileInfo->getExtension() !== 'md') {
@@ -71,7 +71,7 @@ class Get extends Command
      */
     private function getAvailableSkills(): array
     {
-        $skillsRoot = __DIR__ . '/../../../../skills';
+        $skillsRoot = __DIR__ . '/../../../../skill-data';
         if (!is_dir($skillsRoot)) {
             return [];
         }

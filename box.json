@@ -1,7 +1,8 @@
 {
   "directories": [
     "src",
-    "skills"
+    "skills",
+    "skill-data"
   ],
   "files": [
     "vendor/symfony/console/Resources/bin/hiddeninput.exe"
