@@ -136,4 +136,41 @@ class PostWorkItemSlashCommandActionTest extends TestCase
         $this->expectExceptionMessageMatches('/Drupal\.org issue queue/');
         $action('ai_context#3586157', '/do:fork');
     }
+
+    public function testTrimsBareNidWithSurroundingWhitespace(): void
+    {
+        $note = new \stdClass();
+        $note->id = 11;
+
+        $client = $this->createMock(Client::class);
+        $client->expects(self::once())
+            ->method('getNode')
+            ->with('3586157')
+            ->willReturn(self::makeIssueNode());
+
+        $gitLabClient = $this->createMock(GitLabClient::class);
+        $gitLabClient->expects(self::once())
+            ->method('postIssueNote')
+            ->with('project/ai_context', 3586157, '/do:fork')
+            ->willReturn($note);
+
+        $action = new PostWorkItemSlashCommandAction($client, $gitLabClient);
+        $result = $action("  3586157\n", '/do:fork');
+
+        self::assertSame(11, $result->noteId);
+    }
+
+    public function testThrowsWhenGitLabResponseLacksId(): void
+    {
+        $gitLabClient = $this->createMock(GitLabClient::class);
+        $gitLabClient->method('postIssueNote')->willReturn(new \stdClass());
+
+        $client = $this->createMock(Client::class);
+
+        $action = new PostWorkItemSlashCommandAction($client, $gitLabClient);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessageMatches('/did not contain an id/');
+        $action('ai_context#3586157', '/do:fork');
+    }
 }

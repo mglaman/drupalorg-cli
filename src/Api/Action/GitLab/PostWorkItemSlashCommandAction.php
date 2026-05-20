@@ -46,23 +46,31 @@ class PostWorkItemSlashCommandAction
             ), 0, $e);
         }
 
-        $noteId = isset($response->id) ? (int) $response->id : 0;
+        if (!isset($response->id) || !is_numeric($response->id)) {
+            throw new \RuntimeException(sprintf(
+                'GitLab note response for %s#%d did not contain an id. The '
+                . 'note may not have been posted.',
+                $ref->projectPath,
+                $ref->issueId,
+            ));
+        }
 
         return new SlashCommandResult(
             projectPath: $ref->projectPath,
             issueIid: $ref->issueId,
             command: $command,
-            noteId: $noteId,
+            noteId: (int) $response->id,
         );
     }
 
     private function resolveRef(string $refOrNid): WorkItemRef
     {
+        $refOrNid = trim($refOrNid);
         $ref = WorkItemRef::tryParse($refOrNid);
         if ($ref !== null) {
             return $ref;
         }
-        if (!ctype_digit($refOrNid)) {
+        if ($refOrNid === '' || !ctype_digit($refOrNid)) {
             throw new \InvalidArgumentException(sprintf(
                 'Unrecognised work item reference "%s". Expected a NID, '
                 . 'shorthand (project_name#nid), or full work item URL.',

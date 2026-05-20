@@ -16,6 +16,14 @@ class SlashCommandResult implements ResultInterface
     ) {
     }
 
+    /**
+     * Canonical work item URL on git.drupalcode.org.
+     *
+     * Drupal.org redirects `/-/issues/{iid}` to `/-/work_items/{iid}`, so this
+     * always emits the `work_items` form even when the caller supplied an
+     * `/-/issues/` URL (which {@see WorkItemRef::tryParse()} accepts for input
+     * convenience). Slash commands only have meaning on work items.
+     */
     public function workItemUrl(): string
     {
         return sprintf(
