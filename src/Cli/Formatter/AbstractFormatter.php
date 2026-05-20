@@ -6,6 +6,7 @@ use mglaman\DrupalOrg\Result\GitLab\GitLabIssueResult;
 use mglaman\DrupalOrg\Result\GitLab\GitLabIssuesResult;
 use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
 use mglaman\DrupalOrg\Result\Issue\IssueResult;
+use mglaman\DrupalOrg\Result\Issue\SlashCommandResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestDiffResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestFilesResult;
@@ -33,6 +34,7 @@ abstract class AbstractFormatter implements FormatterInterface
             $result instanceof MergeRequestDiffResult => $this->formatMergeRequestDiff($result),
             $result instanceof GitLabIssueResult => $this->formatGitLabIssue($result),
             $result instanceof GitLabIssuesResult => $this->formatGitLabIssues($result),
+            $result instanceof SlashCommandResult => $this->formatSlashCommand($result),
             default => throw new \InvalidArgumentException(
                 sprintf('Unsupported result type: %s', get_class($result))
             ),
@@ -51,4 +53,5 @@ abstract class AbstractFormatter implements FormatterInterface
     abstract protected function formatMergeRequestDiff(MergeRequestDiffResult $result): string;
     abstract protected function formatGitLabIssue(GitLabIssueResult $result): string;
     abstract protected function formatGitLabIssues(GitLabIssuesResult $result): string;
+    abstract protected function formatSlashCommand(SlashCommandResult $result): string;
 }

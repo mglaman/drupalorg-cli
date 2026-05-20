@@ -7,6 +7,7 @@ use mglaman\DrupalOrg\Result\GitLab\GitLabIssueResult;
 use mglaman\DrupalOrg\Result\GitLab\GitLabIssuesResult;
 use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
 use mglaman\DrupalOrg\Result\Issue\IssueResult;
+use mglaman\DrupalOrg\Result\Issue\SlashCommandResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestDiffResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestFilesResult;
@@ -295,6 +296,23 @@ XML;
             $items .= "    </item>\n";
         }
         return "<gitlab_context>\n  <project>{$project}</project>\n  <issues>\n{$items}  </issues>\n</gitlab_context>";
+    }
+
+    protected function formatSlashCommand(SlashCommandResult $result): string
+    {
+        $projectPath = $this->xmlEscape($result->projectPath);
+        $command = $this->xmlEscape($result->command);
+        $url = $this->xmlEscape($result->workItemUrl());
+
+        return <<<XML
+<drupal_context>
+  <project_path>{$projectPath}</project_path>
+  <issue_iid>{$result->issueIid}</issue_iid>
+  <command>{$command}</command>
+  <note_id>{$result->noteId}</note_id>
+  <url>{$url}</url>
+</drupal_context>
+XML;
     }
 
     private function toIso8601(int $timestamp): string

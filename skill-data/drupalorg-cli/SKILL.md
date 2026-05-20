@@ -131,6 +131,39 @@ drupalorg mr:logs <nid> <mr-iid>
 drupalorg mr:logs 'project/drupal!708'
 ```
 
+### Slash commands (GitLab work items only)
+
+These commands post Drupal.org bot quick-actions as comments on a GitLab work item.
+They only work for projects whose issue queue lives at `git.drupalcode.org` (the bot
+is not present on classic Drupal.org issue queues).
+
+The `<ref>` argument is a WorkItemRef — bare NID, `project_name#nid`, or full URL.
+
+Each command also accepts `--format=text|json|md|llm`. Posting is asynchronous: the
+bot processes the comment after it lands, so re-fetch with `--no-cache` to confirm.
+
+```bash
+# Create a fork (and a default-branch issue branch) for an issue without a fork
+drupalorg issue:fork <ref>
+
+# Grant the current user push access to the existing fork
+drupalorg issue:get-access <ref>
+
+# Assign one or more users (default: me)
+drupalorg issue:assign <ref> [user...]
+drupalorg issue:unassign <ref> [user...]
+drupalorg issue:reassign <ref> <user> [user...]
+
+# Manage labels (e.g. state::needsReview, state::rtbc, state::needsWork)
+drupalorg issue:label <ref> <label> [label...]
+drupalorg issue:unlabel <ref> <label> [label...]
+drupalorg issue:relabel <ref> <label> [label...]
+```
+
+Authentication requires a GitLab token. The CLI reads `DRUPALORG_GITLAB_TOKEN` and
+falls back to `glab config get token --host git.drupalcode.org` when that env var is
+unset.
+
 ### Project commands
 
 ```bash
