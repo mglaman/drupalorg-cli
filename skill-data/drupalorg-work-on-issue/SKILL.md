@@ -53,6 +53,20 @@ asking the user if `CLAUDE.md` provides no guidance.
 - **No matches** → note that no branches exist yet and ask the user how to proceed
   (e.g. create a new branch from the upstream project default branch).
 
+**No fork at all (GitLab work item projects):** If `issue:get-fork` reports no fork
+exists AND the project uses GitLab work items (the ref is a `project_name#nid` or
+work item URL, not a classic Drupal.org NID), offer to create one:
+
+```bash
+drupalorg issue:fork <ref>
+```
+
+The Drupal.org bot processes the comment asynchronously. Wait a few seconds, then
+re-run `drupalorg issue:get-fork <ref> --format=llm --no-cache` to confirm the fork
+exists before proceeding. To pick up an existing fork you don't yet have push access
+to (Example #2 in the upstream docs), run `drupalorg issue:get-access <ref>` before
+`issue:setup-remote`.
+
 **[PAUSE]** Only pause here if the working directory could not be determined automatically
 OR if multiple branches exist. Present your findings and wait for confirmation before
 proceeding.
@@ -70,6 +84,13 @@ Once the directory and branch are confirmed:
 ```bash
 drupalorg issue:setup-remote <nid>
 drupalorg issue:checkout <nid> <branch>
+```
+
+**Optional (GitLab work items):** Self-assign so others can see you are working on
+this issue:
+
+```bash
+drupalorg issue:assign <ref>
 ```
 
 **SSH remote URL check:** `issue:setup-remote` sets the remote URL to HTTPS
@@ -176,6 +197,14 @@ Iterate until the pipeline is green or the user asks to stop:
 
 **[PAUSE]** After each push, report the pipeline outcome and ask whether to continue
 or stop.
+
+**Hand off for review (GitLab work items only):** When the pipeline is green and the
+user confirms the work is ready for review, flip the state label and unassign:
+
+```bash
+drupalorg issue:label <ref> state::needsReview
+drupalorg issue:unassign <ref>
+```
 
 ---
 

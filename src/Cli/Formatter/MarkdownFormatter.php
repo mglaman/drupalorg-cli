@@ -7,6 +7,7 @@ use mglaman\DrupalOrg\Result\GitLab\GitLabIssueResult;
 use mglaman\DrupalOrg\Result\GitLab\GitLabIssuesResult;
 use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
 use mglaman\DrupalOrg\Result\Issue\IssueResult;
+use mglaman\DrupalOrg\Result\Issue\SlashCommandResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestDiffResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestFilesResult;
@@ -224,5 +225,17 @@ class MarkdownFormatter extends AbstractFormatter
             $lines[] = "- **#{$issue->iid}** [{$issue->state}]{$labels} [{$issue->title}]({$issue->webUrl})";
         }
         return implode("\n", $lines);
+    }
+
+    protected function formatSlashCommand(SlashCommandResult $result): string
+    {
+        return sprintf(
+            "Posted `%s` on [%s#%d](%s) (note #%d).",
+            $result->command,
+            $result->projectPath,
+            $result->issueIid,
+            $result->workItemUrl(),
+            $result->noteId,
+        );
     }
 }

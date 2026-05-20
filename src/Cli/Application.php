@@ -74,6 +74,14 @@ class Application extends ParentApplication
         $commands[] = new Command\Issue\GetFork();
         $commands[] = new Command\Issue\SetupRemote();
         $commands[] = new Command\Issue\Checkout();
+        $commands[] = new Command\Issue\Fork();
+        $commands[] = new Command\Issue\GetAccess();
+        $commands[] = new Command\Issue\Assign();
+        $commands[] = new Command\Issue\Unassign();
+        $commands[] = new Command\Issue\Reassign();
+        $commands[] = new Command\Issue\Label();
+        $commands[] = new Command\Issue\Unlabel();
+        $commands[] = new Command\Issue\Relabel();
         $commands[] = new Command\MergeRequest\ListMergeRequests();
         $commands[] = new Command\MergeRequest\GetDiff();
         $commands[] = new Command\MergeRequest\GetFiles();

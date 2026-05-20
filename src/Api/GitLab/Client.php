@@ -4,6 +4,7 @@ namespace mglaman\DrupalOrg\GitLab;
 
 use GuzzleHttp\HandlerStack;
 use GuzzleRetry\GuzzleRetryMiddleware;
+use Symfony\Component\Process\Process;
 
 class Client
 {
@@ -25,8 +26,8 @@ class Client
             'Accept' => 'application/json',
         ];
 
-        $token = getenv('DRUPALORG_GITLAB_TOKEN');
-        if ($token !== false && $token !== '') {
+        $token = self::resolveToken();
+        if ($token !== null) {
             $headers['PRIVATE-TOKEN'] = $token;
         }
 
@@ -35,6 +36,30 @@ class Client
             'handler' => $stack,
             'headers' => $headers,
         ]);
+    }
+
+    /**
+     * Resolve a GitLab token from env or, as a fallback, the glab CLI.
+     */
+    private static function resolveToken(): ?string
+    {
+        $token = getenv('DRUPALORG_GITLAB_TOKEN');
+        if ($token !== false && $token !== '') {
+            return $token;
+        }
+        try {
+            $process = new Process(['glab', 'config', 'get', 'token', '--host', 'git.drupalcode.org']);
+            $process->run();
+            if ($process->isSuccessful()) {
+                $output = trim($process->getOutput());
+                if ($output !== '') {
+                    return $output;
+                }
+            }
+        } catch (\Throwable) {
+            // glab not installed or failed; treat as unauthenticated.
+        }
+        return null;
     }
 
     /**
@@ -52,6 +77,40 @@ class Client
             return \json_decode($res->getBody()->getContents(), false, 512, JSON_THROW_ON_ERROR);
         }
         throw new \Exception('GitLab API error', $res->getStatusCode());
+    }
+
+    /**
+     * @param array<string, mixed> $body
+     * @throws \Exception
+     */
+    private function post(string $path, array $body): mixed
+    {
+        $res = $this->client->request('POST', $path, ['json' => $body]);
+        $status = $res->getStatusCode();
+        if ($status === 200 || $status === 201) {
+            return \json_decode($res->getBody()->getContents(), false, 512, JSON_THROW_ON_ERROR);
+        }
+        throw new \Exception('GitLab API error', $status);
+    }
+
+    /**
+     * POST /projects/{path}/issues/{iid}/notes
+     *
+     * Posts a note (comment) to a GitLab issue or work item. Used to send
+     * Drupal.org bot slash commands such as `/do:fork`, `/do:assign me`, and
+     * `/do:label ~state::needsReview` on projects whose issue queue lives on
+     * GitLab work items.
+     *
+     * @throws \Exception
+     */
+    public function postIssueNote(string $projectPath, int $iid, string $body): \stdClass
+    {
+        /** @var \stdClass $result */
+        $result = $this->post(
+            'projects/' . urlencode($projectPath) . '/issues/' . $iid . '/notes',
+            ['body' => $body],
+        );
+        return $result;
     }
 
     /**
