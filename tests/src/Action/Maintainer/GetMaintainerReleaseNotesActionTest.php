@@ -13,6 +13,7 @@ use mglaman\DrupalOrg\GitLab\Client as GitLabClient;
 use mglaman\DrupalOrg\GitLab\Entity\GitLabIssue;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerReleaseNotesResult;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Process\Process;
 
@@ -231,5 +232,40 @@ class GetMaintainerReleaseNotesActionTest extends TestCase
         self::assertIsArray($decoded['contributors']);
         self::assertIsArray($decoded['nid_list']);
         self::assertIsArray($decoded['change_records']);
+        self::assertIsArray($decoded['issue_links']);
+        self::assertFalse($decoded['is_gitlab']);
+    }
+
+    /**
+     * @return array<string, array{0: string, 1: string}>
+     */
+    public static function gitLabRemoteProvider(): array
+    {
+        return [
+            'https project' => ['https://git.drupalcode.org/project/canvas.git', 'canvas'],
+            'ssh project' => ['git@git.drupalcode.org:project/canvas.git', 'canvas'],
+            'issue fork strips nid' => ['https://git.drupalcode.org/issue/canvas-3001234.git', 'canvas'],
+            'machine name with underscore' => ['https://git.drupalcode.org/project/some_module.git', 'some_module'],
+        ];
+    }
+
+    #[DataProvider('gitLabRemoteProvider')]
+    public function testGetProjectNameFromGitLabRemote(string $remoteUrl, string $expected): void
+    {
+        $dir = sys_get_temp_dir() . '/drupalorg-cli-remote-' . uniqid();
+        mkdir($dir);
+        $run = static function (array $cmd) use ($dir): void {
+            (new Process($cmd, $dir))->mustRun();
+        };
+        $run(['git', 'init']);
+        $run(['git', 'remote', 'add', 'origin', $remoteUrl]);
+
+        $action = new GetMaintainerReleaseNotesAction($this->createMock(Client::class));
+        $method = new \ReflectionMethod($action, 'getProjectName');
+        $projectName = $method->invoke($action, $dir);
+
+        (new Process(['rm', '-rf', $dir]))->run();
+
+        self::assertSame($expected, $projectName);
     }
 }

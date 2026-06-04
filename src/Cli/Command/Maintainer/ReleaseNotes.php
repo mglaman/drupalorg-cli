@@ -103,7 +103,7 @@ class ReleaseNotes extends Command
         switch ($format) {
             case 'json':
                 $this->stdOut->writeln(
-                    json_encode($result->categorizedChanges, JSON_PRETTY_PRINT)
+                    json_encode($result, JSON_PRETTY_PRINT)
                 );
                 break;
 
@@ -144,7 +144,7 @@ class ReleaseNotes extends Command
                     $this->stdOut->writeln(sprintf('#### %s', $changeCategory));
                     $this->stdOut->writeln('');
                     foreach ($changeCategoryItems as $nid => $change) {
-                        $link = $result->issueLinks[$nid] ?? null;
+                        $link = $result->isGitLab ? ($result->issueLinks[$nid] ?? null) : null;
                         $this->stdOut->writeln(sprintf('* %s', $this->formatLine($change, $format, $link)));
                     }
                     $this->stdOut->writeln('');
@@ -204,7 +204,7 @@ class ReleaseNotes extends Command
                     );
                     $this->stdOut->writeln('<ul>');
                     foreach ($changeCategoryItems as $nid => $change) {
-                        $link = $result->issueLinks[$nid] ?? null;
+                        $link = $result->isGitLab ? ($result->issueLinks[$nid] ?? null) : null;
                         $this->stdOut->writeln(
                             sprintf('  <li>%s</li>', $this->formatLine($change, $format, $link))
                         );
@@ -246,18 +246,22 @@ class ReleaseNotes extends Command
 
     protected function formatLine(string $value, string $format, ?string $link = null): string
     {
-        // Legacy issues fall back to the global node URL; GitLab work items and
-        // resolved issues pass an explicit project-scoped link.
-        $baseUrl = $link ?? 'https://www.drupal.org/node/$1';
-
-        if ($format === 'html') {
-            $replacement = sprintf('<a href="%s">#$1</a>', $baseUrl);
-        } elseif ($format === 'markdown' || $format === 'md') {
-            $replacement = sprintf('[#$1](%s)', $baseUrl);
-        } else {
-            $replacement = '#$1';
-        }
-
-        return preg_replace('/#(\d+)/S', $replacement, $value);
+        // A resolved $link (GitLab work item or canonical issue URL) overrides the
+        // default; otherwise each "#nid" links to its own global node. The URL is
+        // emitted via a callback, never interpolated into the regex replacement.
+        return preg_replace_callback(
+            '/#(\d+)/S',
+            static function (array $matches) use ($format, $link): string {
+                $url = $link ?? sprintf('https://www.drupal.org/node/%s', $matches[1]);
+                if ($format === 'html') {
+                    return sprintf('<a href="%s">#%s</a>', htmlspecialchars($url, ENT_QUOTES), $matches[1]);
+                }
+                if ($format === 'markdown' || $format === 'md') {
+                    return sprintf('[#%s](%s)', $matches[1], $url);
+                }
+                return '#' . $matches[1];
+            },
+            $value
+        ) ?? $value;
     }
 }

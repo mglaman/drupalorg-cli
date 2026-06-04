@@ -199,14 +199,14 @@ class GetMaintainerReleaseNotesAction implements ActionInterface
 
         // Fetch change records if we have a project ID.
         $changeRecords = [];
-        if ($projectId !== null) {
+        if ($projectId !== null && $projectId !== '') {
             $changeRecords = $drupalOrg->getChangeRecords($projectId, $ref2);
         }
 
         return new MaintainerReleaseNotesResult(
             ref1: $ref1,
             ref2: $ref2,
-            project: $project,
+            project: $machineName,
             categorizedChanges: $categorizedChanges,
             contributors: $users,
             nidList: $nidList,
