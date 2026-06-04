@@ -143,8 +143,9 @@ class ReleaseNotes extends Command
                 foreach ($result->categorizedChanges as $changeCategory => $changeCategoryItems) {
                     $this->stdOut->writeln(sprintf('#### %s', $changeCategory));
                     $this->stdOut->writeln('');
-                    foreach ($changeCategoryItems as $change) {
-                        $this->stdOut->writeln(sprintf('* %s', $this->formatLine($change, $format)));
+                    foreach ($changeCategoryItems as $nid => $change) {
+                        $link = $result->issueLinks[$nid] ?? null;
+                        $this->stdOut->writeln(sprintf('* %s', $this->formatLine($change, $format, $link)));
                     }
                     $this->stdOut->writeln('');
                 }
@@ -202,9 +203,10 @@ class ReleaseNotes extends Command
                         sprintf('<h4>%s</h4>', $changeCategory)
                     );
                     $this->stdOut->writeln('<ul>');
-                    foreach ($changeCategoryItems as $change) {
+                    foreach ($changeCategoryItems as $nid => $change) {
+                        $link = $result->issueLinks[$nid] ?? null;
                         $this->stdOut->writeln(
-                            sprintf('  <li>%s</li>', $this->formatLine($change, $format))
+                            sprintf('  <li>%s</li>', $this->formatLine($change, $format, $link))
                         );
                     }
                     $this->stdOut->writeln('</ul>');
@@ -242,9 +244,11 @@ class ReleaseNotes extends Command
         return sprintf($replacement, $userAlias, $user);
     }
 
-    protected function formatLine(string $value, string $format): string
+    protected function formatLine(string $value, string $format, ?string $link = null): string
     {
-        $baseUrl = 'https://www.drupal.org/node/$1';
+        // Legacy issues fall back to the global node URL; GitLab work items and
+        // resolved issues pass an explicit project-scoped link.
+        $baseUrl = $link ?? 'https://www.drupal.org/node/$1';
 
         if ($format === 'html') {
             $replacement = sprintf('<a href="%s">#$1</a>', $baseUrl);

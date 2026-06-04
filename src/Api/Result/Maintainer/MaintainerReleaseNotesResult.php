@@ -12,6 +12,7 @@ class MaintainerReleaseNotesResult implements ResultInterface
      * @param array<string, int> $contributors username => commit count
      * @param list<string> $nidList
      * @param ChangeRecord[] $changeRecords
+     * @param array<string, string> $issueLinks nid => resolved issue URL
      */
     public function __construct(
         public readonly string $ref1,
@@ -21,6 +22,8 @@ class MaintainerReleaseNotesResult implements ResultInterface
         public readonly array $contributors,
         public readonly array $nidList,
         public readonly array $changeRecords,
+        public readonly array $issueLinks = [],
+        public readonly bool $isGitLab = false,
     ) {
     }
 
@@ -37,6 +40,8 @@ class MaintainerReleaseNotesResult implements ResultInterface
                 static fn(ChangeRecord $r) => ['title' => $r->title, 'url' => $r->url],
                 $this->changeRecords
             ),
+            'issue_links' => $this->issueLinks,
+            'is_gitlab' => $this->isGitLab,
         ];
     }
 }

@@ -3,7 +3,10 @@
 namespace mglaman\DrupalOrg\GitLab;
 
 use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Promise\PromiseInterface;
+use GuzzleHttp\Promise\Utils;
 use GuzzleRetry\GuzzleRetryMiddleware;
+use mglaman\DrupalOrg\GitLab\Entity\GitLabIssue;
 use Symfony\Component\Process\Process;
 
 class Client
@@ -221,6 +224,45 @@ class Client
     {
         $result = $this->get('projects/' . urlencode($projectPath) . '/issues', $params);
         return is_array($result) ? $result : [];
+    }
+
+    /**
+     * Fetch multiple work items in one project concurrently, keyed by iid.
+     *
+     * Work item iids are unique only within a project, so this fetches each iid
+     * from the same project path. Failed or non-decodable responses map to null.
+     *
+     * @param int[] $iids
+     * @return array<int, GitLabIssue|null>
+     */
+    public function getIssuesByIid(string $projectPath, array $iids): array
+    {
+        if ($iids === []) {
+            return [];
+        }
+
+        $path = 'projects/' . urlencode($projectPath) . '/issues/';
+        $issues = [];
+        $promises = [];
+        foreach ($iids as $iid) {
+            $promises[$iid] = $this->client->requestAsync('GET', $path . $iid);
+        }
+
+        $results = Utils::settle($promises)->wait();
+        foreach ($results as $iid => $result) {
+            if ($result['state'] !== PromiseInterface::FULFILLED) {
+                $issues[$iid] = null;
+                continue;
+            }
+            try {
+                $data = \json_decode((string) $result['value']->getBody(), false, 512, JSON_THROW_ON_ERROR);
+                $issues[$iid] = GitLabIssue::fromStdClass($data);
+            } catch (\JsonException) {
+                $issues[$iid] = null;
+            }
+        }
+
+        return $issues;
     }
 
     /**
