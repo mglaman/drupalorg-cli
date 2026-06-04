@@ -8,6 +8,7 @@ use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Promise\Utils;
 use mglaman\DrupalOrg\Entity\ChangeRecord;
 use mglaman\DrupalOrg\Entity\IssueNode;
+use mglaman\DrupalOrg\Entity\Project;
 
 final class DrupalOrg
 {
@@ -43,14 +44,41 @@ final class DrupalOrg
     }
 
     /**
+     * Get the project entity (nid + issue queue type) from a machine name.
+     *
+     * Reads field_project_has_issue_queue so callers can tell whether issues
+     * live on the legacy Drupal.org queue or on GitLab work items.
+     */
+    public function getProject(string $machineName): ?Project
+    {
+        try {
+            $url = sprintf(
+                'https://www.drupal.org/api-d7/node.json?field_project_machine_name=%s',
+                urlencode($machineName)
+            );
+            $response = $this->client->request('GET', $url);
+            $data = \json_decode((string) $response->getBody());
+            if ($data === null || !isset($data->list) || count($data->list) === 0) {
+                return null;
+            }
+            return Project::fromStdClass($data->list[0]);
+        } catch (RequestException) {
+            return null;
+        } catch (\JsonException) {
+            return null;
+        }
+    }
+
+    /**
      * Fetch contributors for multiple issues concurrently using promises.
      *
-     * @param list<string> $nids Array of issue node IDs
-     * @return array<string, list<string>> Associative array mapping nid => array of contributor display names
+     * @param array<string, string> $sourceLinks Map of id => contribution source URI
+     *   (a Drupal.org node URL for legacy issues, or a GitLab work item URL).
+     * @return array<string, list<string>> Map of id => contributor display names
      */
-    public function getContributorsFromJsonApi(array $nids): array
+    public function getContributorsFromJsonApi(array $sourceLinks): array
     {
-        if ($nids === []) {
+        if ($sourceLinks === []) {
             return [];
         }
 
@@ -58,26 +86,26 @@ final class DrupalOrg
 
         try {
             $promises = [];
-            foreach ($nids as $nid) {
+            foreach ($sourceLinks as $id => $sourceLink) {
                 $url = sprintf(
-                    'https://www.drupal.org/jsonapi/node/contribution_record?filter[field_source_link.uri]=https://www.drupal.org/node/%s&filter[field_contributors.field_credit_this_contributor]=1&include=field_contributors.field_contributor_user&fields[node--contribution_record]=field_contributors&fields[paragraph--contributor]=field_contributor_user,field_credit_this_contributor&fields[user--user]=display_name',
-                    urlencode($nid)
+                    'https://www.drupal.org/jsonapi/node/contribution_record?filter[field_source_link.uri]=%s&filter[field_contributors.field_credit_this_contributor]=1&include=field_contributors.field_contributor_user&fields[node--contribution_record]=field_contributors&fields[paragraph--contributor]=field_contributor_user,field_credit_this_contributor&fields[user--user]=display_name',
+                    urlencode($sourceLink)
                 );
-                $promises[$nid] = $this->client->requestAsync('GET', $url);
+                $promises[$id] = $this->client->requestAsync('GET', $url);
             }
 
             $results = Utils::settle($promises)->wait();
 
-            foreach ($results as $nid => $result) {
+            foreach ($results as $id => $result) {
                 if ($result['state'] === PromiseInterface::FULFILLED) {
                     try {
                         $data = \json_decode((string) $result['value']->getBody(), false, 512, JSON_THROW_ON_ERROR);
-                        $contributors[$nid] = $this->extractContributorsFromJsonApiResponse($data);
+                        $contributors[$id] = $this->extractContributorsFromJsonApiResponse($data);
                     } catch (\JsonException) {
-                        $contributors[$nid] = [];
+                        $contributors[$id] = [];
                     }
                 } else {
-                    $contributors[$nid] = [];
+                    $contributors[$id] = [];
                 }
             }
         } catch (\Throwable) {

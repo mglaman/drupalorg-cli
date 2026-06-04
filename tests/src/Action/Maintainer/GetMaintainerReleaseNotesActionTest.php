@@ -9,8 +9,11 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use mglaman\DrupalOrg\Action\Maintainer\GetMaintainerReleaseNotesAction;
 use mglaman\DrupalOrg\Client;
+use mglaman\DrupalOrg\GitLab\Client as GitLabClient;
+use mglaman\DrupalOrg\GitLab\Entity\GitLabIssue;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerReleaseNotesResult;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Process\Process;
 
@@ -102,11 +105,11 @@ class GetMaintainerReleaseNotesActionTest extends TestCase
 
     public function testInvokeRef2HeadAllowed(): void
     {
-        // MockHandler responses: contributors for NID 1234567, issue details for NID 1234567, projectId query
+        // Request order: project lookup, contributors, issue details.
         $client = $this->makeClientWithMockResponses([
+            new Response(200, [], json_encode(['list' => []])),          // project lookup (null → legacy)
             new Response(200, [], json_encode(['data' => []])),          // contributors (empty)
             new Response(200, [], json_encode(['nid' => '1234567', 'title' => 'Fix the thing', 'field_issue_category' => 1])), // issue details
-            new Response(200, [], json_encode(['list' => []])),           // projectId (null)
         ]);
 
         $action = new GetMaintainerReleaseNotesAction($client);
@@ -120,11 +123,11 @@ class GetMaintainerReleaseNotesActionTest extends TestCase
 
     public function testInvoke(): void
     {
-        // MockHandler responses: contributors, issue details, projectId
+        // Request order: project lookup (null → legacy, no change records), contributors, issue details.
         $client = $this->makeClientWithMockResponses([
+            new Response(200, [], json_encode(['list' => []])),          // project lookup (null → legacy)
             new Response(200, [], json_encode(['data' => []])),          // contributors (empty)
             new Response(200, [], json_encode(['nid' => '1234567', 'title' => 'Fix the thing', 'field_issue_category' => 1])), // issue details
-            new Response(200, [], json_encode(['list' => []])),           // projectId (null → skip change records)
         ]);
 
         $action = new GetMaintainerReleaseNotesAction($client);
@@ -145,12 +148,75 @@ class GetMaintainerReleaseNotesActionTest extends TestCase
         self::assertSame([], $result->changeRecords);
     }
 
+    public function testInvokeGitLabWorkItem(): void
+    {
+        // Request order: project lookup (GitLab), contributors, change records.
+        // GitLab work item data comes from the injected GitLab client.
+        $client = $this->makeClientWithMockResponses([
+            new Response(200, [], json_encode(['list' => [[
+                'nid' => '2431121',
+                'field_project_machine_name' => 'canvas',
+                'field_project_has_issue_queue' => false,
+            ]]])),                                              // project lookup (GitLab)
+            new Response(200, [], json_encode(['data' => []])), // contributors (empty)
+            new Response(200, [], json_encode(['list' => []])), // change records (none)
+        ]);
+
+        $gitLabClient = $this->createMock(GitLabClient::class);
+        $gitLabClient->method('getIssuesByIid')->willReturn([
+            1234567 => GitLabIssue::fromStdClass((object) [
+                'iid' => 1234567,
+                'title' => 'Fix the thing',
+                'labels' => ['category::bug'],
+                'web_url' => 'https://git.drupalcode.org/project/canvas/-/work_items/1234567',
+            ]),
+        ]);
+
+        $action = new GetMaintainerReleaseNotesAction($client, $gitLabClient);
+        $result = $action(self::$gitRepo, self::$tmpDir, '1.0.0', '1.1.0');
+
+        self::assertTrue($result->isGitLab);
+        // Category resolved from the category::bug GitLab label.
+        self::assertArrayHasKey('Bug', $result->categorizedChanges);
+        // Link uses the work item web_url, not a global node URL.
+        self::assertSame(
+            'https://git.drupalcode.org/project/canvas/-/work_items/1234567',
+            $result->issueLinks[1234567]
+        );
+    }
+
+    public function testInvokeGitLabWorkItemFallsBackToCanonicalLink(): void
+    {
+        $client = $this->makeClientWithMockResponses([
+            new Response(200, [], json_encode(['list' => [[
+                'nid' => '2431121',
+                'field_project_machine_name' => 'canvas',
+                'field_project_has_issue_queue' => false,
+            ]]])),
+            new Response(200, [], json_encode(['data' => []])),
+            new Response(200, [], json_encode(['list' => []])),
+        ]);
+
+        // GitLab fetch fails for the iid (null), so the canonical link is used.
+        $gitLabClient = $this->createMock(GitLabClient::class);
+        $gitLabClient->method('getIssuesByIid')->willReturn([1234567 => null]);
+
+        $action = new GetMaintainerReleaseNotesAction($client, $gitLabClient);
+        $result = $action(self::$gitRepo, self::$tmpDir, '1.0.0', '1.1.0');
+
+        self::assertTrue($result->isGitLab);
+        self::assertSame(
+            'https://www.drupal.org/project/canvas/issues/1234567',
+            $result->issueLinks[1234567]
+        );
+    }
+
     public function testJsonSerialize(): void
     {
         $client = $this->makeClientWithMockResponses([
+            new Response(200, [], json_encode(['list' => []])),
             new Response(200, [], json_encode(['data' => []])),
             new Response(200, [], json_encode(['nid' => '1234567', 'title' => 'Fix the thing', 'field_issue_category' => 0])),
-            new Response(200, [], json_encode(['list' => []])),
         ]);
 
         $action = new GetMaintainerReleaseNotesAction($client);
@@ -166,5 +232,40 @@ class GetMaintainerReleaseNotesActionTest extends TestCase
         self::assertIsArray($decoded['contributors']);
         self::assertIsArray($decoded['nid_list']);
         self::assertIsArray($decoded['change_records']);
+        self::assertIsArray($decoded['issue_links']);
+        self::assertFalse($decoded['is_gitlab']);
+    }
+
+    /**
+     * @return array<string, array{0: string, 1: string}>
+     */
+    public static function gitLabRemoteProvider(): array
+    {
+        return [
+            'https project' => ['https://git.drupalcode.org/project/canvas.git', 'canvas'],
+            'ssh project' => ['git@git.drupalcode.org:project/canvas.git', 'canvas'],
+            'issue fork strips nid' => ['https://git.drupalcode.org/issue/canvas-3001234.git', 'canvas'],
+            'machine name with underscore' => ['https://git.drupalcode.org/project/some_module.git', 'some_module'],
+        ];
+    }
+
+    #[DataProvider('gitLabRemoteProvider')]
+    public function testGetProjectNameFromGitLabRemote(string $remoteUrl, string $expected): void
+    {
+        $dir = sys_get_temp_dir() . '/drupalorg-cli-remote-' . uniqid();
+        mkdir($dir);
+        $run = static function (array $cmd) use ($dir): void {
+            (new Process($cmd, $dir))->mustRun();
+        };
+        $run(['git', 'init']);
+        $run(['git', 'remote', 'add', 'origin', $remoteUrl]);
+
+        $action = new GetMaintainerReleaseNotesAction($this->createMock(Client::class));
+        $method = new \ReflectionMethod($action, 'getProjectName');
+        $projectName = $method->invoke($action, $dir);
+
+        (new Process(['rm', '-rf', $dir]))->run();
+
+        self::assertSame($expected, $projectName);
     }
 }

@@ -103,7 +103,7 @@ class ReleaseNotes extends Command
         switch ($format) {
             case 'json':
                 $this->stdOut->writeln(
-                    json_encode($result->categorizedChanges, JSON_PRETTY_PRINT)
+                    json_encode($result, JSON_PRETTY_PRINT)
                 );
                 break;
 
@@ -143,8 +143,9 @@ class ReleaseNotes extends Command
                 foreach ($result->categorizedChanges as $changeCategory => $changeCategoryItems) {
                     $this->stdOut->writeln(sprintf('#### %s', $changeCategory));
                     $this->stdOut->writeln('');
-                    foreach ($changeCategoryItems as $change) {
-                        $this->stdOut->writeln(sprintf('* %s', $this->formatLine($change, $format)));
+                    foreach ($changeCategoryItems as $nid => $change) {
+                        $link = $result->isGitLab ? ($result->issueLinks[$nid] ?? null) : null;
+                        $this->stdOut->writeln(sprintf('* %s', $this->formatLine($change, $format, $link)));
                     }
                     $this->stdOut->writeln('');
                 }
@@ -202,9 +203,10 @@ class ReleaseNotes extends Command
                         sprintf('<h4>%s</h4>', $changeCategory)
                     );
                     $this->stdOut->writeln('<ul>');
-                    foreach ($changeCategoryItems as $change) {
+                    foreach ($changeCategoryItems as $nid => $change) {
+                        $link = $result->isGitLab ? ($result->issueLinks[$nid] ?? null) : null;
                         $this->stdOut->writeln(
-                            sprintf('  <li>%s</li>', $this->formatLine($change, $format))
+                            sprintf('  <li>%s</li>', $this->formatLine($change, $format, $link))
                         );
                     }
                     $this->stdOut->writeln('</ul>');
@@ -242,18 +244,24 @@ class ReleaseNotes extends Command
         return sprintf($replacement, $userAlias, $user);
     }
 
-    protected function formatLine(string $value, string $format): string
+    protected function formatLine(string $value, string $format, ?string $link = null): string
     {
-        $baseUrl = 'https://www.drupal.org/node/$1';
-
-        if ($format === 'html') {
-            $replacement = sprintf('<a href="%s">#$1</a>', $baseUrl);
-        } elseif ($format === 'markdown' || $format === 'md') {
-            $replacement = sprintf('[#$1](%s)', $baseUrl);
-        } else {
-            $replacement = '#$1';
-        }
-
-        return preg_replace('/#(\d+)/S', $replacement, $value);
+        // A resolved $link (GitLab work item or canonical issue URL) overrides the
+        // default; otherwise each "#nid" links to its own global node. The URL is
+        // emitted via a callback, never interpolated into the regex replacement.
+        return preg_replace_callback(
+            '/#(\d+)/S',
+            static function (array $matches) use ($format, $link): string {
+                $url = $link ?? sprintf('https://www.drupal.org/node/%s', $matches[1]);
+                if ($format === 'html') {
+                    return sprintf('<a href="%s">#%s</a>', htmlspecialchars($url, ENT_QUOTES), $matches[1]);
+                }
+                if ($format === 'markdown' || $format === 'md') {
+                    return sprintf('[#%s](%s)', $matches[1], $url);
+                }
+                return '#' . $matches[1];
+            },
+            $value
+        ) ?? $value;
     }
 }

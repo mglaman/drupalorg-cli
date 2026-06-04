@@ -54,4 +54,24 @@ final class CommitParser
         }
         return null;
     }
+
+    /**
+     * Derive an issue category from a conventional-commit prefix.
+     *
+     * The optional scope matches any character except ")" so titles like
+     * "feat(CLI Tool):" and "chore(Project management):" resolve correctly.
+     */
+    public static function categoryFromConventionalCommit(string $title): ?string
+    {
+        $matches = [];
+        if (preg_match('/^(fix|feat|chore|docs|style|refactor|perf|test|build|ci)(?:\([^)]+\))?!?:\s/i', $title, $matches) !== 1) {
+            return null;
+        }
+        return match (strtolower($matches[1])) {
+            'fix' => 'Bug',
+            'feat' => 'Feature',
+            'chore' => 'Task',
+            default => null,
+        };
+    }
 }
