@@ -32,7 +32,7 @@ A command line tool for interfacing with Drupal.org and GitLab (git.drupalcode.o
 
 Use the following command to install the command line tool via Composer:
 
-`composer global require mglaman/drupalorg-cli`
+`composer require mglaman/drupalorg-cli`
 
 ### Installing (Bash) completion
 
