@@ -4,7 +4,7 @@ namespace mglaman\DrupalOrgCli\Command\Issue;
 
 use mglaman\DrupalOrg\Action\Issue\GetIssueForkAction;
 use mglaman\DrupalOrg\Action\Issue\SetupIssueRemoteAction;
-use mglaman\DrupalOrg\Git\ProjectRemote;
+use mglaman\DrupalOrg\ProjectRemote;
 use mglaman\DrupalOrg\GitLab\Client as GitLabClient;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -27,7 +27,7 @@ class Checkout extends IssueCommandBase
     {
         $gitLabClient = new GitLabClient();
         $explicitProject = $this->explicitProjectMachineName();
-        $repositoryProject = ProjectRemote::detect();
+        $repositoryProject = ProjectRemote::detect()?->machineName;
         $action = new GetIssueForkAction($this->client, $gitLabClient);
         $fork = $action($this->nid, $explicitProject, $repositoryProject);
 
