@@ -64,6 +64,38 @@ class GetIssueForkActionTest extends TestCase
         self::assertSame(['3383637-test-issue', 'main'], $result->branches);
     }
 
+    public function testExplicitProjectSkipsNodeLookup(): void
+    {
+        $client = $this->createMock(Client::class);
+        $client->expects(self::never())->method('getNode');
+
+        $gitLabClient = $this->createMock(GitLabClient::class);
+        $gitLabClient->method('getProject')->willThrowException(new \Exception('Not Found', 404));
+
+        $action = new GetIssueForkAction($client, $gitLabClient);
+        $result = $action('3615648', 'campaign');
+
+        self::assertSame('campaign-3615648', $result->remoteName);
+        self::assertSame('git@git.drupal.org:issue/campaign-3615648.git', $result->sshUrl);
+        self::assertSame('issue/campaign-3615648', $result->gitLabProjectPath);
+    }
+
+    public function testRepositoryProjectForWorkItem(): void
+    {
+        $client = $this->createMock(Client::class);
+        $client->method('getNode')
+            ->willThrowException(new \RuntimeException('Node 3615635 was not found on Drupal.org.'));
+
+        $gitLabClient = $this->createMock(GitLabClient::class);
+        $gitLabClient->method('getProject')->willThrowException(new \Exception('Not Found', 404));
+
+        $action = new GetIssueForkAction($client, $gitLabClient);
+        $result = $action('3615635', null, 'campaign');
+
+        self::assertSame('campaign-3615635', $result->remoteName);
+        self::assertSame('issue/campaign-3615635', $result->gitLabProjectPath);
+    }
+
     public function testForkNotYetCreated(): void
     {
         $client = $this->createMock(Client::class);

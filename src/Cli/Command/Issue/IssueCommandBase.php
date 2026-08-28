@@ -69,6 +69,14 @@ abstract class IssueCommandBase extends Command
     }
 
     /**
+     * The project named by the nid argument's qualifier, if one was given.
+     */
+    protected function explicitProjectMachineName(): ?string
+    {
+        return $this->workItemRef?->projectMachineName();
+    }
+
+    /**
      * Initializes repository for current directory.
      */
     protected function initRepo(): void

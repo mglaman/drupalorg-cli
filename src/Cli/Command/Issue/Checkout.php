@@ -4,6 +4,7 @@ namespace mglaman\DrupalOrgCli\Command\Issue;
 
 use mglaman\DrupalOrg\Action\Issue\GetIssueForkAction;
 use mglaman\DrupalOrg\Action\Issue\SetupIssueRemoteAction;
+use mglaman\DrupalOrg\Git\ProjectRemote;
 use mglaman\DrupalOrg\GitLab\Client as GitLabClient;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -25,8 +26,10 @@ class Checkout extends IssueCommandBase
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $gitLabClient = new GitLabClient();
+        $explicitProject = $this->explicitProjectMachineName();
+        $repositoryProject = ProjectRemote::detect();
         $action = new GetIssueForkAction($this->client, $gitLabClient);
-        $fork = $action($this->nid);
+        $fork = $action($this->nid, $explicitProject, $repositoryProject);
 
         // Verify the remote exists locally; offer to set it up if missing.
         $checkRemote = new Process(['git', 'remote', 'get-url', $fork->remoteName]);
@@ -58,7 +61,7 @@ class Checkout extends IssueCommandBase
             }
             try {
                 $setupAction = new SetupIssueRemoteAction($this->client, $gitLabClient);
-                $setupResult = $setupAction($this->nid);
+                $setupResult = $setupAction($this->nid, $explicitProject, $repositoryProject);
             } catch (\RuntimeException $e) {
                 $this->stdErr->writeln(
                     sprintf('<error>Failed to set up remote: %s</error>', $e->getMessage())
@@ -69,7 +72,7 @@ class Checkout extends IssueCommandBase
                 sprintf('<info>Remote %s added and fetched.</info>', $setupResult->remoteName)
             );
             // Refresh fork data after setup so branches are populated.
-            $fork = $action($this->nid);
+            $fork = $action($this->nid, $explicitProject, $repositoryProject);
         } else {
             // Remote already exists; fetch to ensure tracking refs are up-to-date.
             $fetchProcess = new Process(['git', 'fetch', $fork->remoteName]);
