@@ -254,6 +254,10 @@ class LlmFormatterTest extends TestCase
             isMergeable: true,
             author: 'mglaman',
             updatedAt: '2024-01-15T10:00:00Z',
+            description: 'Closes #3383637 & <fixes> it',
+            hasConflicts: true,
+            blockingDiscussionsResolved: false,
+            detailedMergeStatus: 'conflict',
         );
 
         $result = new MergeRequestListResult(
@@ -275,6 +279,10 @@ class LlmFormatterTest extends TestCase
         self::assertStringContainsString('<author>mglaman</author>', $output);
         self::assertStringContainsString('<url>https://git.drupalcode.org/issue/drupal-3383637/-/merge_requests/7</url>', $output);
         self::assertStringContainsString('<updated_at>2024-01-15T10:00:00Z</updated_at>', $output);
+        self::assertStringContainsString('<has_conflicts>yes</has_conflicts>', $output);
+        self::assertStringContainsString('<blocking_discussions_resolved>no</blocking_discussions_resolved>', $output);
+        self::assertStringContainsString('<detailed_merge_status>conflict</detailed_merge_status>', $output);
+        self::assertStringContainsString('<description>Closes #3383637 &amp; &lt;fixes&gt; it</description>', $output);
         // Raw < must not appear inside tag values.
         self::assertStringNotContainsString('<b>', $output);
     }

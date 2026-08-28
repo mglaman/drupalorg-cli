@@ -80,7 +80,8 @@ state, never that MRs live elsewhere. To list every MR on a project, pass the
 project path instead: `mr:list project/drupal`.
 
 `--format=llm` output includes IID, title, source branch, state, mergeability,
-author, and last-updated timestamp for each MR.
+conflicts, whether blocking discussions are resolved, detailed merge status,
+author, last-updated timestamp, and description for each MR.
 
 ### Review MR content
 

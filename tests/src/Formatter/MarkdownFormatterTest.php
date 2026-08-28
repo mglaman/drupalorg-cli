@@ -221,6 +221,10 @@ class MarkdownFormatterTest extends TestCase
             isMergeable: true,
             author: 'mglaman',
             updatedAt: '2024-01-15T10:00:00Z',
+            description: "Closes #3383637\n\nAdds the missing null check.",
+            hasConflicts: true,
+            blockingDiscussionsResolved: false,
+            detailedMergeStatus: 'conflict',
         );
 
         $result = new MergeRequestListResult(
@@ -240,6 +244,8 @@ class MarkdownFormatterTest extends TestCase
         self::assertStringContainsString('`3383637-fix-the-thing` → `11.x`', $output);
         self::assertStringContainsString('mglaman', $output);
         self::assertStringContainsString('2024-01-15T10:00:00Z', $output);
+        self::assertStringContainsString('Conflicts: yes | Discussions: unresolved | Merge status: conflict', $output);
+        self::assertStringContainsString("\n    Closes #3383637\n    \n    Adds the missing null check.", $output);
     }
 
     public function testMergeRequestStatusResult(): void

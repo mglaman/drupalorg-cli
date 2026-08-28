@@ -142,6 +142,16 @@ class MarkdownFormatter extends AbstractFormatter
             $lines[] = "- **!{$mr->iid}** [{$mr->state}{$mergeable}] [{$mr->title}]({$mr->webUrl})";
             $lines[] = "  - Branch: `{$mr->sourceBranch}` → `{$mr->targetBranch}`";
             $lines[] = "  - Author: {$mr->author} | Updated: {$mr->updatedAt}";
+            $conflicts = $mr->hasConflicts ? 'yes' : 'no';
+            $discussions = $mr->blockingDiscussionsResolved ? 'resolved' : 'unresolved';
+            $mergeStatus = $mr->detailedMergeStatus !== '' ? $mr->detailedMergeStatus : 'unknown';
+            $lines[] = "  - Conflicts: {$conflicts} | Discussions: {$discussions} | Merge status: {$mergeStatus}";
+            if ($mr->description !== '') {
+                $lines[] = '';
+                foreach (explode("\n", $mr->description) as $descriptionLine) {
+                    $lines[] = '    ' . $descriptionLine;
+                }
+            }
         }
         return implode("\n", $lines);
     }
