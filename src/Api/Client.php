@@ -79,9 +79,25 @@ class Client
         return $this->request($request);
     }
 
+    /**
+     * Drupal.org answers unknown node IDs with HTTP 200 and a stub body, and
+     * serves every node type from the same endpoint, so both cases are checked
+     * here rather than surfacing as empty issue fields downstream.
+     *
+     * @throws \RuntimeException
+     *   When the node does not exist or is not an issue.
+     */
     public function getNode(string $nid): IssueNode
     {
-        return IssueNode::fromStdClass($this->request(new Request('node/' . $nid)));
+        $data = $this->request(new Request('node/' . $nid));
+        $type = $data->type ?? null;
+        if (!is_string($type)) {
+            throw new \RuntimeException(sprintf('Node %s was not found on Drupal.org.', $nid));
+        }
+        if ($type !== 'project_issue') {
+            throw new \RuntimeException(sprintf('Node %s is a %s, not an issue.', $nid, $type));
+        }
+        return IssueNode::fromStdClass($data);
     }
 
     public function getFile(string $fid): File
