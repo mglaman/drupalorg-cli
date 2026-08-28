@@ -107,8 +107,9 @@ includes the MR IID (`!iid`), the second `<mr-iid>` argument is not needed.
 # List merge requests for a Drupal.org issue fork
 # --state: opened (default), closed, merged, all
 # nid is optional; auto-detected from the branch name if omitted
+# Only MRs opened from the issue fork are returned; empty means no fork or no MRs
 drupalorg mr:list [nid] [--state=opened] --format=llm
-# List MRs by project path (no issue NID needed)
+# List every MR on a project (not scoped to an issue)
 drupalorg mr:list project/drupal --format=llm
 
 # Show the unified diff for a merge request

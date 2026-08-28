@@ -153,7 +153,7 @@ class ToolRegistry
         return (new GetMaintainerIssuesAction())($user, MaintainerIssueType::from($type))->jsonSerialize();
     }
 
-    #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'mr_list', description: 'List merge requests for an issue fork.')]
+    #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'mr_list', description: 'List merge requests opened from a Drupal.org issue fork. Returns an empty list when the issue has no fork.')]
     public function mrList(
         #[Schema(description: 'The Drupal.org issue node ID.', pattern: self::NID_PATTERN)]
         string $nid,

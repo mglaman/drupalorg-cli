@@ -224,14 +224,16 @@ class MarkdownFormatterTest extends TestCase
         );
 
         $result = new MergeRequestListResult(
-            projectPath: 'issue/drupal-3383637',
+            projectPath: 'project/drupal',
             mergeRequests: [$mr],
+            issueFork: 'issue/drupal-3383637',
         );
 
         $formatter = new MarkdownFormatter();
         $output = $formatter->format($result);
 
-        self::assertStringContainsString('# Merge Requests: issue/drupal-3383637', $output);
+        self::assertStringContainsString('# Merge Requests: project/drupal', $output);
+        self::assertStringContainsString('Scoped to issue fork `issue/drupal-3383637`.', $output);
         self::assertStringContainsString('**!7**', $output);
         self::assertStringContainsString('[Fix the bug](https://git.drupalcode.org/issue/drupal-3383637/-/merge_requests/7)', $output);
         self::assertStringContainsString('[opened ✓]', $output);

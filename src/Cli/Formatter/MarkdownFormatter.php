@@ -133,6 +133,10 @@ class MarkdownFormatter extends AbstractFormatter
         $lines = [];
         $lines[] = "# Merge Requests: {$result->projectPath}";
         $lines[] = '';
+        if ($result->issueFork !== null) {
+            $lines[] = "Scoped to issue fork `{$result->issueFork}`.";
+            $lines[] = '';
+        }
         foreach ($result->mergeRequests as $mr) {
             $mergeable = $mr->isMergeable ? ' ✓' : '';
             $lines[] = "- **!{$mr->iid}** [{$mr->state}{$mergeable}] [{$mr->title}]({$mr->webUrl})";

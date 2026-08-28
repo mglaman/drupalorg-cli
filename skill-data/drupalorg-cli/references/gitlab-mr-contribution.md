@@ -73,6 +73,12 @@ drupalorg mr:list <nid> --state=merged --format=llm
 drupalorg mr:list <nid> --state=all --format=llm
 ```
 
+`mr:list <nid>` only returns MRs opened from that issue's fork
+(`issue/{project}-{nid}`). The `issue_fork` field names the fork the list was
+scoped to. An empty list means the issue has no fork or no MRs in the requested
+state, never that MRs live elsewhere. To list every MR on a project, pass the
+project path instead: `mr:list project/drupal`.
+
 `--format=llm` output includes IID, title, source branch, state, mergeability,
 author, and last-updated timestamp for each MR.
 
