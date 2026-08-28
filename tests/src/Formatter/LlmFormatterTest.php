@@ -13,6 +13,8 @@ use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestListResult;
 use mglaman\DrupalOrg\Result\Project\ProjectIssuesResult;
 use mglaman\DrupalOrg\Result\Project\ProjectReleasesResult;
 use mglaman\DrupalOrg\Result\ResultInterface;
+use mglaman\DrupalOrg\Result\Skill\SkillItem;
+use mglaman\DrupalOrg\Result\Skill\SkillListResult;
 use mglaman\DrupalOrgCli\Formatter\LlmFormatter;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -204,6 +206,22 @@ class LlmFormatterTest extends TestCase
         self::assertStringContainsString('<version>10.3.8</version>', $output);
         self::assertStringContainsString('<date>', $output);
         self::assertStringContainsString('<description>Security fixes</description>', $output);
+    }
+
+    public function testSkillListResult(): void
+    {
+        $result = new SkillListResult(skills: [
+            new SkillItem(name: 'drupalorg-cli', description: 'Full CLI reference & more.', path: '/tmp/SKILL.md'),
+        ]);
+
+        $formatter = new LlmFormatter();
+        $output = $formatter->format($result);
+
+        self::assertStringStartsWith('<skills>', $output);
+        self::assertStringContainsString('<usage>drupalorg skill:get &lt;name&gt;</usage>', $output);
+        self::assertStringContainsString('<name>drupalorg-cli</name>', $output);
+        self::assertStringContainsString('<description>Full CLI reference &amp; more.</description>', $output);
+        self::assertStringEndsWith('</skills>', $output);
     }
 
     public function testUnsupportedResultTypeThrows(): void

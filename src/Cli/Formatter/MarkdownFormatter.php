@@ -16,6 +16,7 @@ use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestStatusResult;
 use mglaman\DrupalOrg\Result\Issue\IssueSearchResult;
 use mglaman\DrupalOrg\Result\Project\ProjectIssuesResult;
 use mglaman\DrupalOrg\Result\Project\ProjectReleasesResult;
+use mglaman\DrupalOrg\Result\Skill\SkillListResult;
 
 class MarkdownFormatter extends AbstractFormatter
 {
@@ -241,5 +242,20 @@ class MarkdownFormatter extends AbstractFormatter
             $result->workItemUrl(),
             $result->noteId,
         );
+    }
+
+    protected function formatSkillList(SkillListResult $result): string
+    {
+        $lines = [];
+        $lines[] = '# Available skills';
+        $lines[] = '';
+        $lines[] = '| Skill | Description |';
+        $lines[] = '|---|---|';
+        foreach ($result->skills as $skill) {
+            $lines[] = "| `{$skill->name}` | {$skill->description} |";
+        }
+        $lines[] = '';
+        $lines[] = 'Run `drupalorg skill:get <name>` to read a skill.';
+        return implode("\n", $lines);
     }
 }
