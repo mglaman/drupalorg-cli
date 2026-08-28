@@ -2,11 +2,15 @@
 
 namespace mglaman\DrupalOrg\Tests\Action\MergeRequest;
 
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Response;
 use mglaman\DrupalOrg\Action\MergeRequest\ListMergeRequestsAction;
 use mglaman\DrupalOrg\Client;
 use mglaman\DrupalOrg\Enum\MergeRequestState;
 use mglaman\DrupalOrg\Entity\IssueNode;
 use mglaman\DrupalOrg\GitLab\Client as GitLabClient;
+use mglaman\DrupalOrg\GitLab\MergeRequestRef;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestItem;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestListResult;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -17,6 +21,9 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(MergeRequestItem::class)]
 class ListMergeRequestsActionTest extends TestCase
 {
+    private const PROJECT_ID = 12345;
+    private const FORK_ID = 67890;
+
     private static function makeIssueNode(): IssueNode
     {
         return new IssueNode(
@@ -39,10 +46,10 @@ class ListMergeRequestsActionTest extends TestCase
         );
     }
 
-    private static function makeProject(): \stdClass
+    private static function makeProject(int $id): \stdClass
     {
         $project = new \stdClass();
-        $project->id = 12345;
+        $project->id = $id;
         return $project;
     }
 
@@ -57,36 +64,122 @@ class ListMergeRequestsActionTest extends TestCase
         $mr->source_branch = '3383637-fix-the-bug';
         $mr->target_branch = '11.x';
         $mr->state = $state;
-        $mr->web_url = 'https://git.drupalcode.org/issue/drupal-3383637/-/merge_requests/' . $iid;
+        $mr->web_url = 'https://git.drupalcode.org/project/drupal/-/merge_requests/' . $iid;
         $mr->merge_status = 'can_be_merged';
         $mr->author = $author;
         $mr->updated_at = '2024-01-15T10:00:00Z';
         return $mr;
     }
 
-    public function testListWithStateFilter(): void
+    private static function notFound(): ClientException
+    {
+        return new ClientException('Not Found', new Request('GET', 'projects/issue%2Fdrupal-3383637'), new Response(404));
+    }
+
+    /**
+     * @return \PHPUnit\Framework\MockObject\MockObject&GitLabClient
+     */
+    private function gitLabClientWithFork(): GitLabClient
+    {
+        $gitLabClient = $this->createMock(GitLabClient::class);
+        $gitLabClient->method('getProject')->willReturnMap([
+            ['project/drupal', self::makeProject(self::PROJECT_ID)],
+            ['issue/drupal-3383637', self::makeProject(self::FORK_ID)],
+        ]);
+        return $gitLabClient;
+    }
+
+    public function testListsOnlyMergeRequestsFromTheIssueFork(): void
     {
         $client = $this->createMock(Client::class);
         $client->method('getNode')->with('3383637')->willReturn(self::makeIssueNode());
 
-        $gitLabClient = $this->createMock(GitLabClient::class);
-        $gitLabClient->method('getProject')->with('project/drupal')->willReturn(self::makeProject());
+        $gitLabClient = $this->gitLabClientWithFork();
         $gitLabClient->expects($this->once())
             ->method('getMergeRequests')
-            ->with(12345, ['per_page' => 100, 'state' => 'opened'])
+            ->with(self::PROJECT_ID, ['per_page' => 100, 'state' => 'opened', 'source_project_id' => self::FORK_ID])
             ->willReturn([self::makeMrObject()]);
 
         $action = new ListMergeRequestsAction($client, $gitLabClient);
         $result = $action('3383637', MergeRequestState::Opened);
 
-        self::assertInstanceOf(MergeRequestListResult::class, $result);
         self::assertSame('project/drupal', $result->projectPath);
+        self::assertSame('issue/drupal-3383637', $result->issueFork);
         self::assertCount(1, $result->mergeRequests);
-        self::assertInstanceOf(MergeRequestItem::class, $result->mergeRequests[0]);
         self::assertSame(7, $result->mergeRequests[0]->iid);
         self::assertSame('opened', $result->mergeRequests[0]->state);
         self::assertSame('mglaman', $result->mergeRequests[0]->author);
         self::assertTrue($result->mergeRequests[0]->isMergeable);
+        self::assertSame('issue/drupal-3383637', $result->jsonSerialize()['issue_fork']);
+    }
+
+    public function testMissingForkReturnsEmptyListInsteadOfProjectMergeRequests(): void
+    {
+        $client = $this->createMock(Client::class);
+        $client->method('getNode')->willReturn(self::makeIssueNode());
+
+        $gitLabClient = $this->createMock(GitLabClient::class);
+        $gitLabClient->method('getProject')->willThrowException(self::notFound());
+        $gitLabClient->expects($this->never())->method('getMergeRequests');
+
+        $action = new ListMergeRequestsAction($client, $gitLabClient);
+        $result = $action('3383637', MergeRequestState::Opened);
+
+        self::assertSame([], $result->mergeRequests);
+        self::assertSame('project/drupal', $result->projectPath);
+        self::assertSame('issue/drupal-3383637', $result->issueFork);
+    }
+
+    public function testNonNotFoundGitLabErrorsPropagate(): void
+    {
+        $client = $this->createMock(Client::class);
+        $client->method('getNode')->willReturn(self::makeIssueNode());
+
+        $gitLabClient = $this->createMock(GitLabClient::class);
+        $gitLabClient->method('getProject')->willThrowException(
+            new ClientException('Forbidden', new Request('GET', 'projects/x'), new Response(403))
+        );
+
+        $action = new ListMergeRequestsAction($client, $gitLabClient);
+
+        $this->expectException(ClientException::class);
+        $action('3383637', MergeRequestState::Opened);
+    }
+
+    public function testProjectMachineNameSkipsDrupalOrgLookup(): void
+    {
+        $client = $this->createMock(Client::class);
+        $client->expects($this->never())->method('getNode');
+
+        $gitLabClient = $this->gitLabClientWithFork();
+        $gitLabClient->method('getMergeRequests')->willReturn([self::makeMrObject()]);
+
+        $action = new ListMergeRequestsAction($client, $gitLabClient);
+        $result = $action('3383637', MergeRequestState::Opened, null, 'drupal');
+
+        self::assertSame('issue/drupal-3383637', $result->issueFork);
+        self::assertCount(1, $result->mergeRequests);
+    }
+
+    public function testProjectRefListsWholeProject(): void
+    {
+        $client = $this->createMock(Client::class);
+        $client->expects($this->never())->method('getNode');
+
+        $gitLabClient = $this->createMock(GitLabClient::class);
+        $gitLabClient->method('getProject')->with('project/drupal')->willReturn(self::makeProject(self::PROJECT_ID));
+        $gitLabClient->expects($this->once())
+            ->method('getMergeRequests')
+            ->with(self::PROJECT_ID, ['per_page' => 100, 'state' => 'opened'])
+            ->willReturn([self::makeMrObject(7), self::makeMrObject(6)]);
+
+        $action = new ListMergeRequestsAction($client, $gitLabClient);
+        $result = $action('', MergeRequestState::Opened, new MergeRequestRef('project/drupal'));
+
+        self::assertSame('project/drupal', $result->projectPath);
+        self::assertNull($result->issueFork);
+        self::assertCount(2, $result->mergeRequests);
+        self::assertNull($result->jsonSerialize()['issue_fork']);
     }
 
     public function testAllStateOmitsStateParam(): void
@@ -94,31 +187,15 @@ class ListMergeRequestsActionTest extends TestCase
         $client = $this->createMock(Client::class);
         $client->method('getNode')->willReturn(self::makeIssueNode());
 
-        $gitLabClient = $this->createMock(GitLabClient::class);
-        $gitLabClient->method('getProject')->willReturn(self::makeProject());
+        $gitLabClient = $this->gitLabClientWithFork();
         $gitLabClient->expects($this->once())
             ->method('getMergeRequests')
-            ->with(12345, ['per_page' => 100])
+            ->with(self::PROJECT_ID, ['per_page' => 100, 'source_project_id' => self::FORK_ID])
             ->willReturn([self::makeMrObject(7, 'opened'), self::makeMrObject(6, 'merged')]);
 
         $action = new ListMergeRequestsAction($client, $gitLabClient);
         $result = $action('3383637', MergeRequestState::All);
 
         self::assertCount(2, $result->mergeRequests);
-    }
-
-    public function testEmptyResult(): void
-    {
-        $client = $this->createMock(Client::class);
-        $client->method('getNode')->willReturn(self::makeIssueNode());
-
-        $gitLabClient = $this->createMock(GitLabClient::class);
-        $gitLabClient->method('getProject')->willReturn(self::makeProject());
-        $gitLabClient->method('getMergeRequests')->willReturn([]);
-
-        $action = new ListMergeRequestsAction($client, $gitLabClient);
-        $result = $action('3383637', MergeRequestState::Opened);
-
-        self::assertSame([], $result->mergeRequests);
     }
 }

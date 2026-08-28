@@ -257,15 +257,17 @@ class LlmFormatterTest extends TestCase
         );
 
         $result = new MergeRequestListResult(
-            projectPath: 'issue/drupal-3383637',
+            projectPath: 'project/drupal',
             mergeRequests: [$mr],
+            issueFork: 'issue/drupal-3383637',
         );
 
         $formatter = new LlmFormatter();
         $output = $formatter->format($result);
 
         self::assertStringContainsString('<drupal_context>', $output);
-        self::assertStringContainsString('<project_path>issue/drupal-3383637</project_path>', $output);
+        self::assertStringContainsString('<project_path>project/drupal</project_path>', $output);
+        self::assertStringContainsString('<issue_fork>issue/drupal-3383637</issue_fork>', $output);
         self::assertStringContainsString('<iid>7</iid>', $output);
         self::assertStringContainsString('<title>Fix &lt;b&gt;broken&lt;/b&gt; &amp; stuff</title>', $output);
         self::assertStringContainsString('<state>opened</state>', $output);

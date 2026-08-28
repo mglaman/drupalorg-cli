@@ -167,6 +167,9 @@ XML;
     protected function formatMergeRequestList(MergeRequestListResult $result): string
     {
         $projectPath = $this->xmlEscape($result->projectPath);
+        $issueFork = $result->issueFork !== null
+            ? "  <issue_fork>" . $this->xmlEscape($result->issueFork) . "</issue_fork>\n"
+            : '';
         $items = '';
         foreach ($result->mergeRequests as $mr) {
             $title = $this->xmlEscape($mr->title);
@@ -188,7 +191,7 @@ XML;
             $items .= "      <updated_at>{$updatedAt}</updated_at>\n";
             $items .= "    </merge_request>\n";
         }
-        return "<drupal_context>\n  <project_path>{$projectPath}</project_path>\n  <merge_requests>\n{$items}  </merge_requests>\n</drupal_context>";
+        return "<drupal_context>\n  <project_path>{$projectPath}</project_path>\n{$issueFork}  <merge_requests>\n{$items}  </merge_requests>\n</drupal_context>";
     }
 
     protected function formatMergeRequestStatus(MergeRequestStatusResult $result): string

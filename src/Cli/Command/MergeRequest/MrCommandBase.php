@@ -66,9 +66,12 @@ abstract class MrCommandBase extends IssueCommandBase
             return;
         }
 
-        // mr-iid not provided — auto-select from open merge requests.
+        // mr-iid not provided — auto-select from the issue fork's open merge requests.
+        $projectMachineName = $this->workItemRef !== null
+            ? substr($this->workItemRef->projectPath, strlen('project/'))
+            : null;
         $listAction = new ListMergeRequestsAction($this->client, new GitLabClient());
-        $listResult = $listAction($this->nid, MergeRequestState::Opened);
+        $listResult = $listAction($this->nid, MergeRequestState::Opened, null, $projectMachineName);
         $mergeRequests = $listResult->mergeRequests;
 
         if ($mergeRequests === []) {

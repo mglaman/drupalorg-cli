@@ -58,20 +58,31 @@ class ListMergeRequests extends IssueCommandBase
         parent::initialize($input, $output);
     }
 
+    private function projectMachineName(): ?string
+    {
+        if ($this->workItemRef === null) {
+            return null;
+        }
+        return substr($this->workItemRef->projectPath, strlen('project/'));
+    }
+
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $state = MergeRequestState::from((string) ($this->stdIn->getOption('state') ?? 'opened'));
         $format = (string) ($this->stdIn->getOption('format') ?? 'text');
 
         $action = new ListMergeRequestsAction($this->client, new GitLabClient());
-        $result = $action($this->nid ?? '', $state, $this->mrRef);
+        $result = $action($this->nid ?? '', $state, $this->mrRef, $this->projectMachineName());
 
         if ($this->writeFormatted($result, $format)) {
             return 0;
         }
 
         if ($result->mergeRequests === []) {
-            $this->stdOut->writeln(sprintf('No %s merge requests found.', $state->value));
+            $scope = $result->issueFork !== null
+                ? sprintf('for issue fork %s', $result->issueFork)
+                : sprintf('in %s', $result->projectPath);
+            $this->stdOut->writeln(sprintf('No %s merge requests found %s.', $state->value, $scope));
             return 0;
         }
 
