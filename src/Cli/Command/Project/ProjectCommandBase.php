@@ -3,6 +3,7 @@
 namespace mglaman\DrupalOrgCli\Command\Project;
 
 use mglaman\DrupalOrg\Entity\Project;
+use mglaman\DrupalOrg\ProjectRemote;
 use mglaman\DrupalOrgCli\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -29,17 +30,17 @@ abstract class ProjectCommandBase extends Command
     {
         parent::initialize($input, $output);
 
-        if (!$this->stdIn->hasArgument('project')) {
+        $projectName = $this->stdIn->getArgument('project');
+        if (!is_string($projectName) || $projectName === '') {
             $this->debug("Argument project not provided. Trying to get it from the remote URL of the current repository.");
-            $this->projectName = $this->getProjectFromRemote();
-            if ($this->projectName === '') {
-                $this->stdErr->writeln("Failed to find project / machine name from current Git repository.");
+            $remote = ProjectRemote::tryParse($this->getRemoteUrl());
+            if ($remote === null) {
+                $this->stdErr->writeln("Could not determine the project from the git remote; pass the machine name as an argument.");
                 exit(1);
             }
-        } else {
-            $projectName = $this->stdIn->getArgument('project') ?? '';
-            $this->projectName = $projectName;
+            $projectName = $remote->machineName;
         }
+        $this->projectName = $projectName;
 
         // The kanban and link command doesn't need the project data from drupal.org,
         // but checking that the project exists makes sense for all project commands.
@@ -53,17 +54,15 @@ abstract class ProjectCommandBase extends Command
     }
 
     /**
-     * Gets project from remote origin name.
+     * Gets the origin remote URL of the current repository.
      *
      * @return string
-     *   The project name.
+     *   The remote URL, or an empty string when there is no origin remote.
      */
-    protected function getProjectFromRemote(): string
+    protected function getRemoteUrl(): string
     {
-        $process = new Process((array) 'git config --get remote.origin.url');
+        $process = new Process(['git', 'config', '--get', 'remote.origin.url']);
         $process->run();
-        $remote_url = trim($process->getOutput());
-        preg_match('#.*\/(.*)\.git$#', $remote_url, $matches);
-        return $matches[1] ?? '';
+        return trim($process->getOutput());
     }
 }
