@@ -14,6 +14,8 @@ use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestStatusResult;
 use mglaman\DrupalOrg\Result\Project\ProjectIssuesResult;
 use mglaman\DrupalOrg\Result\Project\ProjectReleasesResult;
 use mglaman\DrupalOrg\Result\ResultInterface;
+use mglaman\DrupalOrg\Result\Skill\SkillItem;
+use mglaman\DrupalOrg\Result\Skill\SkillListResult;
 use mglaman\DrupalOrgCli\Formatter\MarkdownFormatter;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -184,6 +186,20 @@ class MarkdownFormatterTest extends TestCase
         self::assertStringContainsString('# Drupal', $output);
         self::assertStringContainsString('**10.3.8**', $output);
         self::assertStringContainsString('Security fixes', $output);
+    }
+
+    public function testSkillListResult(): void
+    {
+        $result = new SkillListResult(skills: [
+            new SkillItem(name: 'drupalorg-cli', description: 'Full CLI reference.', path: '/tmp/SKILL.md'),
+        ]);
+
+        $formatter = new MarkdownFormatter();
+        $output = $formatter->format($result);
+
+        self::assertStringContainsString('# Available skills', $output);
+        self::assertStringContainsString('| `drupalorg-cli` | Full CLI reference. |', $output);
+        self::assertStringContainsString('drupalorg skill:get <name>', $output);
     }
 
     public function testIssueForkResult(): void

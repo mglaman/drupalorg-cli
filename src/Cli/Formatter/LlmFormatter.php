@@ -16,6 +16,7 @@ use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestStatusResult;
 use mglaman\DrupalOrg\Result\Issue\IssueSearchResult;
 use mglaman\DrupalOrg\Result\Project\ProjectIssuesResult;
 use mglaman\DrupalOrg\Result\Project\ProjectReleasesResult;
+use mglaman\DrupalOrg\Result\Skill\SkillListResult;
 
 class LlmFormatter extends AbstractFormatter
 {
@@ -324,6 +325,20 @@ XML;
   <url>{$url}</url>
 </drupal_context>
 XML;
+    }
+
+    protected function formatSkillList(SkillListResult $result): string
+    {
+        $items = '';
+        foreach ($result->skills as $skill) {
+            $name = $this->xmlEscape($skill->name);
+            $description = $this->xmlEscape($skill->description);
+            $items .= "    <skill>\n";
+            $items .= "      <name>{$name}</name>\n";
+            $items .= "      <description>{$description}</description>\n";
+            $items .= "    </skill>\n";
+        }
+        return "<skills>\n  <usage>drupalorg skill:get &lt;name&gt;</usage>\n  <items>\n{$items}  </items>\n</skills>";
     }
 
     private function toIso8601(int $timestamp): string
