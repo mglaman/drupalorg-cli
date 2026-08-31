@@ -30,6 +30,17 @@ drupalorg issue:setup-remote <nid>
 This is idempotent: if the remote already exists it skips the `git remote add`
 step and always runs `git fetch` to update remote refs.
 
+The project that owns the fork is resolved in this order:
+
+1. An explicit qualifier (`project#<nid>` or a work-item URL). No Drupal.org
+   request is made.
+2. The `project/<name>` remote of the current repository, checked against the
+   Drupal.org node when one exists. A mismatch is an error.
+3. The Drupal.org node lookup.
+
+GitLab work-item ids on migrated projects can collide with unrelated Drupal.org
+node ids, so pass `project#<nid>` for work items whenever you know the project.
+
 ### 3. Check out an issue branch
 
 ```bash
@@ -80,7 +91,8 @@ state, never that MRs live elsewhere. To list every MR on a project, pass the
 project path instead: `mr:list project/drupal`.
 
 `--format=llm` output includes IID, title, source branch, state, mergeability,
-author, and last-updated timestamp for each MR.
+conflicts, whether blocking discussions are resolved, detailed merge status,
+author, last-updated timestamp, and description for each MR.
 
 ### Review MR content
 

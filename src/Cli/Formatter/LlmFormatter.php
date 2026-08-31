@@ -16,6 +16,7 @@ use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestStatusResult;
 use mglaman\DrupalOrg\Result\Issue\IssueSearchResult;
 use mglaman\DrupalOrg\Result\Project\ProjectIssuesResult;
 use mglaman\DrupalOrg\Result\Project\ProjectReleasesResult;
+use mglaman\DrupalOrg\Result\Skill\SkillListResult;
 
 class LlmFormatter extends AbstractFormatter
 {
@@ -177,6 +178,10 @@ XML;
             $targetBranch = $this->xmlEscape($mr->targetBranch);
             $author = $this->xmlEscape($mr->author);
             $mergeable = $mr->isMergeable ? 'yes' : 'no';
+            $hasConflicts = $mr->hasConflicts ? 'yes' : 'no';
+            $discussionsResolved = $mr->blockingDiscussionsResolved ? 'yes' : 'no';
+            $detailedMergeStatus = $this->xmlEscape($mr->detailedMergeStatus);
+            $description = $this->xmlEscape($mr->description);
             $items .= "    <merge_request>\n";
             $items .= "      <iid>{$mr->iid}</iid>\n";
             $items .= "      <title>{$title}</title>\n";
@@ -186,9 +191,13 @@ XML;
             $updatedAt = $this->xmlEscape($mr->updatedAt);
             $items .= "      <state>{$state}</state>\n";
             $items .= "      <mergeable>{$mergeable}</mergeable>\n";
+            $items .= "      <has_conflicts>{$hasConflicts}</has_conflicts>\n";
+            $items .= "      <blocking_discussions_resolved>{$discussionsResolved}</blocking_discussions_resolved>\n";
+            $items .= "      <detailed_merge_status>{$detailedMergeStatus}</detailed_merge_status>\n";
             $items .= "      <author>{$author}</author>\n";
             $items .= "      <url>" . $this->xmlEscape($mr->webUrl) . "</url>\n";
             $items .= "      <updated_at>{$updatedAt}</updated_at>\n";
+            $items .= "      <description>{$description}</description>\n";
             $items .= "    </merge_request>\n";
         }
         return "<drupal_context>\n  <project_path>{$projectPath}</project_path>\n{$issueFork}  <merge_requests>\n{$items}  </merge_requests>\n</drupal_context>";
@@ -316,6 +325,20 @@ XML;
   <url>{$url}</url>
 </drupal_context>
 XML;
+    }
+
+    protected function formatSkillList(SkillListResult $result): string
+    {
+        $items = '';
+        foreach ($result->skills as $skill) {
+            $name = $this->xmlEscape($skill->name);
+            $description = $this->xmlEscape($skill->description);
+            $items .= "    <skill>\n";
+            $items .= "      <name>{$name}</name>\n";
+            $items .= "      <description>{$description}</description>\n";
+            $items .= "    </skill>\n";
+        }
+        return "<skills>\n  <usage>drupalorg skill:get &lt;name&gt;</usage>\n  <items>\n{$items}  </items>\n</skills>";
     }
 
     private function toIso8601(int $timestamp): string

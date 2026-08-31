@@ -66,6 +66,10 @@ class ListMergeRequestsActionTest extends TestCase
         $mr->state = $state;
         $mr->web_url = 'https://git.drupalcode.org/project/drupal/-/merge_requests/' . $iid;
         $mr->merge_status = 'can_be_merged';
+        $mr->description = 'Closes #3383637';
+        $mr->has_conflicts = false;
+        $mr->blocking_discussions_resolved = true;
+        $mr->detailed_merge_status = 'mergeable';
         $mr->author = $author;
         $mr->updated_at = '2024-01-15T10:00:00Z';
         return $mr;
@@ -110,6 +114,10 @@ class ListMergeRequestsActionTest extends TestCase
         self::assertSame('opened', $result->mergeRequests[0]->state);
         self::assertSame('mglaman', $result->mergeRequests[0]->author);
         self::assertTrue($result->mergeRequests[0]->isMergeable);
+        self::assertSame('Closes #3383637', $result->mergeRequests[0]->description);
+        self::assertFalse($result->mergeRequests[0]->hasConflicts);
+        self::assertTrue($result->mergeRequests[0]->blockingDiscussionsResolved);
+        self::assertSame('mergeable', $result->mergeRequests[0]->detailedMergeStatus);
         self::assertSame('issue/drupal-3383637', $result->jsonSerialize()['issue_fork']);
     }
 

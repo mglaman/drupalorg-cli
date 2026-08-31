@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace mglaman\DrupalOrgCli\Command\Skill;
 
+use mglaman\DrupalOrg\Action\Skill\ListSkillsAction;
+use mglaman\DrupalOrg\Result\Skill\SkillItem;
 use mglaman\DrupalOrgCli\Command\Command;
+use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -16,19 +19,34 @@ class Get extends Command
     {
         $this
             ->setName('skill:get')
-            ->setDescription('Outputs current skill content for agent consumption.')
-            ->addArgument('name', InputArgument::REQUIRED, 'Skill name (e.g. drupalorg-cli)')
-            ->addOption('full', null, InputOption::VALUE_NONE, 'Include reference files');
+            ->setDescription('Outputs current skill content for agent consumption. Lists available skills when no name is given.')
+            ->addArgument('name', InputArgument::OPTIONAL, 'Skill name (e.g. drupalorg-cli). Omit to list available skills.')
+            ->addOption('full', null, InputOption::VALUE_NONE, 'Include reference files')
+            ->addOption(
+                'format',
+                'f',
+                InputOption::VALUE_OPTIONAL,
+                'Output options for the skill list: text, json, md, llm. Defaults to text.',
+                'text'
+            );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $name = (string) $input->getArgument('name');
-        $skillFile = __DIR__ . '/../../../../skill-data/' . $name . '/SKILL.md';
+        $name = $input->getArgument('name');
+        if ($name === null || $name === '') {
+            return $this->listSkills((string) $input->getOption('format'));
+        }
+        $name = (string) $name;
+
+        $skillFile = ListSkillsAction::DEFAULT_SKILLS_ROOT . '/' . $name . '/SKILL.md';
 
         if (!is_file($skillFile)) {
             $this->stdErr->writeln(sprintf('<error>Skill not found: %s</error>', $name));
-            $available = $this->getAvailableSkills();
+            $available = array_map(
+                static fn(SkillItem $skill) => $skill->name,
+                (new ListSkillsAction())()->skills
+            );
             if ($available !== []) {
                 $this->stdErr->writeln('Available skills: ' . implode(', ', $available));
             }
@@ -44,7 +62,7 @@ class Get extends Command
         $this->stdOut->write($content);
 
         if ((bool) $input->getOption('full')) {
-            $refDir = __DIR__ . '/../../../../skill-data/' . $name . '/references';
+            $refDir = ListSkillsAction::DEFAULT_SKILLS_ROOT . '/' . $name . '/references';
             if (is_dir($refDir)) {
                 foreach (new \DirectoryIterator($refDir) as $fileInfo) {
                     if ($fileInfo->isDot() || !$fileInfo->isFile() || $fileInfo->getExtension() !== 'md') {
@@ -66,23 +84,24 @@ class Get extends Command
         return 0;
     }
 
-    /**
-     * @return string[]
-     */
-    private function getAvailableSkills(): array
+    private function listSkills(string $format): int
     {
-        $skillsRoot = __DIR__ . '/../../../../skill-data';
-        if (!is_dir($skillsRoot)) {
-            return [];
+        $result = (new ListSkillsAction())();
+
+        if ($this->writeFormatted($result, $format)) {
+            return 0;
         }
-        $skills = [];
-        foreach (new \DirectoryIterator($skillsRoot) as $dir) {
-            if ($dir->isDot() || !$dir->isDir()) {
-                continue;
-            }
-            $skills[] = $dir->getFilename();
+
+        $table = new Table($this->stdOut);
+        $table->setHeaders(['Skill', 'Description']);
+        $table->setColumnMaxWidth(1, 80);
+        foreach ($result->skills as $skill) {
+            $table->addRow([$skill->name, $skill->description]);
         }
-        sort($skills);
-        return $skills;
+        $table->render();
+        $this->stdOut->writeln('');
+        $this->stdOut->writeln('Run: drupalorg skill:get <name>');
+
+        return 0;
     }
 }

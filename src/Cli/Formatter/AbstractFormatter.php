@@ -16,6 +16,7 @@ use mglaman\DrupalOrg\Result\Issue\IssueSearchResult;
 use mglaman\DrupalOrg\Result\Project\ProjectIssuesResult;
 use mglaman\DrupalOrg\Result\Project\ProjectReleasesResult;
 use mglaman\DrupalOrg\Result\ResultInterface;
+use mglaman\DrupalOrg\Result\Skill\SkillListResult;
 
 abstract class AbstractFormatter implements FormatterInterface
 {
@@ -35,6 +36,7 @@ abstract class AbstractFormatter implements FormatterInterface
             $result instanceof GitLabIssueResult => $this->formatGitLabIssue($result),
             $result instanceof GitLabIssuesResult => $this->formatGitLabIssues($result),
             $result instanceof SlashCommandResult => $this->formatSlashCommand($result),
+            $result instanceof SkillListResult => $this->formatSkillList($result),
             default => throw new \InvalidArgumentException(
                 sprintf('Unsupported result type: %s', get_class($result))
             ),
@@ -54,4 +56,5 @@ abstract class AbstractFormatter implements FormatterInterface
     abstract protected function formatGitLabIssue(GitLabIssueResult $result): string;
     abstract protected function formatGitLabIssues(GitLabIssuesResult $result): string;
     abstract protected function formatSlashCommand(SlashCommandResult $result): string;
+    abstract protected function formatSkillList(SkillListResult $result): string;
 }

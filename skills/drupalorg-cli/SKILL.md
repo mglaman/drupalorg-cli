@@ -32,6 +32,7 @@ so instructions never go stale.
 ## Specialized skills
 
 ```bash
+drupalorg skill:get --format=llm                    # list every bundled skill with its description
 drupalorg skill:get drupalorg-work-on-issue         # end-to-end GitLab MR contribution workflow
 drupalorg skill:get drupalorg-issue-search          # search issues across API, scrape, and web
 drupalorg skill:get drupalorg-issue-summary-update  # analyse and update issue summaries

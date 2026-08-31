@@ -211,6 +211,12 @@ drupalorg maintainer:release-notes <ref1> [ref2] [--format=json|md|html]
 ```bash
 # Install the drupalorg-cli agent skill into .claude/skills/drupalorg-cli/
 drupalorg skill:install
+
+# List the skills bundled with the installed CLI (name + description)
+drupalorg skill:get --format=llm
+
+# Output a skill's content; --full appends its reference files
+drupalorg skill:get <name> [--full]
 ```
 
 ## Cache Bypass

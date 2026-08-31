@@ -14,6 +14,10 @@ class MergeRequestItem
         public readonly bool $isMergeable,
         public readonly string $author,
         public readonly string $updatedAt,
+        public readonly string $description = '',
+        public readonly bool $hasConflicts = false,
+        public readonly bool $blockingDiscussionsResolved = true,
+        public readonly string $detailedMergeStatus = '',
     ) {
     }
 
@@ -29,6 +33,10 @@ class MergeRequestItem
             isMergeable: ($mr->merge_status ?? '') === 'can_be_merged',
             author: (string) ($mr->author->username ?? ''),
             updatedAt: (string) ($mr->updated_at ?? ''),
+            description: (string) ($mr->description ?? ''),
+            hasConflicts: (bool) ($mr->has_conflicts ?? false),
+            blockingDiscussionsResolved: (bool) ($mr->blocking_discussions_resolved ?? true),
+            detailedMergeStatus: (string) ($mr->detailed_merge_status ?? ''),
         );
     }
 
@@ -47,6 +55,10 @@ class MergeRequestItem
             'is_mergeable' => $this->isMergeable,
             'author' => $this->author,
             'updated_at' => $this->updatedAt,
+            'description' => $this->description,
+            'has_conflicts' => $this->hasConflicts,
+            'blocking_discussions_resolved' => $this->blockingDiscussionsResolved,
+            'detailed_merge_status' => $this->detailedMergeStatus,
         ];
     }
 }

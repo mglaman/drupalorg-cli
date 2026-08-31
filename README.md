@@ -125,7 +125,7 @@ Available commands:
   project:releases          Lists available releases
  skill
   skill:install             Installs the drupalorg-cli discovery skill into .claude/skills/ in the current directory.
-  skill:get                 Outputs current skill content for agent consumption.
+  skill:get                 Outputs current skill content for agent consumption. Lists available skills when no name is given.
 ````
 
 ## GitLab work items
@@ -182,9 +182,11 @@ Both methods install a discovery stub into `.claude/skills/drupalorg-cli/`. The 
 | `drupalorg-issue-search` | Search issues across API, Drupal.org scrape, and web |
 | `drupalorg-issue-summary-update` | Analyse and draft updated issue summaries |
 
-Fetch any skill on demand:
+List the skills bundled with your installed version, or fetch one on demand:
 
 ```bash
+drupalorg skill:get                          # list available skills
+drupalorg skill:get --format=json            # same list as json (md and llm also supported)
 drupalorg skill:get drupalorg-cli
 drupalorg skill:get drupalorg-work-on-issue
 ```
