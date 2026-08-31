@@ -23,6 +23,17 @@ class WorkItemRef
     ) {
     }
 
+    /**
+     * The Drupal.org project machine name, e.g. "campaign" for "project/campaign".
+     */
+    public function projectMachineName(): string
+    {
+        if (str_starts_with($this->projectPath, 'project/')) {
+            return substr($this->projectPath, strlen('project/'));
+        }
+        return basename($this->projectPath);
+    }
+
     public static function tryParse(string $input): ?self
     {
         $input = trim($input);

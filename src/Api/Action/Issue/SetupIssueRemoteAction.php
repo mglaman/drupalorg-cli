@@ -17,10 +17,19 @@ class SetupIssueRemoteAction implements ActionInterface
     ) {
     }
 
-    public function __invoke(string $nid): SetupIssueRemoteResult
-    {
+    /**
+     * @param string|null $projectMachineName
+     *   Project from an explicit qualifier; skips the Drupal.org lookup.
+     * @param string|null $repositoryProject
+     *   Project of the git repository the remote is added to.
+     */
+    public function __invoke(
+        string $nid,
+        ?string $projectMachineName = null,
+        ?string $repositoryProject = null,
+    ): SetupIssueRemoteResult {
         $getFork = new GetIssueForkAction($this->client, $this->gitLabClient);
-        $fork = $getFork($nid);
+        $fork = $getFork($nid, $projectMachineName, $repositoryProject);
 
         $remoteName = $fork->remoteName;
         $sshUrl = $fork->sshUrl;

@@ -5,6 +5,7 @@ namespace mglaman\DrupalOrg\Action\Issue;
 use mglaman\DrupalOrg\Action\ActionInterface;
 use mglaman\DrupalOrg\Client;
 use mglaman\DrupalOrg\GitLab\Client as GitLabClient;
+use mglaman\DrupalOrg\IssueProjectResolver;
 use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
 
 class GetIssueForkAction implements ActionInterface
@@ -15,12 +16,21 @@ class GetIssueForkAction implements ActionInterface
     ) {
     }
 
-    public function __invoke(string $nid, ?string $projectMachineName = null): IssueForkResult
-    {
-        if ($projectMachineName === null) {
-            $issue = $this->client->getNode($nid);
-            $projectMachineName = $issue->fieldProjectMachineName;
-        }
+    /**
+     * @param string|null $projectMachineName
+     *   Project from an explicit qualifier; skips the Drupal.org lookup.
+     * @param string|null $repositoryProject
+     *   Project of the git repository the command runs in.
+     *
+     * @see IssueProjectResolver for the resolution order.
+     */
+    public function __invoke(
+        string $nid,
+        ?string $projectMachineName = null,
+        ?string $repositoryProject = null,
+    ): IssueForkResult {
+        $projectMachineName = (new IssueProjectResolver($this->client))
+            ->resolve($nid, $projectMachineName, $repositoryProject);
         $remoteName = $projectMachineName . '-' . $nid;
         $gitLabProjectPath = 'issue/' . $remoteName;
 

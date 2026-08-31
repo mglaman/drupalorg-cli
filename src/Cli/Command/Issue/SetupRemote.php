@@ -3,6 +3,7 @@
 namespace mglaman\DrupalOrgCli\Command\Issue;
 
 use mglaman\DrupalOrg\Action\Issue\SetupIssueRemoteAction;
+use mglaman\DrupalOrg\ProjectRemote;
 use mglaman\DrupalOrg\GitLab\Client as GitLabClient;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -21,7 +22,7 @@ class SetupRemote extends IssueCommandBase
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $action = new SetupIssueRemoteAction($this->client, new GitLabClient());
-        $result = $action($this->nid);
+        $result = $action($this->nid, $this->explicitProjectMachineName(), ProjectRemote::detect()?->machineName);
 
         if ($result->alreadyExists) {
             $this->stdOut->writeln(
