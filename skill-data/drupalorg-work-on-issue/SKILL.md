@@ -55,13 +55,6 @@ into an issue that ignores the discussion or reopens settled decisions is a poli
 violation. If your reading of the code disagrees with the thread's direction, say so
 to the user and let them raise it in the issue. Do not act on it unilaterally.
 
-`--with-comments` is ignored for GitLab work items. For those, read the discussion
-with `glab` or ask the user to summarize it:
-
-```bash
-GITLAB_HOST=git.drupalcode.org glab issue view <nid> --comments --repo project/<name>
-```
-
 **Directory detection:** Before prompting the user, read `CLAUDE.md` in the current directory.
 If it documents the path to the `<project>` module or repository, `cd` there automatically
 and skip the directory prompt. Only fall back to running `git remote get-url origin` and

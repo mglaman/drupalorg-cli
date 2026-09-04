@@ -227,6 +227,16 @@ class MarkdownFormatter extends AbstractFormatter
         $lines[] = '## Description';
         $lines[] = '';
         $lines[] = $issue->description;
+        if ($result->comments !== []) {
+            $lines[] = '';
+            $lines[] = '## Comments';
+            foreach ($result->comments as $index => $comment) {
+                $lines[] = '';
+                $lines[] = sprintf('### Comment #%d — %s (%s)', $index + 1, $comment->author, $comment->createdAt);
+                $lines[] = '';
+                $lines[] = $comment->body;
+            }
+        }
         return implode("\n", $lines);
     }
 

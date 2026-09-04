@@ -67,7 +67,7 @@ abstract class Command extends BaseCommand
             'llm' => new LlmFormatter(),
             default => throw new \InvalidArgumentException("Unknown format: $format"),
         };
-        $this->stdOut->writeln($formatter->format($result));
+        $this->stdOut->writeln($formatter->format($result), OutputInterface::OUTPUT_RAW);
         return true;
     }
 

@@ -21,13 +21,6 @@ drupalorg issue:show <nid> --with-comments --format=llm
 drupalorg mr:list <nid> --state=all --format=llm
 ```
 
-`--with-comments` only returns comments for classic Drupal.org issues. For GitLab
-work items, read the discussion with `glab` or ask the user to summarize it:
-
-```bash
-GITLAB_HOST=git.drupalcode.org glab issue view <nid> --comments --repo project/<name>
-```
-
 From that output, report to the user before proposing a change:
 
 - Previous attempts (patches, MRs, closed MRs) and why they stalled.
