@@ -22,7 +22,7 @@ drupalorg mr:list <nid> --state=all --format=llm
 ```
 
 `--with-comments` only returns comments for classic Drupal.org issues. For GitLab
-work items, read the discussion with `glab` or ask the user to summarise it:
+work items, read the discussion with `glab` or ask the user to summarize it:
 
 ```bash
 GITLAB_HOST=git.drupalcode.org glab issue view <nid> --comments --repo project/<name>

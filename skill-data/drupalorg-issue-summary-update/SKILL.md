@@ -70,7 +70,7 @@ If the user agrees, draft an updated issue summary that:
 - Updates "Proposed resolution" to reflect the discussion consensus
 - Updates "Remaining tasks" to match what is still outstanding
 - Keeps "Problem/Motivation" unchanged unless comments clarify the problem itself
-- Is shorter than the discussion it summarises. Cut background the thread already
+- Is shorter than the discussion it summarizes. Cut background the thread already
   covers and lead with the decision.
 
 Present the full updated summary text to the user as a draft to edit, not text to
