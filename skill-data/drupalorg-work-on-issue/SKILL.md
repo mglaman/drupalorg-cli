@@ -27,6 +27,12 @@ When the user invokes `/drupalorg-work-on-issue <nid>`, execute the following wo
 each checkpoint marked **[PAUSE]** — present findings and wait for the user to confirm
 before proceeding.
 
+This workflow produces code the user submits under Drupal.org's
+[AI contribution policy](https://www.drupal.org/docs/develop/issues/issue-procedures-and-etiquette/policy-on-the-use-of-ai-when-contributing-to-drupal).
+The user is the contributor and must be able to explain every change. Checkpoints
+marked **[POLICY]** below exist to keep that true. Read the full checklist with
+`drupalorg skill:get drupalorg-cli --full` (reference `ai-contribution-policy`).
+
 ---
 
 ### Step 1: Fetch issue and fork details
@@ -34,13 +40,27 @@ before proceeding.
 Run both commands to gather context (substitute `<nid>` with whatever ref was provided):
 
 ```bash
-drupalorg issue:show <nid> --format=llm
+drupalorg issue:show <nid> --with-comments --format=llm
 drupalorg issue:get-fork <nid> --format=llm
 ```
 
 Report to the user:
 - Issue title, status, project machine name
 - Whether a fork exists and which branches are available
+- Prior attempts (patches, earlier MRs) and why they stalled
+- Architectural decisions already settled in the comments
+
+**[POLICY]** Read the whole comment thread before proposing anything. Code dumped
+into an issue that ignores the discussion or reopens settled decisions is a policy
+violation. If your reading of the code disagrees with the thread's direction, say so
+to the user and let them raise it in the issue. Do not act on it unilaterally.
+
+`--with-comments` is ignored for GitLab work items. For those, read the discussion
+with `glab` or ask the user to summarize it:
+
+```bash
+GITLAB_HOST=git.drupalcode.org glab issue view <nid> --comments --repo project/<name>
+```
 
 **Directory detection:** Before prompting the user, read `CLAUDE.md` in the current directory.
 If it documents the path to the `<project>` module or repository, `cd` there automatically
@@ -141,6 +161,12 @@ drupalorg mr:list <nid> --format=llm
 
 **If one or more MRs exist**, for the relevant MR (confirm with user if multiple exist):
 
+**[POLICY]** Compare the MR `author` in the `mr:list` output with the user. If they
+differ, stop. Adding AI-generated commits to someone else's MR without their
+knowledge and without disclosure is a policy violation. Ask the user to confirm they
+coordinated with the author in the issue, and note that the push must be disclosed
+in a comment. Only continue once the user confirms.
+
 ```bash
 drupalorg mr:files <nid> <mr-iid>
 drupalorg mr:diff <nid> <mr-iid>
@@ -163,7 +189,10 @@ Summarise:
 
 Iterate until the pipeline is green or the user asks to stop:
 
-1. Make the requested code changes.
+1. Make the requested code changes. **[POLICY]** Keep the diff to what the issue
+   asks for: no unrelated refactors, renames, or formatting sweeps. Do not add a
+   dependency you have not confirmed exists and the user has not approved. State
+   what each change does and why in terms the user can repeat to a reviewer.
 2. If `vendor/bin/phpcs` is available, run it on the module directory and fix any violations
    before proceeding:
    ```bash
@@ -198,13 +227,35 @@ Iterate until the pipeline is green or the user asks to stop:
 **[PAUSE]** After each push, report the pipeline outcome and ask whether to continue
 or stop.
 
-**Hand off for review (GitLab work items only):** When the pipeline is green and the
-user confirms the work is ready for review, flip the state label and unassign:
+**[POLICY]** Do not stop with a failing pipeline unless the user explicitly accepts
+it. Leaving a red MR for others to fix is a policy violation.
+
+**Disclosure [POLICY]:** Before hand-off, decide whether AI produced a significant
+portion of the change: entire functions, classes, scaffolding, or long documentation
+blocks. If so, disclosure is mandatory regardless of how carefully the user reviewed
+it. Draft one sentence naming the tool and what it produced, for example:
+
+```
+AI-Generated: Yes (Claude Code drafted the FooService::bar() implementation and its tests; I reviewed and ran them locally).
+```
+
+Tell the user to add it to the MR description (or the template's AI disclosure
+section when one exists) and confirm they did. `drupalorg` cannot edit MR
+descriptions or post Drupal.org comments.
+
+**Hand off for review (GitLab work items only):** When the pipeline is green, the
+disclosure is in place, and the user confirms the work is ready for review, flip the
+state label and unassign:
 
 ```bash
 drupalorg issue:label <ref> state::needsReview
 drupalorg issue:unassign <ref>
 ```
+
+**Follow-up [POLICY]:** Remind the user that reviewers may ask them to explain
+decisions and that "the AI wrote it" closes the contribution. A contribution
+abandoned after feedback is requested leads to an account ban. Offer to re-fetch the
+thread later with `issue:show <nid> --with-comments --format=llm --no-cache`.
 
 ---
 

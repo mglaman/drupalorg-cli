@@ -19,6 +19,31 @@ Some Drupal.org projects have migrated their issue queues to GitLab work items
 at `git.drupalcode.org`. These projects are detected automatically — `project:issues`
 fetches from the GitLab API instead of Drupal.org for them.
 
+## Contribution Policy
+
+Drupal.org's [policy on the use of AI when contributing](https://www.drupal.org/docs/develop/issues/issue-procedures-and-etiquette/policy-on-the-use-of-ai-when-contributing-to-drupal)
+applies to every change made through this CLI. The user is the contributor and
+answers for everything pushed or posted. Non-negotiables for agents:
+
+- **Read the thread first.** Run `issue:show <nid> --with-comments --format=llm`
+  and `mr:list <nid> --state=all --format=llm` before proposing a change. Respect
+  prior attempts and settled architectural decisions.
+- **Minimal, explainable diffs.** No out-of-scope refactors, no unverified
+  dependencies. The user must be able to explain every line to a reviewer.
+- **Green before hand-off.** Run local checks, push, poll `mr:status`, fix
+  `mr:logs` failures. Never leave a failing MR for others.
+- **Never push to someone else's MR** without their knowledge and a disclosed
+  comment. Check the `author` field in `mr:list` output.
+- **Disclose.** When AI produced entire functions, classes, scaffolding, or long
+  doc blocks, draft an `AI-Generated: Yes (...)` line for the MR description or
+  comment and confirm the user added it.
+- **The user's own words.** Summaries, comments, and reviews are drafts for the
+  user to edit and shorten, never text to paste verbatim.
+- **Stay responsive.** Remind the user that follow-up feedback needs a human
+  answer. Drive-by contributions lead to account bans.
+
+The full checklist is in `references/ai-contribution-policy.md`.
+
 ### Work item references
 
 `issue:show`, `issue:get-fork`, and `mr:list` all accept a **WorkItemRef** in
@@ -247,6 +272,7 @@ drupalorg mr:list [nid] --format=llm --no-cache
 
 Detailed workflow guides are in the `references/` directory alongside this file:
 
+- `references/ai-contribution-policy.md` — Drupal.org AI contribution policy checklist (read the thread, verify, disclose)
 - `references/work-on-issue.md` — End-to-end GitLab MR workflow ("Work on this issue")
 - `references/patch-contribution.md` — Classic patch-based contribution workflow
 - `references/gitlab-mr-contribution.md` — GitLab MR contribution workflow reference

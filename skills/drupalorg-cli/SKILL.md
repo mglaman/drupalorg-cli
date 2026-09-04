@@ -29,6 +29,29 @@ drupalorg skill:get drupalorg-cli --full  # include workflow reference guides
 The CLI serves skill content that always matches the installed version,
 so instructions never go stale.
 
+## Contribution policy
+
+Drupal.org's [policy on the use of AI when contributing](https://www.drupal.org/docs/develop/issues/issue-procedures-and-etiquette/policy-on-the-use-of-ai-when-contributing-to-drupal)
+applies to every change made through this CLI. The user answers for everything
+pushed or posted, and violations lead to account bans. Before writing code or
+text for a Drupal.org issue:
+
+- Read the full thread and existing MRs first. Respect prior attempts and
+  settled decisions.
+- Keep diffs minimal and explainable. No out-of-scope refactors or unverified
+  dependencies.
+- Pass local checks and the MR pipeline before handing off. Never push to
+  someone else's MR without their knowledge.
+- Draft an `AI-Generated: Yes (...)` disclosure for the MR description or comment
+  when AI produced entire functions, classes, scaffolding, or long doc blocks.
+- Hand the user drafts to edit into their own words, never text to paste verbatim.
+
+Full checklist:
+
+```bash
+drupalorg skill:get drupalorg-cli --full   # includes references/ai-contribution-policy.md
+```
+
 ## Specialized skills
 
 ```bash

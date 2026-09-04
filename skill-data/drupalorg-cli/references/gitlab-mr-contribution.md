@@ -2,6 +2,10 @@
 
 Reference guide for contributing to Drupal.org issues via GitLab merge requests.
 
+Merge requests fall under Drupal.org's
+[AI contribution policy](https://www.drupal.org/docs/develop/issues/issue-procedures-and-etiquette/policy-on-the-use-of-ai-when-contributing-to-drupal).
+See `ai-contribution-policy.md` in this directory before pushing.
+
 ---
 
 ## Initial Setup
@@ -57,8 +61,12 @@ Branch names follow the convention `<nid>-<short_slug>`, e.g. `3001234-fix_cache
 
 ## Making Changes
 
+Read the issue thread first (`issue:show <nid> --with-comments --format=llm`)
+and check the MR `author` in `mr:list` output. Pushing to an MR the user did
+not author requires the author's knowledge and a disclosing comment.
+
 ```bash
-# Edit files, then stage and commit
+# Edit files, run local checks (phpcs, phpunit, phpstan), then stage and commit
 git add -p
 git commit -m "Issue #<nid> by <username>: <short description>"
 
@@ -68,6 +76,13 @@ git push
 
 Pushing to a tracking branch automatically updates the existing MR on GitLab.
 No separate MR update step is needed.
+
+When AI generated entire functions, classes, scaffolding, or long documentation
+blocks, the MR description needs a disclosure before review is requested:
+
+```
+AI-Generated: Yes (Claude Code drafted <what>; I reviewed and tested it).
+```
 
 ---
 

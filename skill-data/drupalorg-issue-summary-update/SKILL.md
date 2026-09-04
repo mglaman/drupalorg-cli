@@ -49,6 +49,12 @@ Report to the user:
 
 Ask: "Would you like me to draft an updated issue summary?"
 
+**[POLICY]** Only proceed when the update adds technical insight the user has
+verified. Drupal.org's
+[AI contribution policy](https://www.drupal.org/docs/develop/issues/issue-procedures-and-etiquette/policy-on-the-use-of-ai-when-contributing-to-drupal)
+names AI-generated thread summaries posted to gain issue credit as a violation.
+If the current summary already matches the discussion, say so and stop.
+
 ---
 
 ### Step 2: Draft updated summary
@@ -64,8 +70,12 @@ If the user agrees, draft an updated issue summary that:
 - Updates "Proposed resolution" to reflect the discussion consensus
 - Updates "Remaining tasks" to match what is still outstanding
 - Keeps "Problem/Motivation" unchanged unless comments clarify the problem itself
+- Is shorter than the discussion it summarizes. Cut background the thread already
+  covers and lead with the decision.
 
-Present the full updated summary text to the user.
+Present the full updated summary text to the user as a draft to edit, not text to
+paste. Say that explicitly. The policy requires summaries in the contributor's own
+words and treats verbose AI prose as a burden on maintainers.
 
 **[PAUSE]** Ask: "Does this look correct? Should I adjust anything before you
 paste it into the issue?"
@@ -78,8 +88,13 @@ Once the summary is approved, instruct the user:
 
 1. Open the issue: `drupalorg issue:link <nid>`
 2. Click "Edit" on the issue node
-3. Replace the "Summary" (body) field with the updated text
-4. Save the issue
+3. Rewrite the "Summary" (body) field from the draft in their own words
+4. Append a disclosure at the end of the summary, for example:
+   ```
+   AI-Generated: Yes (Claude Code drafted this summary update from the comment thread; I edited and verified it).
+   ```
+   Use the issue template's AI disclosure section instead when one exists.
+5. Save the issue
 
 Note: drupalorg-cli is read-only and cannot write to Drupal.org directly.
 
