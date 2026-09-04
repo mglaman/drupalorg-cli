@@ -6,6 +6,7 @@ namespace mglaman\DrupalOrg\Action\GitLab;
 
 use mglaman\DrupalOrg\GitLab\Client as GitLabClient;
 use mglaman\DrupalOrg\GitLab\Entity\GitLabIssue;
+use mglaman\DrupalOrg\GitLab\Entity\GitLabNote;
 use mglaman\DrupalOrg\GitLab\WorkItemRef;
 use mglaman\DrupalOrg\Result\GitLab\GitLabIssueResult;
 
@@ -15,9 +16,22 @@ class GetGitLabIssueAction
     {
     }
 
-    public function __invoke(WorkItemRef $ref): GitLabIssueResult
+    public function __invoke(WorkItemRef $ref, bool $withComments = false): GitLabIssueResult
     {
         $data = $this->gitLabClient->getIssue($ref->projectPath, $ref->issueId);
-        return new GitLabIssueResult(GitLabIssue::fromStdClass($data));
+        $issue = GitLabIssue::fromStdClass($data);
+        if (!$withComments) {
+            return new GitLabIssueResult($issue);
+        }
+
+        $comments = [];
+        foreach ($this->gitLabClient->getIssueNotes($ref->projectPath, $ref->issueId) as $noteData) {
+            $note = GitLabNote::fromStdClass($noteData);
+            if ($note->system) {
+                continue;
+            }
+            $comments[] = $note;
+        }
+        return new GitLabIssueResult($issue, $comments);
     }
 }

@@ -29,7 +29,7 @@ class Show extends Command
                 'Output options: text, json, md, llm. Defaults to text.',
                 'text'
             )
-            ->addOption('with-comments', null, InputOption::VALUE_NONE, 'Also fetch issue comments.')
+            ->addOption('with-comments', null, InputOption::VALUE_NONE, 'Also fetch issue comments. System-generated messages are skipped.')
             ->setDescription('Show a given issue information.');
     }
 
@@ -38,9 +38,10 @@ class Show extends Command
         $nid = $this->stdIn->getArgument('nid');
         $format = $this->stdIn->getOption('format');
 
+        $withComments = (bool) $this->stdIn->getOption('with-comments');
         $ref = WorkItemRef::tryParse((string) $nid);
         if ($ref !== null) {
-            $result = (new GetGitLabIssueAction(new GitLabClient()))($ref);
+            $result = (new GetGitLabIssueAction(new GitLabClient()))($ref, $withComments);
             if ($this->writeFormatted($result, (string) $format)) {
                 return 0;
             }
@@ -58,10 +59,18 @@ class Show extends Command
             $this->stdOut->writeln(sprintf('Updated: %s', $issue->updatedAt));
             $this->stdOut->writeln(sprintf('URL: %s', $issue->webUrl));
             $this->stdOut->writeln(sprintf("\nDescription:\n%s", $issue->description));
+            foreach ($result->comments as $index => $comment) {
+                $this->stdOut->writeln(sprintf(
+                    "\nComment #%d by %s (%s):\n%s",
+                    $index + 1,
+                    $comment->author,
+                    $comment->createdAt,
+                    $comment->body
+                ));
+            }
             return 0;
         }
 
-        $withComments = (bool) $this->stdIn->getOption('with-comments');
         $result = (new GetIssueAction($this->client))($nid, $withComments);
 
         if ($this->writeFormatted($result, (string) $format)) {

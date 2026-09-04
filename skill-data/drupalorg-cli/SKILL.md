@@ -85,7 +85,7 @@ with clearly labelled fields, contributor lists, and change records.
 drupalorg issue:show <nid> --format=llm
 
 # Fetch issue details including all comments (skips system-generated messages)
-# Note: --with-comments only applies to D.o issues
+# Works for both D.o issues and GitLab work items
 drupalorg issue:show <nid> --with-comments --format=llm
 
 # Show the GitLab issue fork URLs and branches

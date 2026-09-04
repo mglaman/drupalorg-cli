@@ -17,6 +17,9 @@ use mglaman\DrupalOrg\Result\Skill\SkillItem;
 use mglaman\DrupalOrg\Result\Skill\SkillListResult;
 use mglaman\DrupalOrgCli\Formatter\LlmFormatter;
 use PHPUnit\Framework\Attributes\CoversClass;
+use mglaman\DrupalOrg\GitLab\Entity\GitLabIssue;
+use mglaman\DrupalOrg\GitLab\Entity\GitLabNote;
+use mglaman\DrupalOrg\Result\GitLab\GitLabIssueResult;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(LlmFormatter::class)]
@@ -328,5 +331,50 @@ class LlmFormatterTest extends TestCase
         self::assertStringNotContainsString('<script>', $output);
         self::assertStringContainsString('&lt;script&gt;', $output);
         self::assertStringContainsString('&amp;', $output);
+    }
+
+    private static function makeGitLabIssue(): GitLabIssue
+    {
+        return new GitLabIssue(
+            iid: 3586157,
+            title: 'Example AI context issue',
+            description: 'Body',
+            state: 'opened',
+            labels: [],
+            createdAt: '2025-01-01T00:00:00Z',
+            updatedAt: '2025-01-02T00:00:00Z',
+            webUrl: 'https://git.drupalcode.org/project/ai_context/-/work_items/3586157',
+            author: 'reporter',
+            assignees: [],
+        );
+    }
+
+    private static function makeGitLabIssueResult(): GitLabIssueResult
+    {
+        return new GitLabIssueResult(self::makeGitLabIssue(), [
+            new GitLabNote(id: 2, body: 'Reviewed <b>the</b> approach.', author: 'reviewer', createdAt: '2025-01-01T02:00:00Z', system: false),
+        ]);
+    }
+
+    public function testGitLabIssueWithComments(): void
+    {
+        $formatter = new LlmFormatter();
+        $output = $formatter->format(self::makeGitLabIssueResult());
+
+        self::assertStringContainsString('<gitlab_context>', $output);
+        self::assertStringContainsString('<comments>', $output);
+        self::assertStringContainsString('<number>1</number>', $output);
+        self::assertStringContainsString('<author>reviewer</author>', $output);
+        self::assertStringContainsString('<created>2025-01-01T02:00:00Z</created>', $output);
+        self::assertStringContainsString('<![CDATA[Reviewed <b>the</b> approach.]]>', $output);
+        self::assertStringContainsString('</comments>', $output);
+    }
+
+    public function testGitLabIssueWithoutCommentsOmitsCommentsElement(): void
+    {
+        $formatter = new LlmFormatter();
+        $output = $formatter->format(new GitLabIssueResult(self::makeGitLabIssue()));
+
+        self::assertStringNotContainsString('<comments>', $output);
     }
 }

@@ -18,6 +18,9 @@ use mglaman\DrupalOrg\Result\Skill\SkillItem;
 use mglaman\DrupalOrg\Result\Skill\SkillListResult;
 use mglaman\DrupalOrgCli\Formatter\MarkdownFormatter;
 use PHPUnit\Framework\Attributes\CoversClass;
+use mglaman\DrupalOrg\GitLab\Entity\GitLabIssue;
+use mglaman\DrupalOrg\GitLab\Entity\GitLabNote;
+use mglaman\DrupalOrg\Result\GitLab\GitLabIssueResult;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(MarkdownFormatter::class)]
@@ -312,5 +315,46 @@ class MarkdownFormatterTest extends TestCase
         $formatter = new MarkdownFormatter();
         $this->expectException(\InvalidArgumentException::class);
         $formatter->format($result);
+    }
+
+    private static function makeGitLabIssue(): GitLabIssue
+    {
+        return new GitLabIssue(
+            iid: 3586157,
+            title: 'Example AI context issue',
+            description: 'Body',
+            state: 'opened',
+            labels: [],
+            createdAt: '2025-01-01T00:00:00Z',
+            updatedAt: '2025-01-02T00:00:00Z',
+            webUrl: 'https://git.drupalcode.org/project/ai_context/-/work_items/3586157',
+            author: 'reporter',
+            assignees: [],
+        );
+    }
+
+    private static function makeGitLabIssueResult(): GitLabIssueResult
+    {
+        return new GitLabIssueResult(self::makeGitLabIssue(), [
+            new GitLabNote(id: 2, body: 'Reviewed <b>the</b> approach.', author: 'reviewer', createdAt: '2025-01-01T02:00:00Z', system: false),
+        ]);
+    }
+
+    public function testGitLabIssueWithComments(): void
+    {
+        $formatter = new MarkdownFormatter();
+        $output = $formatter->format(self::makeGitLabIssueResult());
+
+        self::assertStringContainsString('## Comments', $output);
+        self::assertStringContainsString('### Comment #1 — reviewer (2025-01-01T02:00:00Z)', $output);
+        self::assertStringContainsString('Reviewed <b>the</b> approach.', $output);
+    }
+
+    public function testGitLabIssueWithoutCommentsOmitsCommentsHeading(): void
+    {
+        $formatter = new MarkdownFormatter();
+        $output = $formatter->format(new GitLabIssueResult(self::makeGitLabIssue()));
+
+        self::assertStringNotContainsString('## Comments', $output);
     }
 }

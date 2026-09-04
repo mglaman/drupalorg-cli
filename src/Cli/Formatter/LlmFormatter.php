@@ -274,6 +274,24 @@ XML;
             $assigneesXml .= '    <assignee>' . $this->xmlEscape($assignee) . "</assignee>\n";
         }
 
+        $commentsXml = '';
+        if ($result->comments !== []) {
+            $commentsXml = "\n  <comments>";
+            foreach ($result->comments as $index => $comment) {
+                $number = $index + 1;
+                $commentAuthor = $this->xmlEscape($comment->author);
+                $commentCreated = $this->xmlEscape($comment->createdAt);
+                $body = $this->cdataWrap($comment->body);
+                $commentsXml .= "\n    <comment>";
+                $commentsXml .= "\n      <number>{$number}</number>";
+                $commentsXml .= "\n      <author>{$commentAuthor}</author>";
+                $commentsXml .= "\n      <created>{$commentCreated}</created>";
+                $commentsXml .= "\n      <body>{$body}</body>";
+                $commentsXml .= "\n    </comment>";
+            }
+            $commentsXml .= "\n  </comments>";
+        }
+
         return <<<XML
 <gitlab_context>
   <issue_id>{$issue->iid}</issue_id>
@@ -287,7 +305,7 @@ XML;
 {$labelsXml}  </labels>
   <assignees>
 {$assigneesXml}  </assignees>
-  <description>{$description}</description>
+  <description>{$description}</description>{$commentsXml}
 </gitlab_context>
 XML;
     }

@@ -117,6 +117,29 @@ class Client
     }
 
     /**
+     * GET /projects/{path}/issues/{iid}/notes
+     *
+     * Returns every note on a GitLab issue or work item in chronological order,
+     * following pagination. Callers decide whether to keep system notes.
+     *
+     * @return \stdClass[]
+     * @throws \Exception
+     */
+    public function getIssueNotes(string $projectPath, int $iid): array
+    {
+        $path = 'projects/' . urlencode($projectPath) . '/issues/' . $iid . '/notes';
+        $notes = [];
+        $page = 1;
+        do {
+            $result = $this->get($path, ['per_page' => 100, 'page' => $page, 'sort' => 'asc', 'order_by' => 'created_at']);
+            $batch = is_array($result) ? $result : [];
+            $notes = [...$notes, ...$batch];
+            $page++;
+        } while (count($batch) === 100);
+        return $notes;
+    }
+
+    /**
      * GET /projects/{path}
      *
      * @throws \Exception
