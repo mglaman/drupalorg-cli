@@ -173,6 +173,8 @@ drupalorg skill:install
 
 Both methods install a discovery stub into `.claude/skills/drupalorg-cli/`. The stub tells agents to call `drupalorg skill:get` for current instructions, so skills never go stale between releases.
 
+The skills build in Drupal.org's [policy on the use of AI when contributing](https://www.drupal.org/docs/develop/issues/issue-procedures-and-etiquette/policy-on-the-use-of-ai-when-contributing-to-drupal): agents are told to read the issue thread before writing code, keep diffs minimal, pass the MR pipeline before handing off, never push to someone else's MR unannounced, and draft the required `AI-Generated: Yes (...)` disclosure for you. You remain responsible for everything you submit.
+
 ### Available skills
 
 | Skill | Description |

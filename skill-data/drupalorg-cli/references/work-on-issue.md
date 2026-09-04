@@ -3,6 +3,12 @@
 This guide describes the end-to-end workflow for an agent to pick up a Drupal.org
 issue, set up the environment, and contribute via GitLab merge request.
 
+Every push made through this workflow falls under Drupal.org's
+[AI contribution policy](https://www.drupal.org/docs/develop/issues/issue-procedures-and-etiquette/policy-on-the-use-of-ai-when-contributing-to-drupal).
+See `ai-contribution-policy.md` in this directory. In short: read the thread
+before writing, keep diffs minimal and explainable, never leave a failing MR,
+never push to someone else's MR unannounced, and disclose AI-generated code.
+
 ---
 
 ## Step 1: Verify the Issue Fork
@@ -25,13 +31,17 @@ whether to wait or open a fresh MR from the main project.
 
 ---
 
-## Step 2: Verify Your Working Directory
+## Step 2: Verify Your Working Directory and Read the Thread
 
-Confirm your current directory matches the project for this issue.
+Confirm your current directory matches the project for this issue, and read the
+full discussion before planning any change.
 
 ```bash
-drupalorg issue:show <nid> --format=llm
+drupalorg issue:show <nid> --with-comments --format=llm
 ```
+
+Note prior attempts and settled architectural decisions from the comments. Code
+that ignores them is a policy violation.
 
 The `<project>` field in the LLM output contains the project machine name
 (e.g. `drupal`, `commerce`, `views`). Your `git remote get-url origin` should
@@ -93,8 +103,11 @@ drupalorg mr:logs <nid> <mr-iid>
 
 ### Make changes and push
 
+Check the `author` field in the `mr:list` output first. Pushing to an MR the
+user did not author requires the author's knowledge and a disclosing comment.
+
 ```bash
-# Edit files as needed, then:
+# Edit files as needed, run local checks (phpcs, phpunit, phpstan), then:
 git add -p
 git commit -m "Issue #<nid> by <username>: <short description>"
 git push
@@ -113,7 +126,17 @@ drupalorg mr:status <nid> <mr-iid> --format=llm
 drupalorg mr:logs <nid> <mr-iid>
 ```
 
-Repeat the loop until the pipeline is green.
+Repeat the loop until the pipeline is green. Do not hand off a failing MR.
+
+### Disclose before requesting review
+
+When AI generated entire functions, classes, scaffolding, or long documentation
+blocks, the user must add a disclosure to the MR description before setting
+"Needs review". Draft it for them:
+
+```
+AI-Generated: Yes (Claude Code drafted <what>; I reviewed and tested it).
+```
 
 ---
 

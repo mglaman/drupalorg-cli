@@ -3,13 +3,17 @@
 Classic patch contribution flow for Drupal.org issues that still use file
 attachments (as opposed to GitLab merge requests).
 
+Patches fall under Drupal.org's
+[AI contribution policy](https://www.drupal.org/docs/develop/issues/issue-procedures-and-etiquette/policy-on-the-use-of-ai-when-contributing-to-drupal)
+the same as merge requests. See `ai-contribution-policy.md` in this directory.
+
 ---
 
 ## Prepare a Patch
 
 ```bash
-# 1. Fetch the issue to understand scope and current state
-drupalorg issue:show <nid> --format=llm
+# 1. Fetch the issue and its comments; read prior attempts before writing code
+drupalorg issue:show <nid> --with-comments --format=llm
 
 # 2. Create a local branch named after the issue
 drupalorg issue:branch <nid>
@@ -19,11 +23,21 @@ drupalorg issue:branch <nid>
 git add -p
 git commit -m "Issue #<nid> by <username>: <short description>"
 
-# 4. Generate the patch (diffs against the upstream tracking branch)
+# 4. Run the project's local checks (phpcs, phpunit) and fix failures
+
+# 5. Generate the patch (diffs against the upstream tracking branch)
 drupalorg issue:patch [nid]
 #    Writes: <cleanTitle>-<nid>-<commentCount+1>.patch to the git repo root
 
-# 5. Upload the patch file to the issue on drupal.org
+# 6. Upload the patch file to the issue on drupal.org
+```
+
+The comment that carries the patch is written by the user in their own words.
+When AI generated entire functions, classes, scaffolding, or long documentation
+blocks in the patch, draft a disclosure line for the end of that comment:
+
+```
+AI-Generated: Yes (Claude Code drafted <what>; I reviewed and tested it).
 ```
 
 `issue:patch` auto-detects the NID from the branch name when run without an
