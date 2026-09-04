@@ -47,6 +47,13 @@ class GetGitLabIssueActionTest extends TestCase
                 'created_at' => '2025-01-01T01:00:00Z',
             ],
             (object) [
+                'id' => 4,
+                'body' => 'Fork created: issue/ai_context-3586157',
+                'system' => false,
+                'author' => (object) ['username' => 'drupalbot'],
+                'created_at' => '2025-01-01T01:30:00Z',
+            ],
+            (object) [
                 'id' => 2,
                 'body' => 'Reviewed the approach, looks good.',
                 'system' => false,
@@ -82,7 +89,7 @@ class GetGitLabIssueActionTest extends TestCase
         self::assertSame([], $result->jsonSerialize()['comments']);
     }
 
-    public function testWithCommentsDropsSystemNotes(): void
+    public function testWithCommentsDropsSystemAndBotNotes(): void
     {
         $gitLabClient = $this->createMock(GitLabClient::class);
         $gitLabClient->method('getIssue')->willReturn(self::makeIssue());
@@ -95,6 +102,7 @@ class GetGitLabIssueActionTest extends TestCase
 
         self::assertCount(2, $result->comments);
         self::assertSame('reviewer', $result->comments[0]->author);
+        self::assertSame(['reviewer', 'Contributor Name'], array_map(static fn(GitLabNote $n) => $n->author, $result->comments));
         self::assertSame('Reviewed the approach, looks good.', $result->comments[0]->body);
         self::assertSame('Contributor Name', $result->comments[1]->author);
 
@@ -107,6 +115,20 @@ class GetGitLabIssueActionTest extends TestCase
                 'created_at' => '2025-01-01T02:00:00Z',
             ],
             $json['comments'][0]
+        );
+    }
+
+    public function testIncludeBotCommentsKeepsBotNotesButNotSystemNotes(): void
+    {
+        $gitLabClient = $this->createMock(GitLabClient::class);
+        $gitLabClient->method('getIssue')->willReturn(self::makeIssue());
+        $gitLabClient->method('getIssueNotes')->willReturn(self::makeNotes());
+
+        $result = (new GetGitLabIssueAction($gitLabClient))(self::makeRef(), true, true);
+
+        self::assertSame(
+            ['drupalbot', 'reviewer', 'Contributor Name'],
+            array_map(static fn(GitLabNote $n) => $n->author, $result->comments)
         );
     }
 }

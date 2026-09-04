@@ -30,6 +30,7 @@ class Show extends Command
                 'text'
             )
             ->addOption('with-comments', null, InputOption::VALUE_NONE, 'Also fetch issue comments. System-generated messages are skipped.')
+            ->addOption('include-bot-comments', null, InputOption::VALUE_NONE, 'Keep drupalbot replies when fetching GitLab work item comments. Off by default because the work item fields already reflect label and assignee changes.')
             ->setDescription('Show a given issue information.');
     }
 
@@ -41,7 +42,8 @@ class Show extends Command
         $withComments = (bool) $this->stdIn->getOption('with-comments');
         $ref = WorkItemRef::tryParse((string) $nid);
         if ($ref !== null) {
-            $result = (new GetGitLabIssueAction(new GitLabClient()))($ref, $withComments);
+            $includeBotComments = (bool) $this->stdIn->getOption('include-bot-comments');
+            $result = (new GetGitLabIssueAction(new GitLabClient()))($ref, $withComments, $includeBotComments);
             if ($this->writeFormatted($result, (string) $format)) {
                 return 0;
             }

@@ -12,11 +12,16 @@ use mglaman\DrupalOrg\Result\GitLab\GitLabIssueResult;
 
 class GetGitLabIssueAction
 {
+    /**
+     * The Drupal.org bot that answers slash commands on work items.
+     */
+    public const BOT_USERNAME = 'drupalbot';
+
     public function __construct(private readonly GitLabClient $gitLabClient)
     {
     }
 
-    public function __invoke(WorkItemRef $ref, bool $withComments = false): GitLabIssueResult
+    public function __invoke(WorkItemRef $ref, bool $withComments = false, bool $includeBotComments = false): GitLabIssueResult
     {
         $data = $this->gitLabClient->getIssue($ref->projectPath, $ref->issueId);
         $issue = GitLabIssue::fromStdClass($data);
@@ -28,6 +33,9 @@ class GetGitLabIssueAction
         foreach ($this->gitLabClient->getIssueNotes($ref->projectPath, $ref->issueId) as $noteData) {
             $note = GitLabNote::fromStdClass($noteData);
             if ($note->system) {
+                continue;
+            }
+            if (!$includeBotComments && $note->author === self::BOT_USERNAME) {
                 continue;
             }
             $comments[] = $note;
