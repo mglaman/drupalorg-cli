@@ -48,6 +48,9 @@ abstract class IssueCommandBase extends Command
         if ($ref !== null) {
             $this->workItemRef = $ref;
             $this->nid = (string) $ref->issueId;
+            if ($this->requiresRepository) {
+                $this->initRepo();
+            }
             return;
         }
 
