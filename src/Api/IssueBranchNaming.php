@@ -30,4 +30,20 @@ final class IssueBranchNaming
         }
         return substr($version, 0, 6) . 'x';
     }
+
+    /**
+     * Migrated work items carry the issue version as a label such as
+     * "v2.0.x-dev". Returns null when no label looks like a version.
+     *
+     * @param string[] $labels
+     */
+    public static function versionBranchFromLabels(array $labels): ?string
+    {
+        foreach ($labels as $label) {
+            if (preg_match('/^v(\d.*)$/', $label, $matches) === 1) {
+                return self::versionBranch($matches[1]);
+            }
+        }
+        return null;
+    }
 }

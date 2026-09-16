@@ -31,4 +31,12 @@ class IssueBranchNamingTest extends TestCase
     {
         self::assertSame($expected, IssueBranchNaming::versionBranch($version));
     }
+
+    public function testVersionBranchFromLabels(): void
+    {
+        self::assertSame('2.0.x', IssueBranchNaming::versionBranchFromLabels(['state::fixed', 'v2.0.x-dev']));
+        self::assertSame('2.0.x', IssueBranchNaming::versionBranchFromLabels(['v2.0.0-beta2']));
+        self::assertNull(IssueBranchNaming::versionBranchFromLabels(['state::needsReview', 'verified']));
+        self::assertNull(IssueBranchNaming::versionBranchFromLabels([]));
+    }
 }
