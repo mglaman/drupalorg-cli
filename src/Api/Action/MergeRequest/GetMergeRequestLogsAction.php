@@ -25,8 +25,11 @@ class GetMergeRequestLogsAction extends AbstractMergeRequestAction
 
         $latest = $pipelines[0];
         $pipelineId = (int) $latest->id;
+        // Merge request pipelines run on the issue fork, so jobs and traces
+        // live under the pipeline's project rather than the target project.
+        $pipelineProjectId = (int) ($latest->project_id ?? $projectId);
 
-        $jobs = $this->gitLabClient->getPipelineJobs($projectId, $pipelineId);
+        $jobs = $this->gitLabClient->getPipelineJobs($pipelineProjectId, $pipelineId);
         $failedJobs = [];
 
         foreach ($jobs as $job) {
@@ -37,7 +40,7 @@ class GetMergeRequestLogsAction extends AbstractMergeRequestAction
             $jobName = (string) ($job->name ?? 'unknown');
 
             try {
-                $trace = $this->gitLabClient->getJobTrace($projectId, $jobId);
+                $trace = $this->gitLabClient->getJobTrace($pipelineProjectId, $jobId);
                 $lines = explode("\n", $trace);
                 $excerpt = implode("\n", array_slice($lines, -self::TRACE_EXCERPT_LINES));
             } catch (\Exception $e) {

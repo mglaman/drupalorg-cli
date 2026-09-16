@@ -39,15 +39,19 @@ class GetMergeRequestLogsActionTest extends TestCase
     private static function makeProject(): \stdClass
     {
         $project = new \stdClass();
-        $project->id = 12345;
+        $project->id = self::TARGET_PROJECT_ID;
         return $project;
     }
+
+    private const TARGET_PROJECT_ID = 12345;
+    private const FORK_PROJECT_ID = 242679;
 
     private static function makePipeline(int $id = 99): \stdClass
     {
         $pipeline = new \stdClass();
         $pipeline->id = $id;
         $pipeline->status = 'failed';
+        $pipeline->project_id = self::FORK_PROJECT_ID;
         return $pipeline;
     }
 
@@ -106,12 +110,12 @@ class GetMergeRequestLogsActionTest extends TestCase
 
         $gitLabClient = $this->createMock(GitLabClient::class);
         $gitLabClient->method('getProject')->willReturn(self::makeProject());
-        $gitLabClient->method('getMergeRequestPipelines')->willReturn([self::makePipeline()]);
-        $gitLabClient->method('getPipelineJobs')->willReturn([
+        $gitLabClient->method('getMergeRequestPipelines')->with(self::TARGET_PROJECT_ID, 7)->willReturn([self::makePipeline()]);
+        $gitLabClient->method('getPipelineJobs')->with(self::FORK_PROJECT_ID, 99)->willReturn([
             self::makeJob(1, 'phpunit', 'success'),
             self::makeJob(2, 'phpstan', 'failed'),
         ]);
-        $gitLabClient->method('getJobTrace')->with(12345, 2)->willReturn($trace);
+        $gitLabClient->method('getJobTrace')->with(self::FORK_PROJECT_ID, 2)->willReturn($trace);
 
         $action = new GetMergeRequestLogsAction($client, $gitLabClient);
         $result = $action('3383637', 7);
