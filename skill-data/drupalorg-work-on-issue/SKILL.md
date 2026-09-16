@@ -66,9 +66,11 @@ asking the user if `CLAUDE.md` provides no guidance.
 - **No matches** → note that no branches exist yet and ask the user how to proceed
   (e.g. create a new branch from the upstream project default branch).
 
-**No fork at all (GitLab work item projects):** If `issue:get-fork` reports no fork
-exists AND the project uses GitLab work items (the ref is a `project_name#nid` or
-work item URL, not a classic Drupal.org NID), offer to create one:
+**No fork at all:** `issue:get-fork` prints `<exists>false</exists>` when nobody has
+created the fork yet. `issue:setup-remote` and `issue:checkout` refuse to run in that
+state. For a classic Drupal.org issue, ask the user to click "Create issue fork" on
+the issue page. If the project uses GitLab work items (the ref is a `project_name#nid`
+or work item URL, not a classic Drupal.org NID), offer to create one:
 
 ```bash
 drupalorg issue:fork <ref>

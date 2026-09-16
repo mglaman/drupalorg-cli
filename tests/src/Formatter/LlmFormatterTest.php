@@ -248,6 +248,7 @@ class LlmFormatterTest extends TestCase
             sshUrl: 'git@git.drupal.org:issue/drupal-3383637.git',
             httpsUrl: 'https://git.drupalcode.org/issue/drupal-3383637.git',
             gitLabProjectPath: 'issue/drupal-3383637',
+            exists: true,
             branches: ['3383637-fix-the-thing', 'main'],
         );
 
@@ -259,6 +260,7 @@ class LlmFormatterTest extends TestCase
         self::assertStringContainsString('<ssh_url>git@git.drupal.org:issue/drupal-3383637.git</ssh_url>', $output);
         self::assertStringContainsString('<https_url>https://git.drupalcode.org/issue/drupal-3383637.git</https_url>', $output);
         self::assertStringContainsString('<gitlab_project_path>issue/drupal-3383637</gitlab_project_path>', $output);
+        self::assertStringContainsString('<exists>true</exists>', $output);
         self::assertStringContainsString('<branch>3383637-fix-the-thing</branch>', $output);
         self::assertStringContainsString('<branch>main</branch>', $output);
     }

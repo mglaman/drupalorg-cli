@@ -37,16 +37,23 @@ class GetIssueForkAction implements ActionInterface
         $sshUrl = 'git@git.drupal.org:' . $gitLabProjectPath . '.git';
         $httpsUrl = 'https://git.drupalcode.org/' . $gitLabProjectPath . '.git';
 
-        $branches = [];
         try {
             $project = $this->gitLabClient->getProject($gitLabProjectPath);
-            $branchObjects = $this->gitLabClient->getBranches((int) $project->id);
-            $branches = array_map(
-                static fn(\stdClass $b) => (string) $b->name,
-                $branchObjects
-            );
         } catch (\Exception $e) {
-            // Fork may not exist yet; return URL info without branches.
+            // GitLab answers 404 until someone clicks "Create issue fork".
+            $project = null;
+        }
+
+        $branches = [];
+        if ($project !== null) {
+            try {
+                $branches = array_map(
+                    static fn(\stdClass $b) => (string) $b->name,
+                    $this->gitLabClient->getBranches((int) $project->id)
+                );
+            } catch (\Exception $e) {
+                // The fork exists; a failed branch listing must not report it missing.
+            }
         }
 
         return new IssueForkResult(
@@ -54,6 +61,7 @@ class GetIssueForkAction implements ActionInterface
             sshUrl: $sshUrl,
             httpsUrl: $httpsUrl,
             gitLabProjectPath: $gitLabProjectPath,
+            exists: $project !== null,
             branches: $branches,
         );
     }

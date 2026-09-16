@@ -39,24 +39,31 @@ class GetMergeRequestLogsActionTest extends TestCase
     private static function makeProject(): \stdClass
     {
         $project = new \stdClass();
-        $project->id = 12345;
+        $project->id = self::TARGET_PROJECT_ID;
         return $project;
     }
+
+    private const TARGET_PROJECT_ID = 12345;
+    private const FORK_PROJECT_ID = 242679;
 
     private static function makePipeline(int $id = 99): \stdClass
     {
         $pipeline = new \stdClass();
         $pipeline->id = $id;
         $pipeline->status = 'failed';
+        $pipeline->project_id = self::FORK_PROJECT_ID;
         return $pipeline;
     }
 
-    private static function makeJob(int $id, string $name, string $status): \stdClass
+    private static function makeJob(int $id, string $name, string $status, ?string $webUrl = null): \stdClass
     {
         $job = new \stdClass();
         $job->id = $id;
         $job->name = $name;
         $job->status = $status;
+        if ($webUrl !== null) {
+            $job->web_url = $webUrl;
+        }
         return $job;
     }
 
@@ -106,12 +113,12 @@ class GetMergeRequestLogsActionTest extends TestCase
 
         $gitLabClient = $this->createMock(GitLabClient::class);
         $gitLabClient->method('getProject')->willReturn(self::makeProject());
-        $gitLabClient->method('getMergeRequestPipelines')->willReturn([self::makePipeline()]);
-        $gitLabClient->method('getPipelineJobs')->willReturn([
+        $gitLabClient->method('getMergeRequestPipelines')->with(self::TARGET_PROJECT_ID, 7)->willReturn([self::makePipeline()]);
+        $gitLabClient->method('getPipelineJobs')->with(self::FORK_PROJECT_ID, 99)->willReturn([
             self::makeJob(1, 'phpunit', 'success'),
             self::makeJob(2, 'phpstan', 'failed'),
         ]);
-        $gitLabClient->method('getJobTrace')->with(12345, 2)->willReturn($trace);
+        $gitLabClient->method('getJobTrace')->with(self::FORK_PROJECT_ID, 2)->willReturn($trace);
 
         $action = new GetMergeRequestLogsAction($client, $gitLabClient);
         $result = $action('3383637', 7);
@@ -121,6 +128,29 @@ class GetMergeRequestLogsActionTest extends TestCase
         self::assertStringContainsString('FATAL ERROR', $result->failedJobs[0]['trace_excerpt']);
         // Excerpt is capped at 100 lines.
         self::assertCount(100, explode("\n", $result->failedJobs[0]['trace_excerpt']));
+    }
+
+    public function testFailedJobTraceFallsBackToRawLog(): void
+    {
+        $client = $this->createMock(Client::class);
+        $client->method('getNode')->willReturn(self::makeIssueNode());
+
+        $webUrl = 'https://git.drupalcode.org/issue/poll-3620831/-/jobs/2';
+
+        $gitLabClient = $this->createMock(GitLabClient::class);
+        $gitLabClient->method('getProject')->willReturn(self::makeProject());
+        $gitLabClient->method('getMergeRequestPipelines')->willReturn([self::makePipeline()]);
+        $gitLabClient->method('getPipelineJobs')->willReturn([
+            self::makeJob(2, 'phpstan', 'failed', $webUrl),
+        ]);
+        $gitLabClient->method('getJobTrace')->willThrowException(new \Exception('401 Unauthorized'));
+        $gitLabClient->method('getJobRawLog')->with($webUrl)->willReturn("line one\nERROR: Job failed");
+
+        $action = new GetMergeRequestLogsAction($client, $gitLabClient);
+        $result = $action('3383637', 7);
+
+        self::assertCount(1, $result->failedJobs);
+        self::assertSame("line one\nERROR: Job failed", $result->failedJobs[0]['trace_excerpt']);
     }
 
     public function testFailedJobWithUnavailableTrace(): void
@@ -135,11 +165,32 @@ class GetMergeRequestLogsActionTest extends TestCase
             self::makeJob(2, 'phpstan', 'failed'),
         ]);
         $gitLabClient->method('getJobTrace')->willThrowException(new \Exception('403 Forbidden'));
+        $gitLabClient->expects(self::never())->method('getJobRawLog');
 
         $action = new GetMergeRequestLogsAction($client, $gitLabClient);
         $result = $action('3383637', 7);
 
         self::assertCount(1, $result->failedJobs);
+        self::assertSame('(trace unavailable)', $result->failedJobs[0]['trace_excerpt']);
+    }
+
+    public function testFailedJobWithUnavailableTraceAndRawLog(): void
+    {
+        $client = $this->createMock(Client::class);
+        $client->method('getNode')->willReturn(self::makeIssueNode());
+
+        $gitLabClient = $this->createMock(GitLabClient::class);
+        $gitLabClient->method('getProject')->willReturn(self::makeProject());
+        $gitLabClient->method('getMergeRequestPipelines')->willReturn([self::makePipeline()]);
+        $gitLabClient->method('getPipelineJobs')->willReturn([
+            self::makeJob(2, 'phpstan', 'failed', 'https://git.drupalcode.org/issue/poll-3620831/-/jobs/2'),
+        ]);
+        $gitLabClient->method('getJobTrace')->willThrowException(new \Exception('401 Unauthorized'));
+        $gitLabClient->method('getJobRawLog')->willThrowException(new \Exception('404 Not Found'));
+
+        $action = new GetMergeRequestLogsAction($client, $gitLabClient);
+        $result = $action('3383637', 7);
+
         self::assertSame('(trace unavailable)', $result->failedJobs[0]['trace_excerpt']);
     }
 }

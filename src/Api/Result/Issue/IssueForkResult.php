@@ -7,6 +7,9 @@ use mglaman\DrupalOrg\Result\ResultInterface;
 class IssueForkResult implements ResultInterface
 {
     /**
+     * @param bool $exists
+     *   Whether the fork project exists on GitLab. An empty branch list alone
+     *   cannot tell a missing fork from a fork nobody has pushed to.
      * @param string[] $branches
      */
     public function __construct(
@@ -14,6 +17,7 @@ class IssueForkResult implements ResultInterface
         public readonly string $sshUrl,
         public readonly string $httpsUrl,
         public readonly string $gitLabProjectPath,
+        public readonly bool $exists,
         public readonly array $branches,
     ) {
     }
@@ -25,6 +29,7 @@ class IssueForkResult implements ResultInterface
             'ssh_url' => $this->sshUrl,
             'https_url' => $this->httpsUrl,
             'gitlab_project_path' => $this->gitLabProjectPath,
+            'exists' => $this->exists,
             'branches' => $this->branches,
         ];
     }

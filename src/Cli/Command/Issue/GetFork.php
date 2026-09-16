@@ -43,6 +43,12 @@ class GetFork extends IssueCommandBase
         $this->stdOut->writeln(sprintf('HTTPS URL:   %s', $result->httpsUrl));
         $this->stdOut->writeln(sprintf('GitLab path: %s', $result->gitLabProjectPath));
 
+        if (!$result->exists) {
+            $this->stdOut->writeln('');
+            $this->stdOut->writeln('Fork does not exist yet. Create it on the issue page and click "Get push access".');
+            return 0;
+        }
+
         if ($result->branches !== []) {
             $this->stdOut->writeln('');
             $this->stdOut->writeln('Branches:');
@@ -50,7 +56,7 @@ class GetFork extends IssueCommandBase
                 $this->stdOut->writeln('  ' . $branch);
             }
         } else {
-            $this->stdOut->writeln('No branches found (fork may not exist yet).');
+            $this->stdOut->writeln('Fork exists but has no branches yet.');
         }
 
         return 0;
