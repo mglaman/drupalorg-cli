@@ -212,6 +212,7 @@ class MarkdownFormatterTest extends TestCase
             sshUrl: 'git@git.drupal.org:issue/drupal-3383637.git',
             httpsUrl: 'https://git.drupalcode.org/issue/drupal-3383637.git',
             gitLabProjectPath: 'issue/drupal-3383637',
+            exists: true,
             branches: ['3383637-fix-the-thing', 'main'],
         );
 
@@ -223,6 +224,7 @@ class MarkdownFormatterTest extends TestCase
         self::assertStringContainsString('**SSH URL:** git@git.drupal.org:issue/drupal-3383637.git', $output);
         self::assertStringContainsString('**HTTPS URL:** https://git.drupalcode.org/issue/drupal-3383637.git', $output);
         self::assertStringContainsString('**GitLab path:** issue/drupal-3383637', $output);
+        self::assertStringContainsString('**Exists:** yes', $output);
         self::assertStringContainsString('## Branches', $output);
         self::assertStringContainsString('- 3383637-fix-the-thing', $output);
         self::assertStringContainsString('- main', $output);

@@ -30,6 +30,13 @@ class Checkout extends IssueCommandBase
         $repositoryProject = ProjectRemote::detect()?->machineName;
         $action = new GetIssueForkAction($this->client, $gitLabClient);
         $fork = $action($this->nid, $explicitProject, $repositoryProject);
+        if (!$fork->exists) {
+            $this->stdErr->writeln(sprintf(
+                '<error>No issue fork for %s yet. Create it on the issue page and click "Get push access".</error>',
+                $this->nid
+            ));
+            return 1;
+        }
 
         // Verify the remote exists locally; offer to set it up if missing.
         $checkRemote = new Process(['git', 'remote', 'get-url', $fork->remoteName]);

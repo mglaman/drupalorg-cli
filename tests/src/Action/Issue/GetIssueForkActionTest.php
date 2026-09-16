@@ -61,7 +61,44 @@ class GetIssueForkActionTest extends TestCase
         self::assertSame('git@git.drupal.org:issue/drupal-3383637.git', $result->sshUrl);
         self::assertSame('https://git.drupalcode.org/issue/drupal-3383637.git', $result->httpsUrl);
         self::assertSame('issue/drupal-3383637', $result->gitLabProjectPath);
+        self::assertTrue($result->exists);
         self::assertSame(['3383637-test-issue', 'main'], $result->branches);
+    }
+
+    public function testForkWithoutBranchesStillExists(): void
+    {
+        $project = new \stdClass();
+        $project->id = 12345;
+
+        $client = $this->createMock(Client::class);
+        $client->method('getNode')->willReturn(self::makeIssueNode());
+
+        $gitLabClient = $this->createMock(GitLabClient::class);
+        $gitLabClient->method('getProject')->willReturn($project);
+        $gitLabClient->method('getBranches')->willReturn([]);
+
+        $result = (new GetIssueForkAction($client, $gitLabClient))('3383637');
+
+        self::assertTrue($result->exists);
+        self::assertSame([], $result->branches);
+    }
+
+    public function testBranchListingFailureDoesNotReportMissingFork(): void
+    {
+        $project = new \stdClass();
+        $project->id = 12345;
+
+        $client = $this->createMock(Client::class);
+        $client->method('getNode')->willReturn(self::makeIssueNode());
+
+        $gitLabClient = $this->createMock(GitLabClient::class);
+        $gitLabClient->method('getProject')->willReturn($project);
+        $gitLabClient->method('getBranches')->willThrowException(new \Exception('Service Unavailable', 503));
+
+        $result = (new GetIssueForkAction($client, $gitLabClient))('3383637');
+
+        self::assertTrue($result->exists);
+        self::assertSame([], $result->branches);
     }
 
     public function testExplicitProjectSkipsNodeLookup(): void
@@ -111,6 +148,7 @@ class GetIssueForkActionTest extends TestCase
         self::assertSame('drupal-3383637', $result->remoteName);
         self::assertSame('git@git.drupal.org:issue/drupal-3383637.git', $result->sshUrl);
         self::assertSame('issue/drupal-3383637', $result->gitLabProjectPath);
+        self::assertFalse($result->exists);
         self::assertSame([], $result->branches);
     }
 }
