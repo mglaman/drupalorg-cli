@@ -7,7 +7,7 @@ A command line tool for interfacing with Drupal.org and GitLab (git.drupalcode.o
 ## Requirements
 
 * PHP 8.1 or higher, with cURL support
-* [Git](https://git-scm.com/) - Currently required to apply and create patches. Very useful for contributing patches back to an issue.
+* [Git](https://git-scm.com/) - Required by the `issue:branch`, `issue:setup-remote`, and `issue:checkout` commands that work with issue forks.
 
 ## Installation
 
@@ -27,12 +27,6 @@ A command line tool for interfacing with Drupal.org and GitLab (git.drupalcode.o
    ```
 
 3. Run `drupalorg` and verify you can see the list of available commands.
-
-### Installing via Composer (deprecated)
-
-Use the following command to install the command line tool via Composer:
-
-`composer global require mglaman/drupalorg-cli`
 
 ### Installing (Bash) completion
 
@@ -78,7 +72,7 @@ Restart your shell or run `source ~/.zshrc`.
 
 ## Updating
 
-Automatic updating is not yet supported. You will need to manually download new releases.
+Run `drupalorg self:update` to download the latest release in place.
 
 ## Usage
 
@@ -195,14 +189,42 @@ drupalorg skill:get drupalorg-work-on-issue
 
 ## Getting Started
 
-### Working with project issues
+### Working on an issue
 
-If you want to use this to generate patches that you can contribute back to a Drupal project, it's best to work within a cloned repo of that project. To get instructions for cloning a project's repo, visit the "Version Control" tab on the project page.
+Drupal.org uses issue forks and merge requests. Run these commands from inside a git checkout of the project. If the project is installed through Composer, `composer require drupal/{project} --prefer-source` gives you a git checkout under `web/modules/contrib/`.
 
-From within the directory of the project we're working on:
+1. Add the issue fork as a remote and fetch it. The command reads the fork URL from the issue, so you only need the issue number.
 
-* `drupalorg issue:apply [issue number]` - Create a new branch for the given issue, apply the latest patch on the issue to the new branch, then commit the changes locally.
-* `drupalorg issue:patch [issue number]` - Create a new patch for the given issue from the changes committed locally.
+   ```bash
+   drupalorg issue:setup-remote 3583015
+   ```
+
+2. Check out the fork's branch. With one branch on the fork it is selected for you, otherwise you pick from a list.
+
+   ```bash
+   drupalorg issue:checkout 3583015
+   ```
+
+3. Make your changes, commit, and push to the fork remote. If the branch has no merge request yet, open one from the issue fork on the Drupal.org issue page.
+
+4. Watch the merge request from the terminal.
+
+   ```bash
+   drupalorg mr:list 3583015     # merge requests on the issue fork
+   drupalorg mr:status 3583015   # pipeline status for the merge request
+   drupalorg mr:logs 3583015     # failed job traces from the latest pipeline
+   drupalorg mr:diff 3583015     # unified diff of the merge request
+   ```
+
+Starting an issue with no fork yet? `drupalorg issue:branch 3583015` creates a local branch named for the issue, so the branch name matches what Drupal.org expects when you create the fork and push.
+
+### Reviewing an issue
+
+```bash
+drupalorg issue:show 3583015 --format=llm    # issue summary and latest comments
+drupalorg mr:files 3583015                   # files changed in the merge request
+drupalorg mr:diff 3583015 --format=llm       # diff with delimiters for agent consumption
+```
 
 ## Contributing
 
