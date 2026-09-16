@@ -2,6 +2,7 @@
 
 namespace mglaman\DrupalOrg\Action\MergeRequest;
 
+use mglaman\DrupalOrg\GitLab\JobLog;
 use mglaman\DrupalOrg\GitLab\MergeRequestRef;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestLogsResult;
 
@@ -25,19 +26,21 @@ class GetMergeRequestLogsAction extends AbstractMergeRequestAction
 
         $latest = $pipelines[0];
         $pipelineId = (int) $latest->id;
+        // Merge request pipelines run on the issue fork, so jobs and traces
+        // live under the pipeline's project rather than the target project.
+        $pipelineProjectId = (int) ($latest->project_id ?? $projectId);
 
-        $jobs = $this->gitLabClient->getPipelineJobs($projectId, $pipelineId);
+        $jobs = $this->gitLabClient->getPipelineJobs($pipelineProjectId, $pipelineId);
         $failedJobs = [];
 
         foreach ($jobs as $job) {
             if (($job->status ?? '') !== 'failed') {
                 continue;
             }
-            $jobId = (int) $job->id;
             $jobName = (string) ($job->name ?? 'unknown');
 
             try {
-                $trace = $this->gitLabClient->getJobTrace($projectId, $jobId);
+                $trace = JobLog::clean($this->fetchTrace($pipelineProjectId, $job));
                 $lines = explode("\n", $trace);
                 $excerpt = implode("\n", array_slice($lines, -self::TRACE_EXCERPT_LINES));
             } catch (\Exception $e) {
@@ -55,5 +58,24 @@ class GetMergeRequestLogsAction extends AbstractMergeRequestAction
             pipelineId: $pipelineId,
             failedJobs: $failedJobs,
         );
+    }
+
+    /**
+     * The API trace endpoint answers 401 without a token. The web raw endpoint
+     * serves the same log anonymously, so it is the fallback.
+     *
+     * @throws \Exception
+     */
+    private function fetchTrace(int $projectId, \stdClass $job): string
+    {
+        try {
+            return $this->gitLabClient->getJobTrace($projectId, (int) $job->id);
+        } catch (\Exception $apiException) {
+            $webUrl = (string) ($job->web_url ?? '');
+            if ($webUrl === '') {
+                throw $apiException;
+            }
+            return $this->gitLabClient->getJobRawLog($webUrl);
+        }
     }
 }
