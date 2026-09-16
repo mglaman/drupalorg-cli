@@ -2,6 +2,7 @@
 
 namespace mglaman\DrupalOrg\Action\MergeRequest;
 
+use mglaman\DrupalOrg\GitLab\JobLog;
 use mglaman\DrupalOrg\GitLab\MergeRequestRef;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestLogsResult;
 
@@ -39,7 +40,7 @@ class GetMergeRequestLogsAction extends AbstractMergeRequestAction
             $jobName = (string) ($job->name ?? 'unknown');
 
             try {
-                $trace = $this->fetchTrace($pipelineProjectId, $job);
+                $trace = JobLog::clean($this->fetchTrace($pipelineProjectId, $job));
                 $lines = explode("\n", $trace);
                 $excerpt = implode("\n", array_slice($lines, -self::TRACE_EXCERPT_LINES));
             } catch (\Exception $e) {
