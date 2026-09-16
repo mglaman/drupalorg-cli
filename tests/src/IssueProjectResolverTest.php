@@ -6,7 +6,9 @@ namespace mglaman\DrupalOrg\Tests;
 
 use mglaman\DrupalOrg\Client;
 use mglaman\DrupalOrg\Entity\IssueNode;
+use mglaman\DrupalOrg\GitLab\WorkItemRef;
 use mglaman\DrupalOrg\IssueProjectResolver;
+use mglaman\DrupalOrg\MigratedIssueException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -32,6 +34,15 @@ class IssueProjectResolverTest extends TestCase
             authorId: null,
             fieldIssueFiles: [],
             comments: [],
+        );
+    }
+
+    private static function migrated(string $nid, string $project): MigratedIssueException
+    {
+        return new MigratedIssueException(
+            $nid,
+            new WorkItemRef('project/' . $project, (int) $nid),
+            sprintf('https://git.drupalcode.org/project/%s/-/work_items/%s', $project, $nid)
         );
     }
 
@@ -100,6 +111,38 @@ class IssueProjectResolverTest extends TestCase
         $resolver = new IssueProjectResolver($client);
 
         self::assertSame('drupal', $resolver->resolve('3383637'));
+    }
+
+    public function testBareNidForMigratedIssueUsesRedirectProject(): void
+    {
+        $client = $this->createMock(Client::class);
+        $client->method('getNode')->willThrowException(self::migrated('3617735', 'restrict_route_by_ip'));
+
+        $resolver = new IssueProjectResolver($client);
+
+        self::assertSame('restrict_route_by_ip', $resolver->resolve('3617735'));
+    }
+
+    public function testMigratedIssueConfirmedByRepository(): void
+    {
+        $client = $this->createMock(Client::class);
+        $client->method('getNode')->willThrowException(self::migrated('3617735', 'restrict_route_by_ip'));
+
+        $resolver = new IssueProjectResolver($client);
+
+        self::assertSame('restrict_route_by_ip', $resolver->resolve('3617735', null, 'restrict_route_by_ip'));
+    }
+
+    public function testMigratedIssueInAnotherRepositoryFails(): void
+    {
+        $client = $this->createMock(Client::class);
+        $client->method('getNode')->willThrowException(self::migrated('3617735', 'restrict_route_by_ip'));
+
+        $resolver = new IssueProjectResolver($client);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Issue 3617735 belongs to project "restrict_route_by_ip" on Drupal.org');
+        $resolver->resolve('3617735', null, 'campaign');
     }
 
     public function testBareNidWithoutProjectFails(): void

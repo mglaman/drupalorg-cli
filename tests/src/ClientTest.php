@@ -6,6 +6,7 @@ use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use mglaman\DrupalOrg\Client;
+use mglaman\DrupalOrg\MigratedIssueException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -55,6 +56,28 @@ class ClientTest extends TestCase
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Node 3000001 is a project_release, not an issue.');
         $client->getNode('3000001');
+    }
+
+    public function testGetNodeReportsMigratedIssue(): void
+    {
+        $client = self::clientResponding([
+            'new_url' => 'https://git.drupalcode.org/project/restrict_route_by_ip/-/work_items/3617735',
+        ]);
+
+        try {
+            $client->getNode('3617735');
+            self::fail('Expected MigratedIssueException.');
+        } catch (MigratedIssueException $e) {
+            self::assertSame('3617735', $e->nid);
+            self::assertSame('project/restrict_route_by_ip', $e->ref->projectPath);
+            self::assertSame(3617735, $e->ref->issueId);
+            self::assertSame(
+                'Issue 3617735 moved to a GitLab work item at '
+                . 'https://git.drupalcode.org/project/restrict_route_by_ip/-/work_items/3617735. '
+                . 'Pass restrict_route_by_ip#3617735.',
+                $e->getMessage()
+            );
+        }
     }
 
     public function testGetNodeRejectsMissingNode(): void

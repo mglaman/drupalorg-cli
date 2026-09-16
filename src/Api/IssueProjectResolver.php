@@ -14,7 +14,8 @@ namespace mglaman\DrupalOrg;
  *   1. An explicit project qualifier (project#id, work-item URL).
  *   2. The project of the git repository the command runs in, checked
  *      against Drupal.org when the node exists.
- *   3. The Drupal.org node lookup.
+ *   3. The Drupal.org node lookup. A node that moved to a GitLab work item
+ *      names its project in the redirect, so that counts as a lookup too.
  */
 final class IssueProjectResolver
 {
@@ -38,7 +39,7 @@ final class IssueProjectResolver
         }
 
         try {
-            $nodeProject = $this->client->getNode($nid)->fieldProjectMachineName;
+            $nodeProject = $this->nodeProject($nid);
         } catch (\RuntimeException $e) {
             throw new \RuntimeException(
                 sprintf('%s %s', $e->getMessage(), self::qualifierHint($nid)),
@@ -59,10 +60,10 @@ final class IssueProjectResolver
     private function resolveAgainstRepository(string $nid, string $repositoryProject): string
     {
         try {
-            $nodeProject = $this->client->getNode($nid)->fieldProjectMachineName;
+            $nodeProject = $this->nodeProject($nid);
         } catch (\RuntimeException) {
-            // Not a Drupal.org issue node (for example a migrated work item),
-            // so the repository is the only source for the project.
+            // Not a Drupal.org issue node, so the repository is the only
+            // source for the project.
             return $repositoryProject;
         }
 
@@ -77,6 +78,18 @@ final class IssueProjectResolver
             $nodeProject,
             $repositoryProject
         ));
+    }
+
+    /**
+     * @throws \RuntimeException
+     */
+    private function nodeProject(string $nid): string
+    {
+        try {
+            return $this->client->getNode($nid)->fieldProjectMachineName;
+        } catch (MigratedIssueException $e) {
+            return $e->ref->projectMachineName();
+        }
     }
 
     private static function qualifierHint(string $nid): string
