@@ -147,6 +147,7 @@ XML;
         $sshUrl = $this->xmlEscape($result->sshUrl);
         $httpsUrl = $this->xmlEscape($result->httpsUrl);
         $gitLabPath = $this->xmlEscape($result->gitLabProjectPath);
+        $exists = $result->exists ? 'true' : 'false';
 
         $branchItems = '';
         foreach ($result->branches as $branch) {
@@ -159,6 +160,7 @@ XML;
   <ssh_url>{$sshUrl}</ssh_url>
   <https_url>{$httpsUrl}</https_url>
   <gitlab_project_path>{$gitLabPath}</gitlab_project_path>
+  <exists>{$exists}</exists>
   <branches>
 {$branchItems}  </branches>
 </drupal_context>

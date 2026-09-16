@@ -94,10 +94,13 @@ drupalorg issue:show <ref> --with-comments --include-bot-comments --format=llm
 
 # Show the GitLab issue fork URLs and branches
 # nid is optional; auto-detected from the branch name if omitted
+# <exists>false</exists> means nobody has clicked "Create issue fork" yet;
+# an empty <branches> list with <exists>true</exists> means the fork has no pushes
 drupalorg issue:get-fork [nid] --format=llm
 
 # Add the GitLab issue fork as a git remote and fetch it
 # nid is optional; auto-detected from the branch name if omitted
+# Fails without adding a remote when the fork does not exist yet
 drupalorg issue:setup-remote [nid]
 
 # Check out a branch from the GitLab issue fork
@@ -270,6 +273,7 @@ drupalorg mr:list [nid] --format=llm --no-cache
 | `No patch found on issue` | Issue has no file attachments | Check `issue:show` to confirm files exist |
 | `No branch configured` | `issue:patch` run outside a git repo or without a tracking branch | Run `issue:branch <nid>` first |
 | `Remote … does not exist` | `issue:checkout` run before `issue:setup-remote` | Run `issue:setup-remote <nid>` first |
+| `No issue fork for … yet` | `issue:setup-remote` or `issue:checkout` run before the fork was created on GitLab | Create the fork from the issue page (or `issue:fork <ref>` on work item projects), then retry |
 | `429 / 503` | Drupal.org rate limit or maintenance | The client retries automatically; wait and retry if it persists |
 
 ## References

@@ -118,6 +118,7 @@ class MarkdownFormatter extends AbstractFormatter
         $lines[] = "- **SSH URL:** {$result->sshUrl}";
         $lines[] = "- **HTTPS URL:** {$result->httpsUrl}";
         $lines[] = "- **GitLab path:** {$result->gitLabProjectPath}";
+        $lines[] = '- **Exists:** ' . ($result->exists ? 'yes' : 'no');
         if ($result->branches !== []) {
             $lines[] = '';
             $lines[] = '## Branches';

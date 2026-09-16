@@ -30,6 +30,12 @@ class SetupIssueRemoteAction implements ActionInterface
     ): SetupIssueRemoteResult {
         $getFork = new GetIssueForkAction($this->client, $this->gitLabClient);
         $fork = $getFork($nid, $projectMachineName, $repositoryProject);
+        if (!$fork->exists) {
+            throw new \RuntimeException(sprintf(
+                'No issue fork for %s yet. Create it on the issue page and click "Get push access", then run this again.',
+                $nid
+            ));
+        }
 
         $remoteName = $fork->remoteName;
         $sshUrl = $fork->sshUrl;
