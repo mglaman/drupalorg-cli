@@ -31,7 +31,7 @@ class Client
 
         $token = self::resolveToken();
         if ($token !== null) {
-            $headers['PRIVATE-TOKEN'] = $token;
+            $headers['Authorization'] = 'Bearer ' . $token;
         }
 
         $this->client = new \GuzzleHttp\Client([
