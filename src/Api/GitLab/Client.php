@@ -301,4 +301,22 @@ class Client
         }
         throw new \Exception('GitLab API error fetching job trace', $res->getStatusCode());
     }
+
+    /**
+     * GET {job web_url}/raw
+     *
+     * The web endpoint serves a job log without a token, unlike the API trace
+     * endpoint. GitLab redirects to object storage; Guzzle follows the redirect
+     * and drops the Authorization header when the origin changes.
+     *
+     * @throws \Exception
+     */
+    public function getJobRawLog(string $jobWebUrl): string
+    {
+        $res = $this->client->request('GET', $jobWebUrl . '/raw');
+        if ($res->getStatusCode() === 200) {
+            return $res->getBody()->getContents();
+        }
+        throw new \Exception('GitLab error fetching raw job log', $res->getStatusCode());
+    }
 }

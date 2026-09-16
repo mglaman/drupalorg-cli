@@ -36,11 +36,10 @@ class GetMergeRequestLogsAction extends AbstractMergeRequestAction
             if (($job->status ?? '') !== 'failed') {
                 continue;
             }
-            $jobId = (int) $job->id;
             $jobName = (string) ($job->name ?? 'unknown');
 
             try {
-                $trace = $this->gitLabClient->getJobTrace($pipelineProjectId, $jobId);
+                $trace = $this->fetchTrace($pipelineProjectId, $job);
                 $lines = explode("\n", $trace);
                 $excerpt = implode("\n", array_slice($lines, -self::TRACE_EXCERPT_LINES));
             } catch (\Exception $e) {
@@ -58,5 +57,24 @@ class GetMergeRequestLogsAction extends AbstractMergeRequestAction
             pipelineId: $pipelineId,
             failedJobs: $failedJobs,
         );
+    }
+
+    /**
+     * The API trace endpoint answers 401 without a token. The web raw endpoint
+     * serves the same log anonymously, so it is the fallback.
+     *
+     * @throws \Exception
+     */
+    private function fetchTrace(int $projectId, \stdClass $job): string
+    {
+        try {
+            return $this->gitLabClient->getJobTrace($projectId, (int) $job->id);
+        } catch (\Exception $apiException) {
+            $webUrl = (string) ($job->web_url ?? '');
+            if ($webUrl === '') {
+                throw $apiException;
+            }
+            return $this->gitLabClient->getJobRawLog($webUrl);
+        }
     }
 }
