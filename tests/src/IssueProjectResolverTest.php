@@ -141,7 +141,10 @@ class IssueProjectResolverTest extends TestCase
         $resolver = new IssueProjectResolver($client);
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Issue 3617735 belongs to project "restrict_route_by_ip" on Drupal.org');
+        $this->expectExceptionMessage(
+            'Issue 3617735 is a GitLab work item in project "restrict_route_by_ip", but this repository is project "campaign". '
+            . 'Run this in a clone of restrict_route_by_ip.'
+        );
         $resolver->resolve('3617735', null, 'campaign');
     }
 

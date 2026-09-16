@@ -60,7 +60,19 @@ final class IssueProjectResolver
     private function resolveAgainstRepository(string $nid, string $repositoryProject): string
     {
         try {
-            $nodeProject = $this->nodeProject($nid);
+            $nodeProject = $this->client->getNode($nid)->fieldProjectMachineName;
+        } catch (MigratedIssueException $e) {
+            $workItemProject = $e->ref->projectMachineName();
+            if ($workItemProject === $repositoryProject) {
+                return $repositoryProject;
+            }
+            throw new \RuntimeException(sprintf(
+                'Issue %1$s is a GitLab work item in project "%2$s", but this repository is project "%3$s". '
+                . 'Run this in a clone of %2$s.',
+                $nid,
+                $workItemProject,
+                $repositoryProject
+            ), 0, $e);
         } catch (\RuntimeException) {
             // Not a Drupal.org issue node, so the repository is the only
             // source for the project.
