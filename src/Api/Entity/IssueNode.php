@@ -2,6 +2,8 @@
 
 namespace mglaman\DrupalOrg\Entity;
 
+use mglaman\DrupalOrg\IssueBranchNaming;
+
 class IssueNode
 {
     /**
@@ -30,9 +32,7 @@ class IssueNode
 
     public function buildCleanTitle(): string
     {
-        $cleanTitle = preg_replace('/[^a-zA-Z0-9]+/', '_', $this->title);
-        $cleanTitle = strtolower(substr((string) $cleanTitle, 0, 20));
-        return (string) preg_replace('/(^_|_$)/', '', $cleanTitle);
+        return IssueBranchNaming::slug($this->title);
     }
 
     public function buildBranchName(): string
@@ -42,14 +42,10 @@ class IssueNode
 
     public function buildIssueVersionBranch(): string
     {
-        $issueVersionBranch = $this->fieldIssueVersion;
         if ($this->fieldProjectId === '3060') {
-            return substr($issueVersionBranch, 0, 5);
+            return substr($this->fieldIssueVersion, 0, 5);
         }
-        if (preg_match('/^(\d+\.\d+)\./', $issueVersionBranch, $matches)) {
-            return $matches[1] . '.x';
-        }
-        return substr($issueVersionBranch, 0, 6) . 'x';
+        return IssueBranchNaming::versionBranch($this->fieldIssueVersion);
     }
 
     public static function fromStdClass(\stdClass $data): self
