@@ -147,7 +147,7 @@ drupalorg issue:show project/ai_context#3586157
 drupalorg issue:show ai_context#3586157
 ```
 
-The same formats work for `issue:get-fork` and `mr:list`. MR URLs also work directly:
+The same formats work for `issue:branch`, `issue:get-fork`, `issue:setup-remote`, `issue:checkout`, and `mr:list`. A bare NID also works for these commands when the issue was migrated: Drupal.org answers with the work item URL and the CLI follows it. MR URLs also work directly:
 
 ```bash
 drupalorg mr:list https://git.drupalcode.org/project/ai_context/-/merge_requests/131
