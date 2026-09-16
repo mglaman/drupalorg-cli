@@ -3,6 +3,8 @@
 namespace mglaman\DrupalOrg\Result\Issue;
 
 use mglaman\DrupalOrg\Entity\IssueNode;
+use mglaman\DrupalOrg\GitLab\Entity\GitLabIssue;
+use mglaman\DrupalOrg\IssueBranchNaming;
 use mglaman\DrupalOrg\Result\ResultInterface;
 
 class IssueBranchResult implements ResultInterface
@@ -22,6 +24,14 @@ class IssueBranchResult implements ResultInterface
         return new self(
             branchName: $issue->buildBranchName(),
             issueVersionBranch: $issue->buildIssueVersionBranch(),
+        );
+    }
+
+    public static function fromGitLabIssue(GitLabIssue $issue, string $issueVersionBranch): self
+    {
+        return new self(
+            branchName: sprintf('%d-%s', $issue->iid, IssueBranchNaming::slug($issue->title)),
+            issueVersionBranch: $issueVersionBranch,
         );
     }
 

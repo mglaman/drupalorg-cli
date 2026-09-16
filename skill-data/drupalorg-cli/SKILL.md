@@ -109,6 +109,8 @@ drupalorg issue:setup-remote [nid]
 drupalorg issue:checkout [nid] [branch]
 
 # Create a local git branch named after the issue
+# Accepts a D.o NID, shorthand ref, or work item URL. For work items the base
+# branch comes from the version label (v2.0.x-dev) or the project default branch
 drupalorg issue:branch <nid>
 
 # Generate a patch from committed (but not yet pushed) changes
@@ -269,6 +271,7 @@ drupalorg mr:list [nid] --format=llm --no-cache
 | Error | Cause | Recovery |
 |-------|-------|----------|
 | `Node not found` | Invalid or private issue NID, or a GitLab work item NID passed to a D.o-only command | Use a WorkItemRef instead: `ai_context#3586157` |
+| `Issue … moved to a GitLab work item` | The D.o issue migrated to GitLab and the command has no work item support | Pass the ref the message names, e.g. `restrict_route_by_ip#3617735`, to a command that supports work items |
 | `404 Project Not Found` (GitLab) | D.o issue NID used with a GitLab work item project — D.o node has no `field_project` | Pass the full work item URL or shorthand ref |
 | `No patch found on issue` | Issue has no file attachments | Check `issue:show` to confirm files exist |
 | `No branch configured` | `issue:patch` run outside a git repo or without a tracking branch | Run `issue:branch <nid>` first |

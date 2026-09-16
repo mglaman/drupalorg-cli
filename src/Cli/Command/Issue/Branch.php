@@ -3,6 +3,7 @@
 namespace mglaman\DrupalOrgCli\Command\Issue;
 
 use mglaman\DrupalOrg\Action\Issue\GetIssueBranchNameAction;
+use mglaman\DrupalOrg\GitLab\Client as GitLabClient;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -14,7 +15,7 @@ class Branch extends IssueCommandBase
     {
         $this
             ->setName('issue:branch')
-            ->addArgument('nid', InputArgument::REQUIRED, 'The issue node ID')
+            ->addArgument('nid', InputArgument::REQUIRED, 'The issue node ID, project#nid, or GitLab work item URL')
             ->setDescription('Creates a branch for the issue.')
             ->setHelp(
                 implode(
@@ -36,8 +37,8 @@ class Branch extends IssueCommandBase
         InputInterface $input,
         OutputInterface $output
     ): int {
-        $action = new GetIssueBranchNameAction($this->client);
-        $result = $action($this->nid);
+        $action = new GetIssueBranchNameAction($this->client, new GitLabClient());
+        $result = $action($this->nid, $this->workItemRef);
 
         if (!in_array($result->issueVersionBranch, $this->repository->getBranches(), true)) {
             $this->stdOut->writeln(

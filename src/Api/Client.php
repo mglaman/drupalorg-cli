@@ -8,6 +8,7 @@ use mglaman\DrupalOrg\Entity\File;
 use mglaman\DrupalOrg\Entity\IssueNode;
 use mglaman\DrupalOrg\Entity\Project;
 use mglaman\DrupalOrg\Entity\Release;
+use mglaman\DrupalOrg\GitLab\WorkItemRef;
 
 class Client
 {
@@ -84,6 +85,8 @@ class Client
      * serves every node type from the same endpoint, so both cases are checked
      * here rather than surfacing as empty issue fields downstream.
      *
+     * @throws MigratedIssueException
+     *   When the issue moved to a GitLab work item.
      * @throws \RuntimeException
      *   When the node does not exist or is not an issue.
      */
@@ -92,6 +95,11 @@ class Client
         $data = $this->request(new Request('node/' . $nid));
         $type = $data->type ?? null;
         if (!is_string($type)) {
+            $newUrl = $data->new_url ?? null;
+            $ref = is_string($newUrl) ? WorkItemRef::tryParse($newUrl) : null;
+            if ($newUrl !== null && $ref !== null) {
+                throw new MigratedIssueException($nid, $ref, $newUrl);
+            }
             throw new \RuntimeException(sprintf('Node %s was not found on Drupal.org.', $nid));
         }
         if ($type !== 'project_issue') {

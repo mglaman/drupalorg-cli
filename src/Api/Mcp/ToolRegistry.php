@@ -61,7 +61,7 @@ class ToolRegistry
         #[Schema(description: 'The Drupal.org issue node ID.', pattern: self::NID_PATTERN)]
         string $nid
     ): mixed {
-        return (new GetIssueBranchNameAction($this->client))($nid)->jsonSerialize();
+        return (new GetIssueBranchNameAction($this->client, new GitLabClient()))($nid)->jsonSerialize();
     }
 
     #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'issue_get_patch_url', description: 'Get the latest patch URL for an issue.')]
