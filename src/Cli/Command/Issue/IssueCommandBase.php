@@ -81,6 +81,10 @@ abstract class IssueCommandBase extends Command
 
     /**
      * Initializes repository for current directory.
+     *
+     * @throws \RuntimeException
+     *   When the current directory is not inside a git repository. The console
+     *   application renders the message and exits non-zero.
      */
     protected function initRepo(): void
     {
@@ -89,17 +93,17 @@ abstract class IssueCommandBase extends Command
             return;
         }
 
+        $process = new Process(['git', 'rev-parse', '--show-toplevel']);
+        $process->run();
+        if (!$process->isSuccessful()) {
+            throw new \RuntimeException('No repository found in current directory.');
+        }
 
         try {
-            $process = new Process(['git', 'rev-parse', '--show-toplevel']);
-            $process->run();
-            $repository_dir = trim($process->getOutput());
-            $this->cwd = $repository_dir;
-            $client = new Git();
-            $this->repository = $client->open($this->cwd);
+            $this->cwd = trim($process->getOutput());
+            $this->repository = (new Git())->open($this->cwd);
         } catch (\Exception $e) {
-            $this->stdErr->writeln("No repository found in current directory.");
-            exit(1);
+            throw new \RuntimeException('No repository found in current directory.', 0, $e);
         }
     }
 
