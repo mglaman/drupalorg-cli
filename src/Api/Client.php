@@ -23,9 +23,14 @@ class Client
      */
     public const API_URL = 'https://www.drupal.org/api-d7/';
 
-    public function __construct(bool $noCache = false)
+    /**
+     * @param \GuzzleHttp\HandlerStack|null $handler
+     *   Tests pass a stack built around a MockHandler so they can assert on the
+     *   requests this client sends. Production callers pass nothing.
+     */
+    public function __construct(bool $noCache = false, ?HandlerStack $handler = null)
     {
-        $stack = HandlerStack::create();
+        $stack = $handler ?? HandlerStack::create();
         $stack->push(GuzzleRetryMiddleware::factory([
             'max_retry_attempts' => 5,
             'retry_on_status' => [429, 503],
