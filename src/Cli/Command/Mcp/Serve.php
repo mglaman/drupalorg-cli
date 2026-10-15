@@ -3,8 +3,10 @@
 namespace mglaman\DrupalOrgCli\Command\Mcp;
 
 use Composer\InstalledVersions;
+use Mcp\Capability\Registry\Container;
 use Mcp\Server;
 use Mcp\Server\Transport\StdioTransport;
+use mglaman\DrupalOrg\Client;
 use mglaman\DrupalOrg\Mcp\ToolRegistry;
 use mglaman\DrupalOrgCli\Command\Command;
 use Psr\Log\AbstractLogger;
@@ -43,7 +45,11 @@ class Serve extends Command
 
         $toolRegistryDir = dirname((string) (new \ReflectionClass(ToolRegistry::class))->getFileName());
 
+        $container = new Container();
+        $container->set(Client::class, new Client());
+
         $server = Server::builder()
+            ->setContainer($container)
             ->setDiscovery($toolRegistryDir, ['.'])
             ->setServerInfo('Drupal.org CLI', $version)
             ->setLogger($logger)
