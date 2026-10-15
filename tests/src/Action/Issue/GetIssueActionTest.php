@@ -158,6 +158,11 @@ class GetIssueActionTest extends TestCase
         $decoded = json_decode($json, true);
         self::assertSame('3383637', $decoded['nid']);
         self::assertSame(6, $decoded['field_issue_status']);
+        self::assertSame('Closed (works as designed)', $decoded['status']);
+        self::assertSame('Bug report', $decoded['category']);
+        self::assertSame('Normal', $decoded['priority']);
+        self::assertSame('2023-08-28T03:58:24+00:00', $decoded['created_at']);
+        self::assertSame('2024-09-29T23:41:35+00:00', $decoded['changed_at']);
         self::assertSame('drupal', $decoded['field_project_machine_name']);
         self::assertSame([], $decoded['comments']);
     }
