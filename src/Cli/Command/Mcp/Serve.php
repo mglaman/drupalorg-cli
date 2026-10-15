@@ -3,11 +3,14 @@
 namespace mglaman\DrupalOrgCli\Command\Mcp;
 
 use Composer\InstalledVersions;
+use Mcp\Capability\Registry\Container;
 use Mcp\Server;
 use Mcp\Server\Transport\StdioTransport;
+use mglaman\DrupalOrg\Client;
 use mglaman\DrupalOrg\Mcp\ToolRegistry;
 use mglaman\DrupalOrgCli\Command\Command;
 use Psr\Log\AbstractLogger;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -41,16 +44,26 @@ class Serve extends Command
             }
         };
 
+        self::createServer($version, $logger)->run(new StdioTransport());
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * Creates the MCP server with the tools from ToolRegistry.
+     */
+    public static function createServer(string $version, LoggerInterface $logger, Client $client = new Client()): Server
+    {
+        $container = new Container();
+        $container->set(Client::class, $client);
+
         $toolRegistryDir = dirname((string) (new \ReflectionClass(ToolRegistry::class))->getFileName());
 
-        $server = Server::builder()
+        return Server::builder()
+            ->setContainer($container)
             ->setDiscovery($toolRegistryDir, ['.'])
             ->setServerInfo('Drupal.org CLI', $version)
             ->setLogger($logger)
             ->build();
-
-        $server->run(new StdioTransport());
-
-        return self::SUCCESS;
     }
 }
