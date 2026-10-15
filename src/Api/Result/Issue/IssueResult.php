@@ -4,10 +4,13 @@ namespace mglaman\DrupalOrg\Result\Issue;
 
 use mglaman\DrupalOrg\Entity\IssueComment;
 use mglaman\DrupalOrg\Entity\IssueNode;
+use mglaman\DrupalOrg\IssueTrait;
 use mglaman\DrupalOrg\Result\ResultInterface;
 
 class IssueResult implements ResultInterface
 {
+    use IssueTrait;
+
     /**
      * @param IssueComment[] $comments
      */
@@ -56,10 +59,15 @@ class IssueResult implements ResultInterface
             'nid' => $this->nid,
             'title' => $this->title,
             'created' => $this->created,
+            'created_at' => gmdate(\DATE_ATOM, $this->created),
             'changed' => $this->changed,
+            'changed_at' => gmdate(\DATE_ATOM, $this->changed),
             'field_issue_status' => $this->fieldIssueStatus,
+            'status' => $this->getIssueStatusLabel($this->fieldIssueStatus),
             'field_issue_category' => $this->fieldIssueCategory,
+            'category' => $this->getIssueCategoryLabel($this->fieldIssueCategory),
             'field_issue_priority' => $this->fieldIssuePriority,
+            'priority' => $this->getIssuePriorityLabel($this->fieldIssuePriority),
             'field_issue_version' => $this->fieldIssueVersion,
             'field_issue_component' => $this->fieldIssueComponent,
             'field_project_machine_name' => $this->fieldProjectMachineName,

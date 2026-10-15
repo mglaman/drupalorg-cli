@@ -72,6 +72,22 @@ trait IssueTrait
                 return 'Active';
             case 2:
                 return 'Fixed';
+            case 3:
+                return 'Closed (duplicate)';
+            case 4:
+                return 'Postponed';
+            case 5:
+                return "Closed (won't fix)";
+            case 6:
+                return 'Closed (works as designed)';
+            case 7:
+                return 'Closed (fixed)';
+            case 15:
+                return 'Patch (to be ported)';
+            case 17:
+                return 'Closed (outdated)';
+            case 18:
+                return 'Closed (cannot reproduce)';
             case 13:
                 return 'Needs Work';
             case 8:
