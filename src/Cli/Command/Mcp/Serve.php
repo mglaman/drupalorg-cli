@@ -3,7 +3,6 @@
 namespace mglaman\DrupalOrgCli\Command\Mcp;
 
 use Composer\InstalledVersions;
-use GuzzleHttp\HandlerStack;
 use Mcp\Capability\Registry\Container;
 use Mcp\Server;
 use Mcp\Server\Transport\StdioTransport;
@@ -52,15 +51,11 @@ class Serve extends Command
 
     /**
      * Creates the MCP server with the tools from ToolRegistry.
-     *
-     * @param \GuzzleHttp\HandlerStack|null $handler
-     *   Tests pass a stack built around a MockHandler. Production callers pass
-     *   nothing.
      */
-    public static function createServer(string $version, LoggerInterface $logger, ?HandlerStack $handler = null): Server
+    public static function createServer(string $version, LoggerInterface $logger, Client $client = new Client()): Server
     {
         $container = new Container();
-        $container->set(Client::class, new Client(false, $handler));
+        $container->set(Client::class, $client);
 
         $toolRegistryDir = dirname((string) (new \ReflectionClass(ToolRegistry::class))->getFileName());
 

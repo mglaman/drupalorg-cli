@@ -8,6 +8,7 @@ use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use Mcp\Server\Transport\StdioTransport;
+use mglaman\DrupalOrg\Client;
 use mglaman\DrupalOrgCli\Command\Mcp\Serve;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -89,7 +90,7 @@ class ServeTest extends TestCase
         $output = fopen($outputFile, 'w');
         self::assertIsResource($output);
 
-        Serve::createServer('test', new NullLogger(), HandlerStack::create($http))
+        Serve::createServer('test', new NullLogger(), new Client(false, HandlerStack::create($http)))
             ->run(new StdioTransport($input, $output));
 
         $lines = (string) file_get_contents($outputFile);
