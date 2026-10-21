@@ -70,10 +70,18 @@ class ProjectIssues extends ProjectCommandBase
     ): int {
         $format = (string) $this->stdIn->getOption('format');
         $limit = (int) $this->stdIn->getOption('limit');
+        $type = ProjectIssueType::from((string) $this->stdIn->getArgument('type'));
+        $categoryOption = $this->stdIn->getOption('category');
+        $category = $categoryOption !== null ? ProjectIssueCategory::from((string) $categoryOption) : null;
 
         if (!$this->projectData->hasIssueQueue) {
             $this->stdErr->writeln('<comment>Project uses GitLab work items (no Drupal.org issue queue).</comment>');
-            $result = (new ListGitLabIssuesAction(new GitLabClient()))($this->projectData->machineName, limit: $limit);
+            $result = (new ListGitLabIssuesAction(new GitLabClient()))(
+                $this->projectData->machineName,
+                limit: $limit,
+                type: $type,
+                category: $category,
+            );
             if ($this->writeFormatted($result, $format)) {
                 return 0;
             }
@@ -98,11 +106,9 @@ class ProjectIssues extends ProjectCommandBase
         }
 
         $action = new GetProjectIssuesAction($this->client);
-        $categoryOption = $this->stdIn->getOption('category');
-        $category = $categoryOption !== null ? ProjectIssueCategory::from((string) $categoryOption) : null;
         $result = $action(
             $this->projectData,
-            ProjectIssueType::from((string) $this->stdIn->getArgument('type')),
+            $type,
             (string) $this->stdIn->getOption('core'),
             $limit,
             $category

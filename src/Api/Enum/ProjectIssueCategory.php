@@ -20,4 +20,9 @@ enum ProjectIssueCategory: string
             ProjectIssueCategory::Plan => 5,
         };
     }
+
+    public function gitLabLabel(): string
+    {
+        return 'category::' . $this->value;
+    }
 }
