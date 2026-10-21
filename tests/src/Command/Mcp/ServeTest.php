@@ -9,6 +9,7 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use Mcp\Server\Transport\StdioTransport;
 use mglaman\DrupalOrg\Client;
+use mglaman\DrupalOrg\GitLab\Client as GitLabClient;
 use mglaman\DrupalOrgCli\Command\Mcp\Serve;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -54,6 +55,32 @@ class ServeTest extends TestCase
         self::assertSame(0, $http->count());
     }
 
+    public function testCallsGitLabToolOverHttp(): void
+    {
+        $gitLabHttp = new MockHandler([new Response(200, [], json_encode([
+            [
+                'iid' => 3586157,
+                'title' => 'Example work item',
+                'state' => 'opened',
+                'labels' => ['state::rtbc'],
+                'web_url' => 'https://git.drupalcode.org/project/smart_content/-/work_items/3586157',
+            ],
+        ], JSON_THROW_ON_ERROR))]);
+
+        $responses = $this->runServer(new MockHandler(), [
+            [
+                'jsonrpc' => '2.0',
+                'id' => 2,
+                'method' => 'tools/call',
+                'params' => ['name' => 'gitlab_project_issues', 'arguments' => ['machineName' => 'smart_content']],
+            ],
+        ], $gitLabHttp);
+
+        self::assertArrayNotHasKey('error', $responses[2]);
+        self::assertSame('Example work item', $responses[2]['result']['structuredContent']['issues'][0]['title']);
+        self::assertSame(0, $gitLabHttp->count());
+    }
+
     /**
      * Initializes a session, sends the given requests and returns the
      * responses keyed by request ID.
@@ -62,7 +89,7 @@ class ServeTest extends TestCase
      *
      * @return array<int, array<string, mixed>>
      */
-    private function runServer(MockHandler $http, array $requests): array
+    private function runServer(MockHandler $http, array $requests, MockHandler $gitLabHttp = new MockHandler()): array
     {
         $messages = [
             [
@@ -90,7 +117,12 @@ class ServeTest extends TestCase
         $output = fopen($outputFile, 'w');
         self::assertIsResource($output);
 
-        Serve::createServer('test', new NullLogger(), new Client(false, HandlerStack::create($http)))
+        Serve::createServer(
+            'test',
+            new NullLogger(),
+            new Client(false, HandlerStack::create($http)),
+            new GitLabClient(HandlerStack::create($gitLabHttp)),
+        )
             ->run(new StdioTransport($input, $output));
 
         $lines = (string) file_get_contents($outputFile);
