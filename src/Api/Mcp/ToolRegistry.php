@@ -82,7 +82,7 @@ class ToolRegistry
         return (new GetIssueForkAction($this->client, $this->gitLabClient))($nid)->jsonSerialize();
     }
 
-    #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'project_get_issues', description: 'Get open issues for a Drupal.org project.')]
+    #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'project_get_issues', description: 'Get open issues for a Drupal.org project. Projects that migrated their issue queue to GitLab return GitLab work items in the gitlab_project_issues shape; the core filter does not apply to them.')]
     public function projectGetIssues(
         #[Schema(description: "The project machine name (e.g. 'drupal', 'token', 'pathauto').")]
         string $machineName,
@@ -99,8 +99,12 @@ class ToolRegistry
         if ($project === null) {
             throw new \RuntimeException("Project '$machineName' not found.");
         }
+        $issueType = ProjectIssueType::from($type);
         $issueCategory = $category !== null ? ProjectIssueCategory::from($category) : null;
-        return (new GetProjectIssuesAction($this->client))($project, ProjectIssueType::from($type), $core, $limit, $issueCategory)->jsonSerialize();
+        if (!$project->hasIssueQueue) {
+            return (new ListGitLabIssuesAction($this->gitLabClient))($project->machineName, limit: $limit, type: $issueType, category: $issueCategory)->jsonSerialize();
+        }
+        return (new GetProjectIssuesAction($this->client))($project, $issueType, $core, $limit, $issueCategory)->jsonSerialize();
     }
 
     #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'issue_search', description: 'Search issues for a Drupal.org project by title keyword.')]
