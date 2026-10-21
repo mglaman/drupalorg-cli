@@ -7,6 +7,7 @@ use Mcp\Capability\Registry\Container;
 use Mcp\Server;
 use Mcp\Server\Transport\StdioTransport;
 use mglaman\DrupalOrg\Client;
+use mglaman\DrupalOrg\GitLab\Client as GitLabClient;
 use mglaman\DrupalOrg\Mcp\ToolRegistry;
 use mglaman\DrupalOrgCli\Command\Command;
 use Psr\Log\AbstractLogger;
@@ -52,10 +53,15 @@ class Serve extends Command
     /**
      * Creates the MCP server with the tools from ToolRegistry.
      */
-    public static function createServer(string $version, LoggerInterface $logger, Client $client = new Client()): Server
-    {
+    public static function createServer(
+        string $version,
+        LoggerInterface $logger,
+        Client $client = new Client(),
+        GitLabClient $gitLabClient = new GitLabClient(),
+    ): Server {
         $container = new Container();
         $container->set(Client::class, $client);
+        $container->set(GitLabClient::class, $gitLabClient);
 
         $toolRegistryDir = dirname((string) (new \ReflectionClass(ToolRegistry::class))->getFileName());
 
