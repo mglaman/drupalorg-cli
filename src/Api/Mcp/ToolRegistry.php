@@ -222,8 +222,13 @@ class ToolRegistry
         #[Schema(description: 'Issue state filter.', enum: ['opened', 'closed', 'all'])]
         string $state = 'opened',
         #[Schema(description: 'Maximum number of issues to return.', minimum: 1, maximum: 100)]
-        int $limit = 25
+        int $limit = 25,
+        #[Schema(description: 'Filter issues by status type.', enum: ['all', 'rtbc', 'review'])]
+        string $type = 'all',
+        #[Schema(description: 'Filter issues by category.', enum: ['bug', 'task', 'feature', 'support', 'plan'])]
+        ?string $category = null
     ): mixed {
-        return (new ListGitLabIssuesAction(new GitLabClient()))($machineName, $state, $limit)->jsonSerialize();
+        $issueCategory = $category !== null ? ProjectIssueCategory::from($category) : null;
+        return (new ListGitLabIssuesAction(new GitLabClient()))($machineName, $state, $limit, ProjectIssueType::from($type), $issueCategory)->jsonSerialize();
     }
 }
