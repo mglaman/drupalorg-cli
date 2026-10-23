@@ -10,6 +10,7 @@ use mglaman\DrupalOrg\Result\Issue\IssueResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestItem;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestListResult;
+use mglaman\DrupalOrg\Result\Project\ProjectContainsResult;
 use mglaman\DrupalOrg\Result\Project\ProjectIssuesResult;
 use mglaman\DrupalOrg\Result\Project\ProjectReleasesResult;
 use mglaman\DrupalOrg\Result\ResultInterface;
@@ -209,6 +210,34 @@ class LlmFormatterTest extends TestCase
         self::assertStringContainsString('<version>10.3.8</version>', $output);
         self::assertStringContainsString('<date>', $output);
         self::assertStringContainsString('<description>Security fixes</description>', $output);
+    }
+
+    public function testProjectContainsResult(): void
+    {
+        $result = new ProjectContainsResult(
+            projectName: 'tool',
+            sha: 'd6ef1a7c0ffee',
+            title: 'Fix <tool> discovery & cache',
+            committedDate: '2025-03-14T09:26:53.000+00:00',
+            webUrl: 'https://git.drupalcode.org/project/tool/-/commit/d6ef1a7c0ffee',
+            branches: ['1.x'],
+            tags: ['1.0.0-beta12', '1.0.0'],
+        );
+
+        $output = (new LlmFormatter())->format($result);
+
+        self::assertStringStartsWith('<drupal_context>', $output);
+        self::assertStringContainsString('<project>tool</project>', $output);
+        self::assertStringContainsString('<sha>d6ef1a7c0ffee</sha>', $output);
+        self::assertStringContainsString('<title>Fix &lt;tool&gt; discovery &amp; cache</title>', $output);
+        self::assertStringContainsString('<committed_date>2025-03-14T09:26:53.000+00:00</committed_date>', $output);
+        self::assertStringContainsString('<url>https://git.drupalcode.org/project/tool/-/commit/d6ef1a7c0ffee</url>', $output);
+        self::assertStringContainsString("<branches>\n    <branch>1.x</branch>\n  </branches>", $output);
+        self::assertStringContainsString(
+            "<tags order=\"oldest_first\">\n    <tag>1.0.0-beta12</tag>\n    <tag>1.0.0</tag>\n  </tags>",
+            $output
+        );
+        self::assertStringEndsWith('</drupal_context>', $output);
     }
 
     public function testSkillListResult(): void
