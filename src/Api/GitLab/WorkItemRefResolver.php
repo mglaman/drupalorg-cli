@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace mglaman\DrupalOrg\GitLab;
 
 use mglaman\DrupalOrg\Client;
+use mglaman\DrupalOrg\MigratedIssueException;
 
 /**
  * Resolves a work item reference from user input.
  *
  * Accepts a full work item URL, `project/name#nid`, `name#nid`, or a bare
- * NID. A bare NID is looked up on Drupal.org to find its project.
+ * NID. A bare NID is looked up on Drupal.org to find its project, or the
+ * work item it moved to.
  */
 class WorkItemRefResolver
 {
@@ -33,7 +35,11 @@ class WorkItemRefResolver
                 $refOrNid,
             ));
         }
-        $node = $this->client->getNode($refOrNid);
+        try {
+            $node = $this->client->getNode($refOrNid);
+        } catch (MigratedIssueException $e) {
+            return $e->ref;
+        }
         $machineName = $node->fieldProjectMachineName;
         if ($machineName === '') {
             throw new \RuntimeException(sprintf(
