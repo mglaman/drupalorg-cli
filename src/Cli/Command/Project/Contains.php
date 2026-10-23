@@ -65,7 +65,7 @@ class Contains extends ProjectCommandBase
             return 0;
         }
 
-        $this->stdOut->writeln('<options=bold>' . OutputFormatter::escape($result->title) . '</>');
+        $this->stdOut->writeln($result->title, OutputInterface::OUTPUT_RAW);
         $this->stdOut->writeln("Commit: {$result->sha}");
         $this->stdOut->writeln("Committed: {$result->committedDate}");
         $this->stdOut->writeln('');
