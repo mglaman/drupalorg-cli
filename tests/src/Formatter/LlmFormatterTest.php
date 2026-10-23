@@ -310,6 +310,50 @@ class LlmFormatterTest extends TestCase
         self::assertStringNotContainsString('<b>', $output);
     }
 
+    public function testMergeRequestResult(): void
+    {
+        $output = (new LlmFormatter())->format(MergeRequestResultFixture::make());
+
+        self::assertStringContainsString('<drupal_context>', $output);
+        self::assertStringContainsString('<iid>219</iid>', $output);
+        self::assertStringContainsString('<title>Issue #3625000: Fix &lt;b&gt;the&lt;/b&gt; widget</title>', $output);
+        self::assertStringContainsString('<author>contributor</author>', $output);
+        self::assertStringContainsString('<state>opened</state>', $output);
+        self::assertStringContainsString('<draft>yes</draft>', $output);
+        self::assertStringContainsString('<source_branch>3625000-fix-widget</source_branch>', $output);
+        self::assertStringContainsString('<target_branch>1.x</target_branch>', $output);
+        self::assertStringContainsString('<head_sha>abc123</head_sha>', $output);
+        self::assertStringContainsString('<detailed_merge_status>draft_status</detailed_merge_status>', $output);
+        self::assertStringContainsString('<has_conflicts>no</has_conflicts>', $output);
+        self::assertStringContainsString('<blocking_discussions_resolved>no</blocking_discussions_resolved>', $output);
+        self::assertStringContainsString("<head_pipeline>\n    <status>success</status>\n    <url>https://git.drupalcode.org/project/tool/-/pipelines/99</url>", $output);
+        self::assertStringContainsString('<iid>3625000</iid>', $output);
+        self::assertStringContainsString('<label>state::needsReview</label>', $output);
+        self::assertStringContainsString('<url>https://git.drupalcode.org/project/tool/-/work_items/3625000</url>', $output);
+        self::assertStringNotContainsString('<comments>', $output);
+        self::assertStringNotContainsString('<target_note_id>', $output);
+    }
+
+    public function testMergeRequestResultWithoutClosingIssuesHasEmptyElement(): void
+    {
+        $output = (new LlmFormatter())->format(MergeRequestResultFixture::make(closesIssues: []));
+
+        self::assertStringContainsString("<closes_issues>\n  </closes_issues>", $output);
+    }
+
+    public function testMergeRequestResultMarksTheLinkedNote(): void
+    {
+        $output = (new LlmFormatter())->format(MergeRequestResultFixture::make(withComments: true, targetNoteId: 3625786));
+
+        self::assertStringContainsString('<target_note_id>3625786</target_note_id>', $output);
+        self::assertStringContainsString("<comment>\n      <id>100</id>", $output);
+        self::assertStringContainsString("<comment target=\"true\">\n      <id>3625786</id>", $output);
+        self::assertSame(1, substr_count($output, 'target="true"'));
+        self::assertStringContainsString('<path>src/Widget.php</path>', $output);
+        self::assertStringContainsString('<line>42</line>', $output);
+        self::assertStringContainsString('<body><![CDATA[This needs a <null> check.]]></body>', $output);
+    }
+
     public function testXmlEscapingInTitle(): void
     {
         $result = new IssueResult(

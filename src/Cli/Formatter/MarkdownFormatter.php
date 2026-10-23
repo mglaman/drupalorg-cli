@@ -12,6 +12,7 @@ use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestDiffResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestFilesResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestListResult;
+use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestStatusResult;
 use mglaman\DrupalOrg\Result\Issue\IssueSearchResult;
 use mglaman\DrupalOrg\Result\Project\ProjectIssuesResult;
@@ -169,6 +170,55 @@ class MarkdownFormatter extends AbstractFormatter
         }
         if ($result->pipelineUrl !== null && $result->pipelineUrl !== '') {
             $lines[] = "- **Pipeline URL:** {$result->pipelineUrl}";
+        }
+        return implode("\n", $lines);
+    }
+
+    protected function formatMergeRequest(MergeRequestResult $result): string
+    {
+        $lines = [];
+        $lines[] = "# MR !{$result->iid}: {$result->title}";
+        $lines[] = '';
+        $draft = $result->draft ? ' (draft)' : '';
+        $lines[] = "- **State:** {$result->state}{$draft}";
+        $lines[] = "- **Author:** {$result->author}";
+        $lines[] = "- **Branch:** `{$result->sourceBranch}` → `{$result->targetBranch}`";
+        $lines[] = "- **Head SHA:** `{$result->headSha}`";
+        $mergeStatus = $result->detailedMergeStatus !== '' ? $result->detailedMergeStatus : 'unknown';
+        $conflicts = $result->hasConflicts ? 'yes' : 'no';
+        $discussions = $result->blockingDiscussionsResolved ? 'resolved' : 'unresolved';
+        $lines[] = "- **Merge status:** {$mergeStatus} | Conflicts: {$conflicts} | Discussions: {$discussions}";
+        if ($result->pipelineStatus === null) {
+            $lines[] = '- **Pipeline:** none';
+        } else {
+            $lines[] = "- **Pipeline:** {$result->pipelineStatus} {$result->pipelineUrl}";
+        }
+        $lines[] = "- **URL:** {$result->webUrl}";
+        $lines[] = '';
+        $lines[] = '## Closes issues';
+        $lines[] = '';
+        if ($result->closesIssues === []) {
+            $lines[] = 'None. Merging this MR does not close any work item.';
+        }
+        foreach ($result->closesIssues as $issue) {
+            $labels = $issue->labels !== [] ? ' — ' . implode(', ', $issue->labels) : '';
+            $lines[] = "- [#{$issue->iid}]({$issue->webUrl}) [{$issue->state}] {$issue->title}{$labels}";
+        }
+        if ($result->comments !== []) {
+            $lines[] = '';
+            $lines[] = '## Comments';
+            foreach ($result->comments as $comment) {
+                $target = $result->isTargetNote($comment) ? ' ← linked note' : '';
+                $lines[] = '';
+                $lines[] = sprintf('### Note %d — %s (%s)%s', $comment->id, $comment->author, $comment->createdAt, $target);
+                if ($comment->path !== null) {
+                    $location = $comment->line !== null ? "{$comment->path}:{$comment->line}" : $comment->path;
+                    $lines[] = '';
+                    $lines[] = "On `{$location}`";
+                }
+                $lines[] = '';
+                $lines[] = $comment->body;
+            }
         }
         return implode("\n", $lines);
     }
