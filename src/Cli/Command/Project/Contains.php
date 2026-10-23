@@ -6,6 +6,7 @@ namespace mglaman\DrupalOrgCli\Command\Project;
 
 use mglaman\DrupalOrg\Action\Project\GetProjectContainsAction;
 use mglaman\DrupalOrg\GitLab\Client as GitLabClient;
+use Symfony\Component\Console\Formatter\OutputFormatter;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -56,7 +57,7 @@ class Contains extends ProjectCommandBase
         try {
             $result = $action($this->projectName, $sha);
         } catch (\RuntimeException $e) {
-            $this->stdErr->writeln("<error>{$e->getMessage()}</error>");
+            $this->stdErr->writeln('<error>' . OutputFormatter::escape($e->getMessage()) . '</error>');
             return 1;
         }
 
@@ -64,7 +65,7 @@ class Contains extends ProjectCommandBase
             return 0;
         }
 
-        $this->stdOut->writeln("<options=bold>{$result->title}</>");
+        $this->stdOut->writeln('<options=bold>' . OutputFormatter::escape($result->title) . '</>');
         $this->stdOut->writeln("Commit: {$result->sha}");
         $this->stdOut->writeln("Committed: {$result->committedDate}");
         $this->stdOut->writeln('');
