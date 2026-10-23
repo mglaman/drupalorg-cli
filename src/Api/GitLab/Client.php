@@ -228,6 +228,35 @@ class Client
     }
 
     /**
+     * GET /projects/{id}/merge_requests/{iid}/closes_issues
+     *
+     * Returns the issues and work items GitLab closes when the merge request
+     * merges. A title such as "Issue #N:" does not add N to this list.
+     *
+     * @return \stdClass[]
+     * @throws \Exception
+     */
+    public function getMergeRequestClosesIssues(string|int $projectId, int $mrIid): array
+    {
+        $result = $this->get('projects/' . $projectId . '/merge_requests/' . $mrIid . '/closes_issues', ['per_page' => 100]);
+        return is_array($result) ? $result : [];
+    }
+
+    /**
+     * GET /projects/{id}/merge_requests/{iid}/notes
+     *
+     * Returns every note on a merge request in chronological order, following
+     * pagination. Callers decide whether to keep system notes.
+     *
+     * @return \stdClass[]
+     * @throws \Exception
+     */
+    public function getMergeRequestNotes(string|int $projectId, int $mrIid): array
+    {
+        return $this->getAllNotes('projects/' . $projectId . '/merge_requests/' . $mrIid . '/notes');
+    }
+
+    /**
      * GET /projects/{id}/pipelines/{pipeline_id}/jobs
      *
      * @return \stdClass[]
