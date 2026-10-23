@@ -70,4 +70,32 @@ class ToolRegistryTest extends TestCase
         self::assertSame('Smart Content', $result['project_title'] ?? null);
         self::assertSame(0, $http->count());
     }
+
+    public function testMrShowWithNoteUrlReturnsMarkedNote(): void
+    {
+        $gitLabClient = $this->createMock(GitLabClient::class);
+        $gitLabClient->method('getProject')->with('project/tool')->willReturn((object) ['id' => 59858]);
+        $gitLabClient->method('getMergeRequest')->with(59858, 219)->willReturn((object) ['iid' => 219, 'title' => 'Fix the widget']);
+        $gitLabClient->method('getMergeRequestClosesIssues')->willReturn([]);
+        $gitLabClient->expects(self::once())
+            ->method('getMergeRequestNotes')
+            ->with(59858, 219)
+            ->willReturn([(object) ['id' => 3625786, 'body' => 'Needs a test.', 'author' => (object) ['username' => 'reviewer']]]);
+
+        $registry = new ToolRegistry(new Client(false, HandlerStack::create(new MockHandler())), $gitLabClient);
+        $result = $registry->mrShow('https://git.drupalcode.org/project/tool/-/merge_requests/219#note_3625786');
+
+        self::assertIsArray($result);
+        self::assertSame(219, $result['iid']);
+        self::assertSame(3625786, $result['target_note_id']);
+        self::assertTrue($result['comments'][0]['is_target']);
+    }
+
+    public function testMrShowRequiresMrIidForAnIssueNid(): void
+    {
+        $registry = new ToolRegistry(new Client(false, HandlerStack::create(new MockHandler())), $this->createMock(GitLabClient::class));
+
+        $this->expectException(\InvalidArgumentException::class);
+        $registry->mrShow('3625000');
+    }
 }
