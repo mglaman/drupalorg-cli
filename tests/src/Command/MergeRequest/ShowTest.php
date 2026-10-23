@@ -52,7 +52,7 @@ class ShowTest extends TestCase
         $gitLabClient->method('getMergeRequestNotes')->willReturn([
             (object) [
                 'id' => 3625786,
-                'body' => 'This needs a null check.',
+                'body' => 'Drop the <comment> wrapper and null-check Drupal\<Widget>.',
                 'author' => (object) ['username' => 'reviewer'],
                 'created_at' => '2026-10-20T09:00:00Z',
                 'position' => (object) ['new_path' => 'src/Widget.php', 'new_line' => 42],
@@ -73,7 +73,7 @@ class ShowTest extends TestCase
         self::assertStringContainsString('Merge status: mergeable', $display);
         self::assertStringContainsString('Pipeline: none', $display);
         self::assertStringContainsString("Closes issues:\n  none", $display);
-        self::assertStringContainsString("Note 3625786 by reviewer (2026-10-20T09:00:00Z) [linked note]:\nOn src/Widget.php:42\nThis needs a null check.", $display);
+        self::assertStringContainsString("Note 3625786 by reviewer (2026-10-20T09:00:00Z) [linked note]:\nOn src/Widget.php:42\nDrop the <comment> wrapper and null-check Drupal\\<Widget>.", $display);
     }
 
     public function testShorthandRefSkipsCommentsByDefault(): void

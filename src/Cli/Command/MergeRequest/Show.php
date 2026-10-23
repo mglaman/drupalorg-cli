@@ -56,7 +56,7 @@ class Show extends MrCommandBase
 
     private function writeText(MergeRequestResult $result): void
     {
-        $this->stdOut->writeln(sprintf('MR !%d: %s', $result->iid, $result->title));
+        $this->stdOut->writeln(sprintf('MR !%d: %s', $result->iid, $result->title), OutputInterface::OUTPUT_RAW);
         $this->stdOut->writeln(sprintf('Author: %s', $result->author));
         $this->stdOut->writeln(sprintf('State: %s%s', $result->state, $result->draft ? ' (draft)' : ''));
         $this->stdOut->writeln(sprintf('Branch: %s -> %s', $result->sourceBranch, $result->targetBranch));
@@ -72,7 +72,7 @@ class Show extends MrCommandBase
             $this->stdOut->writeln('  none');
         }
         foreach ($result->closesIssues as $issue) {
-            $this->stdOut->writeln(sprintf('  #%d [%s] %s', $issue->iid, $issue->state, $issue->title));
+            $this->stdOut->writeln(sprintf('  #%d [%s] %s', $issue->iid, $issue->state, $issue->title), OutputInterface::OUTPUT_RAW);
             if ($issue->labels !== []) {
                 $this->stdOut->writeln(sprintf('    Labels: %s', implode(', ', $issue->labels)));
             }
@@ -89,7 +89,7 @@ class Show extends MrCommandBase
             if ($comment->path !== null) {
                 $this->stdOut->writeln(sprintf('On %s:%s', $comment->path, $comment->line ?? ''));
             }
-            $this->stdOut->writeln($comment->body);
+            $this->stdOut->writeln($comment->body, OutputInterface::OUTPUT_RAW);
         }
     }
 }
