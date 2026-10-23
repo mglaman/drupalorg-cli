@@ -195,6 +195,15 @@ drupalorg issue:unlabel <ref> <label> [label...]
 drupalorg issue:relabel <ref> <label> [label...]
 ```
 
+Post a plain comment on a work item. Pass exactly one of `--message` or `--file`.
+Use `--file` for multi-paragraph Markdown; `--file=-` reads stdin. Prints the note URL.
+
+```bash
+drupalorg issue:comment <ref> --message="Thanks for retesting."
+drupalorg issue:comment <ref> --file=note.md
+cat note.md | drupalorg issue:comment <ref> --file=-
+```
+
 Authentication requires a GitLab token. The CLI reads `DRUPALORG_GITLAB_TOKEN` and
 falls back to `glab config get token --host git.drupalcode.org` when that env var is
 unset.

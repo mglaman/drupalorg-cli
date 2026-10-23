@@ -82,6 +82,7 @@ class Application extends ParentApplication
         $commands[] = new Command\Issue\Label();
         $commands[] = new Command\Issue\Unlabel();
         $commands[] = new Command\Issue\Relabel();
+        $commands[] = new Command\Issue\Comment();
         $commands[] = new Command\MergeRequest\ListMergeRequests();
         $commands[] = new Command\MergeRequest\GetDiff();
         $commands[] = new Command\MergeRequest\GetFiles();

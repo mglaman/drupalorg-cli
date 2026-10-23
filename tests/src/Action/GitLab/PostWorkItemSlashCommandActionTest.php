@@ -8,12 +8,14 @@ use mglaman\DrupalOrg\Action\GitLab\PostWorkItemSlashCommandAction;
 use mglaman\DrupalOrg\Client;
 use mglaman\DrupalOrg\Entity\IssueNode;
 use mglaman\DrupalOrg\GitLab\Client as GitLabClient;
+use mglaman\DrupalOrg\GitLab\WorkItemRefResolver;
 use mglaman\DrupalOrg\Result\Issue\SlashCommandResult;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(PostWorkItemSlashCommandAction::class)]
 #[CoversClass(SlashCommandResult::class)]
+#[CoversClass(WorkItemRefResolver::class)]
 class PostWorkItemSlashCommandActionTest extends TestCase
 {
     private static function makeIssueNode(): IssueNode

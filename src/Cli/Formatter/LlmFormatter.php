@@ -8,6 +8,7 @@ use mglaman\DrupalOrg\Result\GitLab\GitLabIssuesResult;
 use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
 use mglaman\DrupalOrg\Result\Issue\IssueResult;
 use mglaman\DrupalOrg\Result\Issue\SlashCommandResult;
+use mglaman\DrupalOrg\Result\Issue\WorkItemCommentResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestDiffResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestFilesResult;
@@ -341,6 +342,21 @@ XML;
   <project_path>{$projectPath}</project_path>
   <issue_iid>{$result->issueIid}</issue_iid>
   <command>{$command}</command>
+  <note_id>{$result->noteId}</note_id>
+  <url>{$url}</url>
+</drupal_context>
+XML;
+    }
+
+    protected function formatWorkItemComment(WorkItemCommentResult $result): string
+    {
+        $projectPath = $this->xmlEscape($result->projectPath);
+        $url = $this->xmlEscape($result->noteUrl());
+
+        return <<<XML
+<drupal_context>
+  <project_path>{$projectPath}</project_path>
+  <issue_iid>{$result->issueIid}</issue_iid>
   <note_id>{$result->noteId}</note_id>
   <url>{$url}</url>
 </drupal_context>

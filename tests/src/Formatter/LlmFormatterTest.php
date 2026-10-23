@@ -7,6 +7,7 @@ use mglaman\DrupalOrg\Entity\IssueNode;
 use mglaman\DrupalOrg\Entity\Release;
 use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
 use mglaman\DrupalOrg\Result\Issue\IssueResult;
+use mglaman\DrupalOrg\Result\Issue\WorkItemCommentResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestItem;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestListResult;
@@ -378,5 +379,18 @@ class LlmFormatterTest extends TestCase
         $output = $formatter->format(new GitLabIssueResult(self::makeGitLabIssue()));
 
         self::assertStringNotContainsString('<comments>', $output);
+    }
+
+    public function testWorkItemCommentResult(): void
+    {
+        $formatter = new LlmFormatter();
+        $output = $formatter->format(new WorkItemCommentResult('project/tool', 3583107, 3625786));
+
+        self::assertStringContainsString('<issue_iid>3583107</issue_iid>', $output);
+        self::assertStringContainsString('<note_id>3625786</note_id>', $output);
+        self::assertStringContainsString(
+            '<url>https://git.drupalcode.org/project/tool/-/work_items/3583107#note_3625786</url>',
+            $output,
+        );
     }
 }
