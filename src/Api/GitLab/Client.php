@@ -88,6 +88,25 @@ class Client
     }
 
     /**
+     * Fetches every note at a notes endpoint, oldest first, page by page.
+     *
+     * @return \stdClass[]
+     * @throws \Exception
+     */
+    private function getAllNotes(string $path): array
+    {
+        $notes = [];
+        $page = 1;
+        do {
+            $result = $this->get($path, ['per_page' => 100, 'page' => $page, 'sort' => 'asc', 'order_by' => 'created_at']);
+            $batch = is_array($result) ? $result : [];
+            $notes = [...$notes, ...$batch];
+            $page++;
+        } while (count($batch) === 100);
+        return $notes;
+    }
+
+    /**
      * @param array<string, mixed> $body
      * @throws \Exception
      */
@@ -132,16 +151,7 @@ class Client
      */
     public function getIssueNotes(string $projectPath, int $iid): array
     {
-        $path = 'projects/' . urlencode($projectPath) . '/issues/' . $iid . '/notes';
-        $notes = [];
-        $page = 1;
-        do {
-            $result = $this->get($path, ['per_page' => 100, 'page' => $page, 'sort' => 'asc', 'order_by' => 'created_at']);
-            $batch = is_array($result) ? $result : [];
-            $notes = [...$notes, ...$batch];
-            $page++;
-        } while (count($batch) === 100);
-        return $notes;
+        return $this->getAllNotes('projects/' . urlencode($projectPath) . '/issues/' . $iid . '/notes');
     }
 
     /**
