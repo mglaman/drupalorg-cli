@@ -8,7 +8,9 @@ use mglaman\DrupalOrg\Action\GitLab\PostWorkItemSlashCommandAction;
 use mglaman\DrupalOrg\Client;
 use mglaman\DrupalOrg\Entity\IssueNode;
 use mglaman\DrupalOrg\GitLab\Client as GitLabClient;
+use mglaman\DrupalOrg\GitLab\WorkItemRef;
 use mglaman\DrupalOrg\GitLab\WorkItemRefResolver;
+use mglaman\DrupalOrg\MigratedIssueException;
 use mglaman\DrupalOrg\Result\Issue\SlashCommandResult;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -89,6 +91,31 @@ class PostWorkItemSlashCommandActionTest extends TestCase
 
         self::assertSame('project/ai_context', $result->projectPath);
         self::assertSame(3586157, $result->issueIid);
+    }
+
+    public function testResolvesBareNidOfMigratedIssueToItsWorkItem(): void
+    {
+        $note = new \stdClass();
+        $note->id = 8;
+
+        $client = $this->createMock(Client::class);
+        $client->method('getNode')->willThrowException(new MigratedIssueException(
+            '3583118',
+            new WorkItemRef('project/tool', 3583118),
+            'https://git.drupalcode.org/project/tool/-/work_items/3583118',
+        ));
+
+        $gitLabClient = $this->createMock(GitLabClient::class);
+        $gitLabClient->expects(self::once())
+            ->method('postIssueNote')
+            ->with('project/tool', 3583118, '/do:label ~state::needsReview')
+            ->willReturn($note);
+
+        $action = new PostWorkItemSlashCommandAction($client, $gitLabClient);
+        $result = $action('3583118', '/do:label ~state::needsReview');
+
+        self::assertSame('project/tool', $result->projectPath);
+        self::assertSame(3583118, $result->issueIid);
     }
 
     public function testAcceptsFullWorkItemUrl(): void
