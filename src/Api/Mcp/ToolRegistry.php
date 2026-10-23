@@ -18,6 +18,7 @@ use mglaman\DrupalOrg\Action\MergeRequest\GetMergeRequestFilesAction;
 use mglaman\DrupalOrg\Action\MergeRequest\GetMergeRequestLogsAction;
 use mglaman\DrupalOrg\Action\MergeRequest\GetMergeRequestStatusAction;
 use mglaman\DrupalOrg\Action\MergeRequest\ListMergeRequestsAction;
+use mglaman\DrupalOrg\Action\Project\GetProjectContainsAction;
 use mglaman\DrupalOrg\Action\Project\GetProjectIssuesAction;
 use mglaman\DrupalOrg\Action\Project\GetProjectReleaseNotesAction;
 use mglaman\DrupalOrg\Action\Project\GetProjectReleasesAction;
@@ -133,6 +134,20 @@ class ToolRegistry
             throw new \RuntimeException("Project '$machineName' not found.");
         }
         return (new GetProjectReleasesAction($this->client))($project)->jsonSerialize();
+    }
+
+    #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'project_contains', description: 'List the branches and tags of a Drupal.org project that contain a commit. Tags are ordered oldest first, so the first tag is the release that shipped the commit.')]
+    public function projectContains(
+        #[Schema(description: "The project machine name (e.g. 'drupal', 'token', 'pathauto').")]
+        string $machineName,
+        #[Schema(description: 'The commit SHA, full or abbreviated.')]
+        string $sha
+    ): mixed {
+        $project = $this->client->getProject($machineName);
+        if ($project === null) {
+            throw new \RuntimeException("Project '$machineName' not found.");
+        }
+        return (new GetProjectContainsAction($this->gitLabClient))($project->machineName, $sha)->jsonSerialize();
     }
 
     #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'project_get_release_notes', description: 'Get release notes for a project version.')]
