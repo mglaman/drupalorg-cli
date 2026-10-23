@@ -8,13 +8,15 @@ namespace mglaman\DrupalOrg\GitLab;
  * Value object representing a direct merge request reference.
  *
  * Supports formats like "project/canvas!708", "project/canvas",
- * or full GitLab URLs.
+ * or full GitLab URLs. A merge request URL may point at a single note with a
+ * "#note_<id>" fragment, which is kept as $noteId.
  */
 final class MergeRequestRef
 {
     public function __construct(
         public readonly string $projectPath,
         public readonly ?int $mrIid = null,
+        public readonly ?int $noteId = null,
     ) {
     }
 
@@ -64,7 +66,7 @@ final class MergeRequestRef
 
         // Match: project/name/-/merge_requests/123
         if (preg_match('#^([a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+)/-/merge_requests/(\d+)#', $path, $matches)) {
-            return new self($matches[1], (int) $matches[2]);
+            return new self($matches[1], (int) $matches[2], self::parseNoteId($url));
         }
 
         // Match: project/name (with possible trailing segments but no merge_requests)
@@ -72,6 +74,15 @@ final class MergeRequestRef
             return new self($matches[1]);
         }
 
+        return null;
+    }
+
+    private static function parseNoteId(string $url): ?int
+    {
+        $fragment = parse_url($url, PHP_URL_FRAGMENT);
+        if (is_string($fragment) && preg_match('#^note_(\d+)$#', $fragment, $matches)) {
+            return (int) $matches[1];
+        }
         return null;
     }
 }
