@@ -10,6 +10,7 @@ use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
 use mglaman\DrupalOrg\GitLab\Client;
 use mglaman\DrupalOrg\GitLab\Entity\GitLabIssue;
+use mglaman\DrupalOrg\GitLab\IssueLinkType;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
@@ -206,5 +207,22 @@ class ClientTest extends TestCase
 
         self::assertSame(1, $project->id);
         self::assertSame(0, $this->responses->count(), 'Both the 503 and the 200 should have been consumed.');
+    }
+
+    public function testPostIssueLinkUsesNumericProjectIds(): void
+    {
+        $this->client(self::json(['link_type' => 'blocks'], 201))
+            ->postIssueLink(200, 3618722, 100, 3585914, IssueLinkType::Blocks);
+
+        $request = $this->sentRequest();
+        self::assertSame('POST', $request->getMethod());
+        self::assertSame(
+            'https://git.drupalcode.org/api/v4/projects/200/issues/3618722/links',
+            (string) $request->getUri()
+        );
+        self::assertSame(
+            '{"target_project_id":100,"target_issue_iid":3585914,"link_type":"blocks"}',
+            (string) $request->getBody()
+        );
     }
 }

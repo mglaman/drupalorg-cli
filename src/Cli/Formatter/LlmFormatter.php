@@ -9,6 +9,7 @@ use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
 use mglaman\DrupalOrg\Result\Issue\IssueResult;
 use mglaman\DrupalOrg\Result\Issue\SlashCommandResult;
 use mglaman\DrupalOrg\Result\Issue\WorkItemCommentResult;
+use mglaman\DrupalOrg\Result\Issue\WorkItemLinkResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestDiffResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestFilesResult;
@@ -359,6 +360,31 @@ XML;
   <issue_iid>{$result->issueIid}</issue_iid>
   <note_id>{$result->noteId}</note_id>
   <url>{$url}</url>
+</drupal_context>
+XML;
+    }
+
+    protected function formatWorkItemLink(WorkItemLinkResult $result): string
+    {
+        $sourceProjectPath = $this->xmlEscape($result->sourceProjectPath);
+        $sourceUrl = $this->xmlEscape($result->sourceUrl());
+        $linkType = $this->xmlEscape($result->linkType);
+        $targetProjectPath = $this->xmlEscape($result->targetProjectPath);
+        $targetUrl = $this->xmlEscape($result->targetUrl());
+
+        return <<<XML
+<drupal_context>
+  <source>
+    <project_path>{$sourceProjectPath}</project_path>
+    <issue_iid>{$result->sourceIid}</issue_iid>
+    <url>{$sourceUrl}</url>
+  </source>
+  <link_type>{$linkType}</link_type>
+  <target>
+    <project_path>{$targetProjectPath}</project_path>
+    <issue_iid>{$result->targetIid}</issue_iid>
+    <url>{$targetUrl}</url>
+  </target>
 </drupal_context>
 XML;
     }

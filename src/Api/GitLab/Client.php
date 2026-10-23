@@ -122,6 +122,28 @@ class Client
     }
 
     /**
+     * POST /projects/{id}/issues/{iid}/links
+     *
+     * The links endpoint only accepts numeric project IDs. A URL-encoded
+     * project path returns "404 Project Not Found".
+     *
+     * @throws \Exception
+     */
+    public function postIssueLink(int $projectId, int $iid, int $targetProjectId, int $targetIid, IssueLinkType $linkType): \stdClass
+    {
+        /** @var \stdClass $result */
+        $result = $this->post(
+            'projects/' . $projectId . '/issues/' . $iid . '/links',
+            [
+                'target_project_id' => $targetProjectId,
+                'target_issue_iid' => $targetIid,
+                'link_type' => $linkType->value,
+            ],
+        );
+        return $result;
+    }
+
+    /**
      * GET /projects/{path}/issues/{iid}/notes
      *
      * Returns every note on a GitLab issue or work item in chronological order,
