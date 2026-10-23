@@ -6,6 +6,11 @@ namespace mglaman\DrupalOrg\GitLab\Entity;
 
 class GitLabNote implements \JsonSerializable
 {
+    /**
+     * The Drupal.org bot that answers slash commands on work items.
+     */
+    public const BOT_USERNAME = 'drupalbot';
+
     public function __construct(
         public readonly int $id,
         public readonly string $body,
@@ -24,6 +29,11 @@ class GitLabNote implements \JsonSerializable
             createdAt: (string) ($data->created_at ?? ''),
             system: (bool) ($data->system ?? false),
         );
+    }
+
+    public function isFromBot(): bool
+    {
+        return $this->author === self::BOT_USERNAME;
     }
 
     public function jsonSerialize(): mixed
