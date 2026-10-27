@@ -171,6 +171,37 @@ class ClientTest extends TestCase
         return array_map(static fn(int $id) => ['id' => $id], range($firstId, $firstId + $count - 1));
     }
 
+    public function testGetMergeRequestNotesFollowsPagination(): void
+    {
+        $notes = $this->client(
+            self::json(self::notes(100)),
+            self::json(self::notes(1, 100)),
+        )->getMergeRequestNotes(59858, 219);
+
+        self::assertCount(101, $notes);
+        self::assertCount(2, $this->history);
+        $request = $this->sentRequest(1);
+        self::assertSame('/api/v4/projects/59858/merge_requests/219/notes', $request->getUri()->getPath());
+        $query = self::query($request);
+        self::assertSame('100', $query['per_page']);
+        self::assertSame('2', $query['page']);
+        self::assertSame('asc', $query['sort']);
+        self::assertSame('created_at', $query['order_by']);
+    }
+
+    public function testGetMergeRequestClosesIssues(): void
+    {
+        $issues = $this->client(self::json([['iid' => 3625000, 'state' => 'opened']]))
+            ->getMergeRequestClosesIssues(59858, 219);
+
+        self::assertCount(1, $issues);
+        self::assertSame(3625000, $issues[0]->iid);
+        self::assertSame(
+            'https://git.drupalcode.org/api/v4/projects/59858/merge_requests/219/closes_issues?per_page=100',
+            (string) $this->sentRequest()->getUri()
+        );
+    }
+
     public function testGetCommitUrlEncodesThePath(): void
     {
         $commit = $this->client(self::json(['id' => 'd6ef1a7c']))->getCommit('project/tool', 'd6ef1a7');

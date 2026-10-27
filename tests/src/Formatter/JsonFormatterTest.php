@@ -50,6 +50,24 @@ class JsonFormatterTest extends TestCase
         self::assertSame(200, $decoded['field_issue_priority']);
     }
 
+    public function testMergeRequestResultMarksTheLinkedNote(): void
+    {
+        $output = (new JsonFormatter())->format(MergeRequestResultFixture::make(withComments: true, targetNoteId: 3625786));
+
+        $decoded = json_decode($output, true);
+        self::assertIsArray($decoded);
+        self::assertSame(219, $decoded['iid']);
+        self::assertTrue($decoded['draft']);
+        self::assertSame(['status' => 'success', 'web_url' => 'https://git.drupalcode.org/project/tool/-/pipelines/99'], $decoded['head_pipeline']);
+        self::assertSame(3625000, $decoded['closes_issues'][0]['iid']);
+        self::assertSame(['state::needsReview', 'category::bug'], $decoded['closes_issues'][0]['labels']);
+        self::assertSame(3625786, $decoded['target_note_id']);
+        self::assertFalse($decoded['comments'][0]['is_target']);
+        self::assertTrue($decoded['comments'][1]['is_target']);
+        self::assertSame('src/Widget.php', $decoded['comments'][1]['path']);
+        self::assertSame(42, $decoded['comments'][1]['line']);
+    }
+
     public function testFormatIsPrettyPrinted(): void
     {
         $formatter = new JsonFormatter();

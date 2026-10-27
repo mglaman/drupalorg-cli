@@ -12,6 +12,7 @@ use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestDiffResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestFilesResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestListResult;
+use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestStatusResult;
 use mglaman\DrupalOrg\Result\Issue\IssueSearchResult;
 use mglaman\DrupalOrg\Result\Project\ProjectContainsResult;
@@ -253,6 +254,95 @@ XML;
   <pipeline_id>{$pipelineId}</pipeline_id>
   <status>{$status}</status>
   <pipeline_url>{$pipelineUrl}</pipeline_url>
+</drupal_context>
+XML;
+    }
+
+    protected function formatMergeRequest(MergeRequestResult $result): string
+    {
+        $title = $this->xmlEscape($result->title);
+        $author = $this->xmlEscape($result->author);
+        $state = $this->xmlEscape($result->state);
+        $draft = $result->draft ? 'yes' : 'no';
+        $sourceBranch = $this->xmlEscape($result->sourceBranch);
+        $targetBranch = $this->xmlEscape($result->targetBranch);
+        $headSha = $this->xmlEscape($result->headSha);
+        $webUrl = $this->xmlEscape($result->webUrl);
+        $detailedMergeStatus = $this->xmlEscape($result->detailedMergeStatus);
+        $hasConflicts = match ($result->hasConflicts) {
+            true => 'yes',
+            false => 'no',
+            null => 'unknown',
+        };
+        $discussionsResolved = $result->blockingDiscussionsResolved ? 'yes' : 'no';
+        $pipelineStatus = $this->xmlEscape($result->pipelineStatus ?? 'none');
+        $pipelineUrl = $this->xmlEscape($result->pipelineUrl ?? '');
+
+        $closesIssuesXml = '';
+        foreach ($result->closesIssues as $issue) {
+            $closesIssuesXml .= "    <issue>\n";
+            $closesIssuesXml .= "      <iid>{$issue->iid}</iid>\n";
+            $closesIssuesXml .= '      <title>' . $this->xmlEscape($issue->title) . "</title>\n";
+            $closesIssuesXml .= '      <state>' . $this->xmlEscape($issue->state) . "</state>\n";
+            $closesIssuesXml .= "      <labels>\n";
+            foreach ($issue->labels as $label) {
+                $closesIssuesXml .= '        <label>' . $this->xmlEscape($label) . "</label>\n";
+            }
+            $closesIssuesXml .= "      </labels>\n";
+            $closesIssuesXml .= '      <url>' . $this->xmlEscape($issue->webUrl) . "</url>\n";
+            $closesIssuesXml .= "    </issue>\n";
+        }
+
+        $targetNoteXml = '';
+        if ($result->targetNoteId !== null) {
+            $targetNoteMissing = $result->isTargetNoteMissing() ? ' missing="true"' : '';
+            $targetNoteXml = "\n  <target_note_id{$targetNoteMissing}>{$result->targetNoteId}</target_note_id>";
+        }
+        $commentsErrorXml = $result->commentsError !== null
+            ? "\n  <comments_error>" . $this->xmlEscape($result->commentsError) . '</comments_error>'
+            : '';
+
+        $commentsXml = '';
+        if ($result->comments !== []) {
+            $commentsXml = "\n  <comments>";
+            foreach ($result->comments as $comment) {
+                $targetAttribute = $result->isTargetNote($comment) ? ' target="true"' : '';
+                $commentsXml .= "\n    <comment{$targetAttribute}>";
+                $commentsXml .= "\n      <id>{$comment->id}</id>";
+                $commentsXml .= "\n      <author>" . $this->xmlEscape($comment->author) . '</author>';
+                $commentsXml .= "\n      <created>" . $this->xmlEscape($comment->createdAt) . '</created>';
+                if ($comment->path !== null) {
+                    $commentsXml .= "\n      <path>" . $this->xmlEscape($comment->path) . '</path>';
+                    $commentsXml .= "\n      <line>" . ($comment->line ?? '') . '</line>';
+                }
+                $commentsXml .= "\n      <body>" . $this->cdataWrap($comment->body) . '</body>';
+                $commentsXml .= "\n    </comment>";
+            }
+            $commentsXml .= "\n  </comments>";
+        }
+
+        return <<<XML
+<drupal_context>
+  <merge_request>
+    <iid>{$result->iid}</iid>
+    <title>{$title}</title>
+    <author>{$author}</author>
+    <state>{$state}</state>
+    <draft>{$draft}</draft>
+    <source_branch>{$sourceBranch}</source_branch>
+    <target_branch>{$targetBranch}</target_branch>
+    <head_sha>{$headSha}</head_sha>
+    <url>{$webUrl}</url>
+    <detailed_merge_status>{$detailedMergeStatus}</detailed_merge_status>
+    <has_conflicts>{$hasConflicts}</has_conflicts>
+    <blocking_discussions_resolved>{$discussionsResolved}</blocking_discussions_resolved>
+  </merge_request>
+  <head_pipeline>
+    <status>{$pipelineStatus}</status>
+    <url>{$pipelineUrl}</url>
+  </head_pipeline>
+  <closes_issues>
+{$closesIssuesXml}  </closes_issues>{$targetNoteXml}{$commentsErrorXml}{$commentsXml}
 </drupal_context>
 XML;
     }

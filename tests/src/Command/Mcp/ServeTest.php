@@ -31,6 +31,7 @@ class ServeTest extends TestCase
         $names = array_column($responses[2]['result']['tools'], 'name');
         self::assertContains('issue_show', $names);
         self::assertContains('mr_list', $names);
+        self::assertContains('mr_show', $names);
     }
 
     public function testCallsToolOverHttp(): void

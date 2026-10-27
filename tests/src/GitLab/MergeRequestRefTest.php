@@ -27,6 +27,46 @@ class MergeRequestRefTest extends TestCase
         self::assertSame($expectedIid, $ref->mrIid);
     }
 
+    #[DataProvider('noteIdProvider')]
+    public function testNoteIdFromUrlFragment(string $input, ?int $expectedNoteId): void
+    {
+        $ref = MergeRequestRef::tryParse($input);
+
+        self::assertNotNull($ref);
+        self::assertSame('project/tool', $ref->projectPath);
+        self::assertSame(219, $ref->mrIid);
+        self::assertSame($expectedNoteId, $ref->noteId);
+    }
+
+    /**
+     * @return array<string, array{string, ?int}>
+     */
+    public static function noteIdProvider(): array
+    {
+        return [
+            'note fragment' => [
+                'https://git.drupalcode.org/project/tool/-/merge_requests/219#note_3625786',
+                3625786,
+            ],
+            'note fragment on a sub-page' => [
+                'https://git.drupalcode.org/project/tool/-/merge_requests/219/diffs#note_3625786',
+                3625786,
+            ],
+            'no fragment' => [
+                'https://git.drupalcode.org/project/tool/-/merge_requests/219',
+                null,
+            ],
+            'unrelated fragment' => [
+                'https://git.drupalcode.org/project/tool/-/merge_requests/219#tab-content',
+                null,
+            ],
+            'shorthand has no note' => [
+                'project/tool!219',
+                null,
+            ],
+        ];
+    }
+
     /**
      * @return array<string, array{string, ?string, ?int}>
      */

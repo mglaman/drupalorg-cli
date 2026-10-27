@@ -11,6 +11,7 @@ use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestDiffResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestFilesResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestListResult;
+use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestStatusResult;
 use mglaman\DrupalOrg\Result\Issue\IssueSearchResult;
 use mglaman\DrupalOrg\Result\Project\ProjectContainsResult;
@@ -33,6 +34,7 @@ abstract class AbstractFormatter implements FormatterInterface
             $result instanceof ProjectContainsResult => $this->formatProjectContains($result),
             $result instanceof MergeRequestListResult => $this->formatMergeRequestList($result),
             $result instanceof MergeRequestStatusResult => $this->formatMergeRequestStatus($result),
+            $result instanceof MergeRequestResult => $this->formatMergeRequest($result),
             $result instanceof MergeRequestFilesResult => $this->formatMergeRequestFiles($result),
             $result instanceof MergeRequestDiffResult => $this->formatMergeRequestDiff($result),
             $result instanceof GitLabIssueResult => $this->formatGitLabIssue($result),
@@ -54,6 +56,7 @@ abstract class AbstractFormatter implements FormatterInterface
     abstract protected function formatProjectContains(ProjectContainsResult $result): string;
     abstract protected function formatMergeRequestList(MergeRequestListResult $result): string;
     abstract protected function formatMergeRequestStatus(MergeRequestStatusResult $result): string;
+    abstract protected function formatMergeRequest(MergeRequestResult $result): string;
     abstract protected function formatMergeRequestFiles(MergeRequestFilesResult $result): string;
     abstract protected function formatMergeRequestDiff(MergeRequestDiffResult $result): string;
     abstract protected function formatGitLabIssue(GitLabIssueResult $result): string;

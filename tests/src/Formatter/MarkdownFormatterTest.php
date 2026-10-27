@@ -344,6 +344,66 @@ class MarkdownFormatterTest extends TestCase
         self::assertStringNotContainsString('**Pipeline URL:**', $output);
     }
 
+    public function testMergeRequestResult(): void
+    {
+        $output = (new MarkdownFormatter())->format(MergeRequestResultFixture::make());
+
+        self::assertStringContainsString('# MR !219: Issue #3625000: Fix <b>the</b> widget', $output);
+        self::assertStringContainsString('- **State:** opened (draft)', $output);
+        self::assertStringContainsString('- **Author:** contributor', $output);
+        self::assertStringContainsString('- **Branch:** `3625000-fix-widget` → `1.x`', $output);
+        self::assertStringContainsString('- **Head SHA:** `abc123`', $output);
+        self::assertStringContainsString('- **Merge status:** draft_status | Conflicts: no | Discussions: unresolved', $output);
+        self::assertStringContainsString('- **Pipeline:** success https://git.drupalcode.org/project/tool/-/pipelines/99', $output);
+        self::assertStringContainsString(
+            '- [#3625000](https://git.drupalcode.org/project/tool/-/work_items/3625000) [opened] Fix the widget — state::needsReview, category::bug',
+            $output
+        );
+        self::assertStringNotContainsString('## Comments', $output);
+    }
+
+    public function testMergeRequestResultWithoutClosingIssues(): void
+    {
+        $output = (new MarkdownFormatter())->format(MergeRequestResultFixture::make(closesIssues: []));
+
+        self::assertStringContainsString("## Closes issues\n\nNone. Merging this MR does not close any work item.", $output);
+    }
+
+    public function testMergeRequestResultMarksTheLinkedNote(): void
+    {
+        $output = (new MarkdownFormatter())->format(MergeRequestResultFixture::make(withComments: true, targetNoteId: 3625786));
+
+        self::assertStringContainsString("### Note 100 — maintainer (2026-10-20T08:00:00Z)\n", $output);
+        self::assertStringContainsString(
+            "### Note 3625786 — reviewer (2026-10-20T09:00:00Z) ← linked note\n\nOn `src/Widget.php:42`\n\nThis needs a <null> check.",
+            $output
+        );
+        self::assertSame(1, substr_count($output, '← linked note'));
+    }
+
+    public function testMergeRequestResultWithUncheckedConflicts(): void
+    {
+        $output = (new MarkdownFormatter())->format(MergeRequestResultFixture::make(hasConflicts: null));
+
+        self::assertStringContainsString('Conflicts: unknown (not checked yet, run again)', $output);
+    }
+
+    public function testMergeRequestResultFlagsAMissingLinkedNote(): void
+    {
+        $output = (new MarkdownFormatter())->format(MergeRequestResultFixture::make(withComments: true, targetNoteId: 999));
+
+        self::assertStringContainsString('> **Linked note 999 not found** on this merge request.', $output);
+        self::assertStringNotContainsString('← linked note', $output);
+    }
+
+    public function testMergeRequestResultReportsUnavailableComments(): void
+    {
+        $output = (new MarkdownFormatter())->format(MergeRequestResultFixture::make(targetNoteId: 3625786, commentsError: 'Needs a token.'));
+
+        self::assertStringContainsString('> **Comments unavailable:** Needs a token.', $output);
+        self::assertStringNotContainsString('not found', $output);
+    }
+
     public function testUnsupportedResultTypeThrows(): void
     {
         $result = new class implements ResultInterface {
