@@ -383,4 +383,11 @@ class MarkdownFormatterTest extends TestCase
             $output,
         );
     }
+
+    public function testWorkItemLinkResultAlreadyLinked(): void
+    {
+        $output = (new MarkdownFormatter())->format(new WorkItemLinkResult('project/tool', 3583118, 'relates_to', 'project/tool', 3582968, alreadyLinked: true));
+
+        self::assertStringStartsWith('Already linked [project/tool#3583118]', $output);
+    }
 }

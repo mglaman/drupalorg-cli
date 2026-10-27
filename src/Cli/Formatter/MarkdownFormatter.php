@@ -281,7 +281,8 @@ class MarkdownFormatter extends AbstractFormatter
     protected function formatWorkItemLink(WorkItemLinkResult $result): string
     {
         return sprintf(
-            "Linked [%s#%d](%s) `%s` [%s#%d](%s).",
+            "%s [%s#%d](%s) `%s` [%s#%d](%s).",
+            $result->alreadyLinked ? 'Already linked' : 'Linked',
             $result->sourceProjectPath,
             $result->sourceIid,
             $result->sourceUrl(),

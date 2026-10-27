@@ -43,7 +43,8 @@ class Relate extends Command
             return 0;
         }
         $this->stdOut->writeln(sprintf(
-            'Linked %s#%d %s %s#%d.',
+            '%s %s#%d %s %s#%d.',
+            $result->alreadyLinked ? 'Already linked' : 'Linked',
             $result->sourceProjectPath,
             $result->sourceIid,
             $result->linkType,

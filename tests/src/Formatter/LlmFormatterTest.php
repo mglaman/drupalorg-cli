@@ -403,5 +403,13 @@ class LlmFormatterTest extends TestCase
         self::assertStringContainsString('<link_type>is_blocked_by</link_type>', $output);
         self::assertStringContainsString("<source>\n    <project_path>project/mcp_server_tool_bridge</project_path>\n    <issue_iid>3618722</issue_iid>", $output);
         self::assertStringContainsString('<url>https://git.drupalcode.org/project/mcp_server/-/work_items/3585914</url>', $output);
+        self::assertStringContainsString('<already_linked>no</already_linked>', $output);
+    }
+
+    public function testWorkItemLinkResultAlreadyLinked(): void
+    {
+        $output = (new LlmFormatter())->format(new WorkItemLinkResult('project/tool', 3583118, 'relates_to', 'project/tool', 3582968, alreadyLinked: true));
+
+        self::assertStringContainsString('<already_linked>yes</already_linked>', $output);
     }
 }

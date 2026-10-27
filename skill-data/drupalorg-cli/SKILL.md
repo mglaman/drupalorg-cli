@@ -211,6 +211,7 @@ on a 403 the command prints `issue:comment` commands to post a note on each side
 ```bash
 drupalorg issue:relate <ref> <target-ref>
 drupalorg issue:relate <ref> <target-ref> --type=is_blocked_by
+# Linking an already-linked pair succeeds and reports already_linked.
 ```
 
 Authentication requires a GitLab token. The CLI reads `DRUPALORG_GITLAB_TOKEN` and

@@ -371,6 +371,7 @@ XML;
         $linkType = $this->xmlEscape($result->linkType);
         $targetProjectPath = $this->xmlEscape($result->targetProjectPath);
         $targetUrl = $this->xmlEscape($result->targetUrl());
+        $alreadyLinked = $result->alreadyLinked ? 'yes' : 'no';
 
         return <<<XML
 <drupal_context>
@@ -385,6 +386,7 @@ XML;
     <issue_iid>{$result->targetIid}</issue_iid>
     <url>{$targetUrl}</url>
   </target>
+  <already_linked>{$alreadyLinked}</already_linked>
 </drupal_context>
 XML;
     }

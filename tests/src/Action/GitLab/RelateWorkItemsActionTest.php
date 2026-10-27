@@ -13,6 +13,7 @@ use mglaman\DrupalOrg\GitLab\Client as GitLabClient;
 use mglaman\DrupalOrg\GitLab\IssueLinkType;
 use mglaman\DrupalOrg\Result\Issue\WorkItemLinkResult;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(RelateWorkItemsAction::class)]
@@ -47,6 +48,7 @@ class RelateWorkItemsActionTest extends TestCase
         self::assertSame('project/tool', $result->targetProjectPath);
         self::assertSame(3582968, $result->targetIid);
         self::assertSame('https://git.drupalcode.org/project/tool/-/work_items/3582968', $result->targetUrl());
+        self::assertFalse($result->alreadyLinked);
     }
 
     public function testLinksWorkItemsAcrossProjects(): void
@@ -70,24 +72,102 @@ class RelateWorkItemsActionTest extends TestCase
         self::assertSame('project/mcp_server', $result->targetProjectPath);
     }
 
-    public function testForbiddenSuggestsCommentingOnEachWorkItem(): void
+    private function failingGitLabClient(int $status, string $body): GitLabClient
     {
-        $forbidden = new ClientException(
-            'You must be a member of the project or group of both issues',
-            new Request('POST', 'projects/200/issues/3618722/links'),
-            new Response(403),
-        );
-
         $gitLabClient = $this->createMock(GitLabClient::class);
         $gitLabClient->method('getProject')->willReturn(self::project(200));
-        $gitLabClient->method('postIssueLink')->willThrowException($forbidden);
+        $gitLabClient->method('postIssueLink')->willThrowException(new ClientException(
+            'Client error',
+            new Request('POST', 'projects/200/issues/3618722/links'),
+            new Response($status, ['Content-Type' => 'application/json'], $body),
+        ));
+        return $gitLabClient;
+    }
 
-        $action = new RelateWorkItemsAction($this->createMock(Client::class), $gitLabClient);
+    /**
+     * @return iterable<string, array{IssueLinkType, string, string}>
+     */
+    public static function forbiddenLinkTypeProvider(): iterable
+    {
+        yield 'relates_to' => [IssueLinkType::RelatesTo, 'Related to mcp_server#3585914.', 'Related to mcp_server_tool_bridge#3618722.'];
+        yield 'blocks' => [IssueLinkType::Blocks, 'Blocks mcp_server#3585914.', 'Blocked by mcp_server_tool_bridge#3618722.'];
+        yield 'is_blocked_by' => [IssueLinkType::IsBlockedBy, 'Blocked by mcp_server#3585914.', 'Blocks mcp_server_tool_bridge#3618722.'];
+    }
+
+    #[DataProvider('forbiddenLinkTypeProvider')]
+    public function testForbiddenSuggestsCommentingOnEachWorkItem(IssueLinkType $linkType, string $sourceNote, string $targetNote): void
+    {
+        $action = new RelateWorkItemsAction(
+            $this->createMock(Client::class),
+            $this->failingGitLabClient(403, '{"message":"403 Forbidden"}'),
+        );
+
+        try {
+            $action('mcp_server_tool_bridge#3618722', 'mcp_server#3585914', $linkType);
+            self::fail('Expected a RuntimeException.');
+        } catch (\RuntimeException $e) {
+            self::assertSame(403, $e->getCode());
+            self::assertStringContainsString('GitLab refused the link: 403 Forbidden', $e->getMessage());
+            self::assertStringContainsString("drupalorg issue:comment 'mcp_server_tool_bridge#3618722' --message=\"{$sourceNote}\"", $e->getMessage());
+            self::assertStringContainsString("drupalorg issue:comment 'mcp_server#3585914' --message=\"{$targetNote}\"", $e->getMessage());
+        }
+    }
+
+    public function testForbiddenOutsideTheProjectNamespaceSuggestsTheWorkItemUrl(): void
+    {
+        $action = new RelateWorkItemsAction(
+            $this->createMock(Client::class),
+            $this->failingGitLabClient(403, '{"message":"403 Forbidden"}'),
+        );
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionCode(403);
-        $this->expectExceptionMessageMatches(
-            "/drupalorg issue:comment 'mcp_server_tool_bridge#3618722' --message=\"Related to mcp_server#3585914\.\"/"
+        $this->expectExceptionMessage(
+            "drupalorg issue:comment 'https://git.drupalcode.org/sandbox/foo-123/-/work_items/5' --message=\"Related to tool#7.\""
+        );
+        $action('https://git.drupalcode.org/sandbox/foo-123/-/work_items/5', 'tool#7', IssueLinkType::RelatesTo);
+    }
+
+    public function testInsufficientScopeAsksForAnApiToken(): void
+    {
+        $action = new RelateWorkItemsAction(
+            $this->createMock(Client::class),
+            $this->failingGitLabClient(403, '{"error":"insufficient_scope","error_description":"The request requires higher privileges than provided by the access token."}'),
+        );
+
+        try {
+            $action('mcp_server_tool_bridge#3618722', 'mcp_server#3585914', IssueLinkType::RelatesTo);
+            self::fail('Expected a RuntimeException.');
+        } catch (\RuntimeException $e) {
+            self::assertSame(
+                'GitLab refused the link: your token needs the "api" scope. insufficient_scope: The request requires higher privileges than provided by the access token.',
+                $e->getMessage()
+            );
+        }
+    }
+
+    public function testAnExistingLinkIsReportedAsAlreadyLinked(): void
+    {
+        $action = new RelateWorkItemsAction(
+            $this->createMock(Client::class),
+            $this->failingGitLabClient(409, '{"message":"Issue(s) already assigned"}'),
+        );
+
+        $result = $action('mcp_server_tool_bridge#3618722', 'mcp_server#3585914', IssueLinkType::RelatesTo);
+
+        self::assertTrue($result->alreadyLinked);
+        self::assertTrue($result->jsonSerialize()['already_linked']);
+    }
+
+    public function testOtherErrorsIncludeTheGitLabMessage(): void
+    {
+        $action = new RelateWorkItemsAction(
+            $this->createMock(Client::class),
+            $this->failingGitLabClient(404, '{"message":"No matching issue found. Make sure that you are adding a valid issue URL."}'),
+        );
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage(
+            'Failed to link project/mcp_server_tool_bridge#3618722 to project/mcp_server#3585914: No matching issue found. Make sure that you are adding a valid issue URL.'
         );
         $action('mcp_server_tool_bridge#3618722', 'mcp_server#3585914', IssueLinkType::RelatesTo);
     }

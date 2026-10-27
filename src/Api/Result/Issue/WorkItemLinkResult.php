@@ -14,6 +14,7 @@ class WorkItemLinkResult implements ResultInterface
         public readonly string $linkType,
         public readonly string $targetProjectPath,
         public readonly int $targetIid,
+        public readonly bool $alreadyLinked = false,
     ) {
     }
 
@@ -46,6 +47,7 @@ class WorkItemLinkResult implements ResultInterface
                 'issue_iid' => $this->targetIid,
                 'url' => $this->targetUrl(),
             ],
+            'already_linked' => $this->alreadyLinked,
         ];
     }
 }
