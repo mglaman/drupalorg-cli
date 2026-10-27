@@ -88,6 +88,25 @@ class Client
     }
 
     /**
+     * Fetches every note at a notes endpoint, oldest first, page by page.
+     *
+     * @return \stdClass[]
+     * @throws \Exception
+     */
+    private function getAllNotes(string $path): array
+    {
+        $notes = [];
+        $page = 1;
+        do {
+            $result = $this->get($path, ['per_page' => 100, 'page' => $page, 'sort' => 'asc', 'order_by' => 'created_at']);
+            $batch = is_array($result) ? $result : [];
+            $notes = [...$notes, ...$batch];
+            $page++;
+        } while (count($batch) === 100);
+        return $notes;
+    }
+
+    /**
      * @param array<string, mixed> $body
      * @throws \Exception
      */
@@ -154,16 +173,7 @@ class Client
      */
     public function getIssueNotes(string $projectPath, int $iid): array
     {
-        $path = 'projects/' . urlencode($projectPath) . '/issues/' . $iid . '/notes';
-        $notes = [];
-        $page = 1;
-        do {
-            $result = $this->get($path, ['per_page' => 100, 'page' => $page, 'sort' => 'asc', 'order_by' => 'created_at']);
-            $batch = is_array($result) ? $result : [];
-            $notes = [...$notes, ...$batch];
-            $page++;
-        } while (count($batch) === 100);
-        return $notes;
+        return $this->getAllNotes('projects/' . urlencode($projectPath) . '/issues/' . $iid . '/notes');
     }
 
     /**
@@ -176,6 +186,44 @@ class Client
         /** @var \stdClass $result */
         $result = $this->get('projects/' . urlencode($path));
         return $result;
+    }
+
+    /**
+     * GET /projects/{path}/repository/commits/{sha}
+     *
+     * Accepts a full or abbreviated SHA. GitLab responds 404 when the project
+     * has no matching commit.
+     *
+     * @throws \Exception
+     */
+    public function getCommit(string $projectPath, string $sha): \stdClass
+    {
+        /** @var \stdClass $result */
+        $result = $this->get('projects/' . urlencode($projectPath) . '/repository/commits/' . urlencode($sha));
+        return $result;
+    }
+
+    /**
+     * GET /projects/{path}/repository/commits/{sha}/refs?type=all
+     *
+     * Returns every branch and tag that contains the commit, following
+     * pagination. Each ref has only a `type` (branch or tag) and a `name`.
+     *
+     * @return \stdClass[]
+     * @throws \Exception
+     */
+    public function getCommitRefs(string $projectPath, string $sha): array
+    {
+        $path = 'projects/' . urlencode($projectPath) . '/repository/commits/' . urlencode($sha) . '/refs';
+        $refs = [];
+        $page = 1;
+        do {
+            $result = $this->get($path, ['type' => 'all', 'per_page' => 100, 'page' => $page]);
+            $batch = is_array($result) ? $result : [];
+            $refs = [...$refs, ...$batch];
+            $page++;
+        } while (count($batch) === 100);
+        return $refs;
     }
 
     /**
@@ -206,12 +254,13 @@ class Client
     /**
      * GET /projects/{id}/merge_requests/{iid}
      *
+     * @param array<string, mixed> $params
      * @throws \Exception
      */
-    public function getMergeRequest(string|int $projectId, int $mrIid): \stdClass
+    public function getMergeRequest(string|int $projectId, int $mrIid, array $params = []): \stdClass
     {
         /** @var \stdClass $result */
-        $result = $this->get('projects/' . $projectId . '/merge_requests/' . $mrIid);
+        $result = $this->get('projects/' . $projectId . '/merge_requests/' . $mrIid, $params);
         return $result;
     }
 
@@ -237,6 +286,35 @@ class Client
     {
         $result = $this->get('projects/' . $projectId . '/merge_requests/' . $mrIid . '/pipelines');
         return is_array($result) ? $result : [];
+    }
+
+    /**
+     * GET /projects/{id}/merge_requests/{iid}/closes_issues
+     *
+     * Returns the issues and work items GitLab closes when the merge request
+     * merges. A title such as "Issue #N:" does not add N to this list.
+     *
+     * @return \stdClass[]
+     * @throws \Exception
+     */
+    public function getMergeRequestClosesIssues(string|int $projectId, int $mrIid): array
+    {
+        $result = $this->get('projects/' . $projectId . '/merge_requests/' . $mrIid . '/closes_issues', ['per_page' => 100]);
+        return is_array($result) ? $result : [];
+    }
+
+    /**
+     * GET /projects/{id}/merge_requests/{iid}/notes
+     *
+     * Returns every note on a merge request in chronological order, following
+     * pagination. Callers decide whether to keep system notes.
+     *
+     * @return \stdClass[]
+     * @throws \Exception
+     */
+    public function getMergeRequestNotes(string|int $projectId, int $mrIid): array
+    {
+        return $this->getAllNotes('projects/' . $projectId . '/merge_requests/' . $mrIid . '/notes');
     }
 
     /**

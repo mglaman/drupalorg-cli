@@ -12,6 +12,7 @@ use mglaman\DrupalOrg\Result\Issue\WorkItemLinkResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestItem;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestListResult;
+use mglaman\DrupalOrg\Result\Project\ProjectContainsResult;
 use mglaman\DrupalOrg\Result\Project\ProjectIssuesResult;
 use mglaman\DrupalOrg\Result\Project\ProjectReleasesResult;
 use mglaman\DrupalOrg\Result\ResultInterface;
@@ -213,6 +214,34 @@ class LlmFormatterTest extends TestCase
         self::assertStringContainsString('<description>Security fixes</description>', $output);
     }
 
+    public function testProjectContainsResult(): void
+    {
+        $result = new ProjectContainsResult(
+            projectName: 'tool',
+            sha: 'd6ef1a7c0ffee',
+            title: 'Fix <tool> discovery & cache',
+            committedDate: '2025-03-14T09:26:53.000+00:00',
+            webUrl: 'https://git.drupalcode.org/project/tool/-/commit/d6ef1a7c0ffee',
+            branches: ['1.x'],
+            tags: ['1.0.0-beta12', '1.0.0'],
+        );
+
+        $output = (new LlmFormatter())->format($result);
+
+        self::assertStringStartsWith('<drupal_context>', $output);
+        self::assertStringContainsString('<project>tool</project>', $output);
+        self::assertStringContainsString('<sha>d6ef1a7c0ffee</sha>', $output);
+        self::assertStringContainsString('<title>Fix &lt;tool&gt; discovery &amp; cache</title>', $output);
+        self::assertStringContainsString('<committed_date>2025-03-14T09:26:53.000+00:00</committed_date>', $output);
+        self::assertStringContainsString('<url>https://git.drupalcode.org/project/tool/-/commit/d6ef1a7c0ffee</url>', $output);
+        self::assertStringContainsString("<branches>\n    <branch>1.x</branch>\n  </branches>", $output);
+        self::assertStringContainsString(
+            "<tags order=\"oldest_first\">\n    <tag>1.0.0-beta12</tag>\n    <tag>1.0.0</tag>\n  </tags>",
+            $output
+        );
+        self::assertStringEndsWith('</drupal_context>', $output);
+    }
+
     public function testSkillListResult(): void
     {
         $result = new SkillListResult(skills: [
@@ -310,6 +339,73 @@ class LlmFormatterTest extends TestCase
         self::assertStringContainsString('<description>Closes #3383637 &amp; &lt;fixes&gt; it</description>', $output);
         // Raw < must not appear inside tag values.
         self::assertStringNotContainsString('<b>', $output);
+    }
+
+    public function testMergeRequestResult(): void
+    {
+        $output = (new LlmFormatter())->format(MergeRequestResultFixture::make());
+
+        self::assertStringContainsString('<drupal_context>', $output);
+        self::assertStringContainsString('<iid>219</iid>', $output);
+        self::assertStringContainsString('<title>Issue #3625000: Fix &lt;b&gt;the&lt;/b&gt; widget</title>', $output);
+        self::assertStringContainsString('<author>contributor</author>', $output);
+        self::assertStringContainsString('<state>opened</state>', $output);
+        self::assertStringContainsString('<draft>yes</draft>', $output);
+        self::assertStringContainsString('<source_branch>3625000-fix-widget</source_branch>', $output);
+        self::assertStringContainsString('<target_branch>1.x</target_branch>', $output);
+        self::assertStringContainsString('<head_sha>abc123</head_sha>', $output);
+        self::assertStringContainsString('<detailed_merge_status>draft_status</detailed_merge_status>', $output);
+        self::assertStringContainsString('<has_conflicts>no</has_conflicts>', $output);
+        self::assertStringContainsString('<blocking_discussions_resolved>no</blocking_discussions_resolved>', $output);
+        self::assertStringContainsString("<head_pipeline>\n    <status>success</status>\n    <url>https://git.drupalcode.org/project/tool/-/pipelines/99</url>", $output);
+        self::assertStringContainsString('<iid>3625000</iid>', $output);
+        self::assertStringContainsString('<label>state::needsReview</label>', $output);
+        self::assertStringContainsString('<url>https://git.drupalcode.org/project/tool/-/work_items/3625000</url>', $output);
+        self::assertStringNotContainsString('<comments>', $output);
+        self::assertStringNotContainsString('<target_note_id>', $output);
+    }
+
+    public function testMergeRequestResultWithoutClosingIssuesHasEmptyElement(): void
+    {
+        $output = (new LlmFormatter())->format(MergeRequestResultFixture::make(closesIssues: []));
+
+        self::assertStringContainsString("<closes_issues>\n  </closes_issues>", $output);
+    }
+
+    public function testMergeRequestResultMarksTheLinkedNote(): void
+    {
+        $output = (new LlmFormatter())->format(MergeRequestResultFixture::make(withComments: true, targetNoteId: 3625786));
+
+        self::assertStringContainsString('<target_note_id>3625786</target_note_id>', $output);
+        self::assertStringContainsString("<comment>\n      <id>100</id>", $output);
+        self::assertStringContainsString("<comment target=\"true\">\n      <id>3625786</id>", $output);
+        self::assertSame(1, substr_count($output, 'target="true"'));
+        self::assertStringContainsString('<path>src/Widget.php</path>', $output);
+        self::assertStringContainsString('<line>42</line>', $output);
+        self::assertStringContainsString('<body><![CDATA[This needs a <null> check.]]></body>', $output);
+    }
+
+    public function testMergeRequestResultWithUncheckedConflicts(): void
+    {
+        $output = (new LlmFormatter())->format(MergeRequestResultFixture::make(hasConflicts: null));
+
+        self::assertStringContainsString('<has_conflicts>unknown</has_conflicts>', $output);
+    }
+
+    public function testMergeRequestResultFlagsAMissingLinkedNote(): void
+    {
+        $output = (new LlmFormatter())->format(MergeRequestResultFixture::make(withComments: true, targetNoteId: 999));
+
+        self::assertStringContainsString('<target_note_id missing="true">999</target_note_id>', $output);
+        self::assertStringNotContainsString('target="true"', $output);
+    }
+
+    public function testMergeRequestResultReportsUnavailableComments(): void
+    {
+        $output = (new LlmFormatter())->format(MergeRequestResultFixture::make(targetNoteId: 3625786, commentsError: 'Needs a <token>.'));
+
+        self::assertStringContainsString('<target_note_id>3625786</target_note_id>', $output);
+        self::assertStringContainsString('<comments_error>Needs a &lt;token&gt;.</comments_error>', $output);
     }
 
     public function testXmlEscapingInTitle(): void

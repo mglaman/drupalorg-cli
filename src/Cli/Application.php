@@ -67,6 +67,7 @@ class Application extends ParentApplication
         $commands[] = new Command\Issue\Search();
         $commands[] = new Command\Project\Releases();
         $commands[] = new Command\Project\ReleaseNotes();
+        $commands[] = new Command\Project\Contains();
         $commands[] = new Command\Maintainer\Issues();
         $commands[] = new Command\Maintainer\ReleaseNotes();
         $commands[] = new Command\Skill\Install();
@@ -88,6 +89,7 @@ class Application extends ParentApplication
         $commands[] = new Command\MergeRequest\GetDiff();
         $commands[] = new Command\MergeRequest\GetFiles();
         $commands[] = new Command\MergeRequest\GetStatus();
+        $commands[] = new Command\MergeRequest\Show();
         $commands[] = new Command\MergeRequest\GetLogs();
         $commands[] = new Command\Mcp\Serve();
         $commands[] = new Command\Mcp\Config();

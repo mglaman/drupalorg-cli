@@ -70,4 +70,64 @@ class ToolRegistryTest extends TestCase
         self::assertSame('Smart Content', $result['project_title'] ?? null);
         self::assertSame(0, $http->count());
     }
+
+    public function testMrShowWithNoteUrlReturnsMarkedNote(): void
+    {
+        $gitLabClient = $this->createMock(GitLabClient::class);
+        $gitLabClient->method('getProject')->with('project/tool')->willReturn((object) ['id' => 59858]);
+        $gitLabClient->method('getMergeRequest')->with(59858, 219)->willReturn((object) ['iid' => 219, 'title' => 'Fix the widget']);
+        $gitLabClient->method('getMergeRequestClosesIssues')->willReturn([]);
+        $gitLabClient->expects(self::once())
+            ->method('getMergeRequestNotes')
+            ->with(59858, 219)
+            ->willReturn([(object) ['id' => 3625786, 'body' => 'Needs a test.', 'author' => (object) ['username' => 'reviewer']]]);
+
+        $registry = new ToolRegistry(new Client(false, HandlerStack::create(new MockHandler())), $gitLabClient);
+        $result = $registry->mrShow('https://git.drupalcode.org/project/tool/-/merge_requests/219#note_3625786');
+
+        self::assertIsArray($result);
+        self::assertSame(219, $result['iid']);
+        self::assertSame(3625786, $result['target_note_id']);
+        self::assertTrue($result['comments'][0]['is_target']);
+    }
+
+    public function testMrShowRequiresMrIidForAnIssueNid(): void
+    {
+        $registry = new ToolRegistry(new Client(false, HandlerStack::create(new MockHandler())), $this->createMock(GitLabClient::class));
+
+        $this->expectException(\InvalidArgumentException::class);
+        $registry->mrShow('3625000');
+    }
+
+    public function testProjectContainsListsRefsForTheProjectRepository(): void
+    {
+        $http = new MockHandler([self::nodeListResponse(self::project(true))]);
+        $gitLabClient = $this->createMock(GitLabClient::class);
+        $gitLabClient->expects(self::once())
+            ->method('getCommit')
+            ->with('project/smart_content', 'd6ef1a7')
+            ->willReturn((object) [
+                'id' => 'd6ef1a7c0ffee',
+                'title' => 'Fix decision caching',
+                'committed_date' => '2025-03-14T09:26:53.000+00:00',
+                'web_url' => 'https://git.drupalcode.org/project/smart_content/-/commit/d6ef1a7c0ffee',
+            ]);
+        $gitLabClient->expects(self::once())
+            ->method('getCommitRefs')
+            ->with('project/smart_content', 'd6ef1a7c0ffee')
+            ->willReturn([
+                (object) ['type' => 'tag', 'name' => '3.0.0'],
+                (object) ['type' => 'branch', 'name' => '3.x'],
+                (object) ['type' => 'tag', 'name' => '3.0.0-rc1'],
+            ]);
+
+        $registry = new ToolRegistry(new Client(false, HandlerStack::create($http)), $gitLabClient);
+        $result = $registry->projectContains('smart_content', 'd6ef1a7');
+
+        self::assertIsArray($result);
+        self::assertSame('d6ef1a7c0ffee', $result['sha'] ?? null);
+        self::assertSame(['3.x'], $result['branches'] ?? null);
+        self::assertSame(['3.0.0-rc1', '3.0.0'], $result['tags'] ?? null);
+        self::assertSame(0, $http->count());
+    }
 }
