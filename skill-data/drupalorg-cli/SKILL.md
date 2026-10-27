@@ -68,8 +68,8 @@ Commands that fetch data accept `--format` / `-f`:
 |--------|-------------|---------|
 | `text` | Human-readable plain text (default) | All commands |
 | `json` | Machine-readable JSON | Most commands |
-| `md`   | Markdown suitable for display or copy-paste | `issue:show`, `issue:get-fork`, `mr:list`, `mr:status`, `mr:files`, `mr:diff`, `project:issues`, `project:releases`, `project:release-notes`, `maintainer:issues` |
-| `llm`  | Structured XML optimised for agent consumption | `issue:show` (add `--with-comments` to include comment thread), `issue:get-fork`, `mr:list`, `mr:status`, `mr:files`, `mr:diff`, `project:issues`, `project:releases`, `project:release-notes`, `maintainer:issues` |
+| `md`   | Markdown suitable for display or copy-paste | `issue:show`, `issue:get-fork`, `mr:list`, `mr:status`, `mr:show`, `mr:files`, `mr:diff`, `project:issues`, `project:releases`, `project:release-notes`, `project:contains`, `maintainer:issues` |
+| `llm`  | Structured XML optimised for agent consumption | `issue:show` (add `--with-comments` to include comment thread), `issue:get-fork`, `mr:list`, `mr:status`, `mr:show` (add `--with-comments` for review notes), `mr:files`, `mr:diff`, `project:issues`, `project:releases`, `project:release-notes`, `project:contains`, `maintainer:issues` |
 
 **Agents should always pass `--format=llm`** to get rich, structured output
 with clearly labelled fields, contributor lists, and change records.
@@ -160,6 +160,20 @@ drupalorg mr:files 'project/drupal!708' --format=llm
 drupalorg mr:status <nid> <mr-iid> --format=llm
 drupalorg mr:status 'project/drupal!708' --format=llm
 
+# Show whether a merge request is ready: draft, detailed_merge_status,
+# has_conflicts, blocking_discussions_resolved, head pipeline, and the work
+# items it closes (an "Issue #N:" title does not close N; closes_issues shows
+# what will). has_conflicts is "unknown" until GitLab checks mergeability;
+# run again shortly. Supports --format=text (default), json, md, llm
+drupalorg mr:show 'project/drupal!708' --format=llm
+# --with-comments adds non-system notes, with file and line for inline notes.
+# drupalbot notes are skipped unless --include-bot-comments. Comments need a
+# GitLab token; without one, the MR state still prints with a comments_error.
+drupalorg mr:show <nid> <mr-iid> --with-comments --format=llm
+# A #note_<id> link implies --with-comments and marks that note with target="true".
+# If the note is not on the MR, <target_note_id missing="true"> says so
+drupalorg mr:show 'https://git.drupalcode.org/project/drupal/-/merge_requests/708#note_3625786' --format=llm
+
 # Show failed job traces from the latest pipeline for a merge request
 # Supports --format=text (default), json
 drupalorg mr:logs <nid> <mr-iid>
@@ -228,6 +242,11 @@ drupalorg project:releases <project> --format=llm
 
 # Display release notes for a specific release
 drupalorg project:release-notes <project> <release> --format=llm
+
+# List the branches and tags that contain a commit, without a local clone
+# Accepts a full or short SHA; project is auto-detected from git remote if omitted
+# Tags are ordered oldest first, so the first tag is the release that shipped it
+drupalorg project:contains [project] <sha> --format=llm
 
 # Open the project page in the default browser
 drupalorg project:link <project>

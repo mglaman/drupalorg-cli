@@ -13,11 +13,13 @@ use mglaman\DrupalOrg\Action\Issue\GetIssueForkAction;
 use mglaman\DrupalOrg\Action\Issue\GetIssueLinkAction;
 use mglaman\DrupalOrg\Action\Issue\GetLatestIssuePatchAction;
 use mglaman\DrupalOrg\Action\Maintainer\GetMaintainerIssuesAction;
+use mglaman\DrupalOrg\Action\MergeRequest\GetMergeRequestAction;
 use mglaman\DrupalOrg\Action\MergeRequest\GetMergeRequestDiffAction;
 use mglaman\DrupalOrg\Action\MergeRequest\GetMergeRequestFilesAction;
 use mglaman\DrupalOrg\Action\MergeRequest\GetMergeRequestLogsAction;
 use mglaman\DrupalOrg\Action\MergeRequest\GetMergeRequestStatusAction;
 use mglaman\DrupalOrg\Action\MergeRequest\ListMergeRequestsAction;
+use mglaman\DrupalOrg\Action\Project\GetProjectContainsAction;
 use mglaman\DrupalOrg\Action\Project\GetProjectIssuesAction;
 use mglaman\DrupalOrg\Action\Project\GetProjectReleaseNotesAction;
 use mglaman\DrupalOrg\Action\Project\GetProjectReleasesAction;
@@ -28,6 +30,7 @@ use mglaman\DrupalOrg\Enum\MergeRequestState;
 use mglaman\DrupalOrg\Enum\ProjectIssueCategory;
 use mglaman\DrupalOrg\Enum\ProjectIssueType;
 use mglaman\DrupalOrg\GitLab\Client as GitLabClient;
+use mglaman\DrupalOrg\GitLab\MergeRequestRef;
 use mglaman\DrupalOrg\GitLab\WorkItemRef;
 
 class ToolRegistry
@@ -135,6 +138,20 @@ class ToolRegistry
         return (new GetProjectReleasesAction($this->client))($project)->jsonSerialize();
     }
 
+    #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'project_contains', description: 'List the branches and tags of a Drupal.org project that contain a commit. Tags are ordered oldest first, so the first tag is the release that shipped the commit.')]
+    public function projectContains(
+        #[Schema(description: "The project machine name (e.g. 'drupal', 'token', 'pathauto').")]
+        string $machineName,
+        #[Schema(description: 'The commit SHA, full or abbreviated.')]
+        string $sha
+    ): mixed {
+        $project = $this->client->getProject($machineName);
+        if ($project === null) {
+            throw new \RuntimeException("Project '$machineName' not found.");
+        }
+        return (new GetProjectContainsAction($this->gitLabClient))($project->machineName, $sha)->jsonSerialize();
+    }
+
     #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'project_get_release_notes', description: 'Get release notes for a project version.')]
     public function projectGetReleaseNotes(
         #[Schema(description: "The project machine name (e.g. 'drupal', 'token', 'pathauto').")]
@@ -197,6 +214,35 @@ class ToolRegistry
         int $mrIid
     ): mixed {
         return (new GetMergeRequestStatusAction($this->client, $this->gitLabClient))($nid, $mrIid)->jsonSerialize();
+    }
+
+    #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'mr_show', description: 'Get merge request state (draft, merge status, conflicts, blocking discussions, head pipeline), the work items it closes, and optionally its review notes. A merge request URL ending in #note_<id> also returns the notes and marks that note.')]
+    public function mrShow(
+        #[Schema(description: 'A Drupal.org issue node ID, a project-path!iid reference (e.g. project/drupal!708), or a merge request URL, optionally ending in #note_<id>.')]
+        string $ref,
+        #[Schema(description: 'The merge request internal ID (IID). Required when ref is an issue node ID.', minimum: 1)]
+        ?int $mrIid = null,
+        #[Schema(description: 'Whether to include non-system merge request notes.')]
+        bool $withComments = false,
+        #[Schema(description: 'Whether to keep drupalbot notes when including notes.')]
+        bool $includeBotComments = false
+    ): mixed {
+        $mergeRequestRef = MergeRequestRef::tryParse($ref);
+        if ($mergeRequestRef === null && !ctype_digit($ref)) {
+            throw new \InvalidArgumentException("Invalid merge request reference: $ref");
+        }
+        $mrIid = $mergeRequestRef->mrIid ?? $mrIid;
+        if ($mrIid === null) {
+            throw new \InvalidArgumentException('mrIid is required when ref does not name a merge request.');
+        }
+        $nid = $mergeRequestRef === null ? $ref : '';
+        return (new GetMergeRequestAction($this->client, $this->gitLabClient))(
+            $nid,
+            $mrIid,
+            $mergeRequestRef,
+            $withComments,
+            $includeBotComments,
+        )->jsonSerialize();
     }
 
     #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'mr_logs', description: 'Get failed CI job logs for a merge request.')]
