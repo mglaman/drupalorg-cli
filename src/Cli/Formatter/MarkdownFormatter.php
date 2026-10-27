@@ -8,6 +8,7 @@ use mglaman\DrupalOrg\Result\GitLab\GitLabIssuesResult;
 use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
 use mglaman\DrupalOrg\Result\Issue\IssueResult;
 use mglaman\DrupalOrg\Result\Issue\SlashCommandResult;
+use mglaman\DrupalOrg\Result\Issue\WorkItemCommentResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestDiffResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestFilesResult;
@@ -344,6 +345,17 @@ class MarkdownFormatter extends AbstractFormatter
             $result->issueIid,
             $result->workItemUrl(),
             $result->noteId,
+        );
+    }
+
+    protected function formatWorkItemComment(WorkItemCommentResult $result): string
+    {
+        return sprintf(
+            "Posted [note #%d](%s) on %s#%d.",
+            $result->noteId,
+            $result->noteUrl(),
+            $result->projectPath,
+            $result->issueIid,
         );
     }
 

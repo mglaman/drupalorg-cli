@@ -7,6 +7,7 @@ use mglaman\DrupalOrg\Entity\IssueNode;
 use mglaman\DrupalOrg\Entity\Release;
 use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
 use mglaman\DrupalOrg\Result\Issue\IssueResult;
+use mglaman\DrupalOrg\Result\Issue\WorkItemCommentResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestItem;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestListResult;
@@ -457,5 +458,16 @@ class MarkdownFormatterTest extends TestCase
         $output = $formatter->format(new GitLabIssueResult(self::makeGitLabIssue()));
 
         self::assertStringNotContainsString('## Comments', $output);
+    }
+
+    public function testWorkItemCommentResult(): void
+    {
+        $formatter = new MarkdownFormatter();
+        $output = $formatter->format(new WorkItemCommentResult('project/tool', 3583107, 3625786));
+
+        self::assertSame(
+            'Posted [note #3625786](https://git.drupalcode.org/project/tool/-/work_items/3583107#note_3625786) on project/tool#3583107.',
+            $output,
+        );
     }
 }
