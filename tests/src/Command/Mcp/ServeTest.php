@@ -105,12 +105,15 @@ class ServeTest extends TestCase
             ['jsonrpc' => '2.0', 'method' => 'notifications/initialized'],
             ...$requests,
         ];
-        $input = fopen('php://memory', 'r+');
+        // The transport waits on its input stream with stream_select(), which
+        // rejects php://memory, so read the requests from a file instead.
+        $inputFile = (string) tempnam(sys_get_temp_dir(), 'drupalorg-cli-mcp');
+        file_put_contents($inputFile, implode('', array_map(
+            static fn (array $message): string => json_encode($message, JSON_THROW_ON_ERROR) . "\n",
+            $messages,
+        )));
+        $input = fopen($inputFile, 'r');
         self::assertIsResource($input);
-        foreach ($messages as $message) {
-            fwrite($input, json_encode($message, JSON_THROW_ON_ERROR) . "\n");
-        }
-        rewind($input);
         // The transport closes its output stream when the session ends, so
         // write to a file that can be read back afterwards.
         $outputFile = (string) tempnam(sys_get_temp_dir(), 'drupalorg-cli-mcp');
@@ -126,6 +129,7 @@ class ServeTest extends TestCase
             ->run(new StdioTransport($input, $output));
 
         $lines = (string) file_get_contents($outputFile);
+        unlink($inputFile);
         unlink($outputFile);
         $responses = [];
         foreach (array_filter(explode("\n", $lines)) as $line) {
