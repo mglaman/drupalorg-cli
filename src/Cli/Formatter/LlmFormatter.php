@@ -15,6 +15,7 @@ use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestListResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestStatusResult;
 use mglaman\DrupalOrg\Result\Issue\IssueSearchResult;
+use mglaman\DrupalOrg\Result\Project\ProjectContainsResult;
 use mglaman\DrupalOrg\Result\Project\ProjectIssuesResult;
 use mglaman\DrupalOrg\Result\Project\ProjectReleasesResult;
 use mglaman\DrupalOrg\Result\Skill\SkillListResult;
@@ -140,6 +141,41 @@ XML;
             $items .= "    </item>\n";
         }
         return "<drupal_context>\n  <project>{$projectTitle}</project>\n  <items>\n{$items}  </items>\n</drupal_context>";
+    }
+
+    protected function formatProjectContains(ProjectContainsResult $result): string
+    {
+        $project = $this->xmlEscape($result->projectName);
+        $sha = $this->xmlEscape($result->sha);
+        $title = $this->xmlEscape($result->title);
+        $committedDate = $this->xmlEscape($result->committedDate);
+        $url = $this->xmlEscape($result->webUrl);
+
+        $branchesXml = '';
+        foreach ($result->branches as $branch) {
+            $branchesXml .= '    <branch>' . $this->xmlEscape($branch) . "</branch>\n";
+        }
+
+        $tagsXml = '';
+        foreach ($result->tags as $tag) {
+            $tagsXml .= '    <tag>' . $this->xmlEscape($tag) . "</tag>\n";
+        }
+
+        return <<<XML
+<drupal_context>
+  <project>{$project}</project>
+  <commit>
+    <sha>{$sha}</sha>
+    <title>{$title}</title>
+    <committed_date>{$committedDate}</committed_date>
+    <url>{$url}</url>
+  </commit>
+  <branches>
+{$branchesXml}  </branches>
+  <tags order="oldest_first">
+{$tagsXml}  </tags>
+</drupal_context>
+XML;
     }
 
     protected function formatIssueFork(IssueForkResult $result): string

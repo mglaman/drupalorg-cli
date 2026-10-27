@@ -113,6 +113,7 @@ Available commands:
   mr:show                   Show merge request state, the work items it closes, and optionally its review notes.
   mr:status                 Show the pipeline status for a merge request.
  project
+  project:contains          Lists the branches and tags that contain a commit.
   project:issues      [pi]  Lists issues for a project.
   project:kanban            Opens project kanban
   project:link              Opens project page

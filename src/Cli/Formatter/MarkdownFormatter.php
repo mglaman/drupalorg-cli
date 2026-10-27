@@ -15,6 +15,7 @@ use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestListResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestStatusResult;
 use mglaman\DrupalOrg\Result\Issue\IssueSearchResult;
+use mglaman\DrupalOrg\Result\Project\ProjectContainsResult;
 use mglaman\DrupalOrg\Result\Project\ProjectIssuesResult;
 use mglaman\DrupalOrg\Result\Project\ProjectReleasesResult;
 use mglaman\DrupalOrg\Result\Skill\SkillListResult;
@@ -107,6 +108,25 @@ class MarkdownFormatter extends AbstractFormatter
             $description = $release->fieldReleaseShortDescription ?? '';
             $lines[] = "- **{$release->fieldReleaseVersion}** ({$date}) — {$description}";
         }
+        return implode("\n", $lines);
+    }
+
+    protected function formatProjectContains(ProjectContainsResult $result): string
+    {
+        $lines = [];
+        $lines[] = "# {$result->title}";
+        $lines[] = '';
+        $lines[] = "- **Project:** {$result->projectName}";
+        $lines[] = "- **Commit:** [{$result->sha}]({$result->webUrl})";
+        $lines[] = "- **Committed:** {$result->committedDate}";
+        $lines[] = '';
+        $lines[] = '## Branches';
+        $lines[] = '';
+        $lines[] = $result->branches === [] ? 'None' : '- ' . implode("\n- ", $result->branches);
+        $lines[] = '';
+        $lines[] = '## Tags (oldest first)';
+        $lines[] = '';
+        $lines[] = $result->tags === [] ? 'None' : '- ' . implode("\n- ", $result->tags);
         return implode("\n", $lines);
     }
 

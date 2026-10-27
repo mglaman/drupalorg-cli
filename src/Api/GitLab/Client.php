@@ -167,6 +167,44 @@ class Client
     }
 
     /**
+     * GET /projects/{path}/repository/commits/{sha}
+     *
+     * Accepts a full or abbreviated SHA. GitLab responds 404 when the project
+     * has no matching commit.
+     *
+     * @throws \Exception
+     */
+    public function getCommit(string $projectPath, string $sha): \stdClass
+    {
+        /** @var \stdClass $result */
+        $result = $this->get('projects/' . urlencode($projectPath) . '/repository/commits/' . urlencode($sha));
+        return $result;
+    }
+
+    /**
+     * GET /projects/{path}/repository/commits/{sha}/refs?type=all
+     *
+     * Returns every branch and tag that contains the commit, following
+     * pagination. Each ref has only a `type` (branch or tag) and a `name`.
+     *
+     * @return \stdClass[]
+     * @throws \Exception
+     */
+    public function getCommitRefs(string $projectPath, string $sha): array
+    {
+        $path = 'projects/' . urlencode($projectPath) . '/repository/commits/' . urlencode($sha) . '/refs';
+        $refs = [];
+        $page = 1;
+        do {
+            $result = $this->get($path, ['type' => 'all', 'per_page' => 100, 'page' => $page]);
+            $batch = is_array($result) ? $result : [];
+            $refs = [...$refs, ...$batch];
+            $page++;
+        } while (count($batch) === 100);
+        return $refs;
+    }
+
+    /**
      * GET /projects/{id}/repository/branches
      *
      * @return \stdClass[]

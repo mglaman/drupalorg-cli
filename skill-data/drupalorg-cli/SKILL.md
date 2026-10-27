@@ -68,8 +68,8 @@ Commands that fetch data accept `--format` / `-f`:
 |--------|-------------|---------|
 | `text` | Human-readable plain text (default) | All commands |
 | `json` | Machine-readable JSON | Most commands |
-| `md`   | Markdown suitable for display or copy-paste | `issue:show`, `issue:get-fork`, `mr:list`, `mr:status`, `mr:show`, `mr:files`, `mr:diff`, `project:issues`, `project:releases`, `project:release-notes`, `maintainer:issues` |
-| `llm`  | Structured XML optimised for agent consumption | `issue:show` (add `--with-comments` to include comment thread), `issue:get-fork`, `mr:list`, `mr:status`, `mr:show` (add `--with-comments` for review notes), `mr:files`, `mr:diff`, `project:issues`, `project:releases`, `project:release-notes`, `maintainer:issues` |
+| `md`   | Markdown suitable for display or copy-paste | `issue:show`, `issue:get-fork`, `mr:list`, `mr:status`, `mr:show`, `mr:files`, `mr:diff`, `project:issues`, `project:releases`, `project:release-notes`, `project:contains`, `maintainer:issues` |
+| `llm`  | Structured XML optimised for agent consumption | `issue:show` (add `--with-comments` to include comment thread), `issue:get-fork`, `mr:list`, `mr:status`, `mr:show` (add `--with-comments` for review notes), `mr:files`, `mr:diff`, `project:issues`, `project:releases`, `project:release-notes`, `project:contains`, `maintainer:issues` |
 
 **Agents should always pass `--format=llm`** to get rich, structured output
 with clearly labelled fields, contributor lists, and change records.
@@ -233,6 +233,11 @@ drupalorg project:releases <project> --format=llm
 
 # Display release notes for a specific release
 drupalorg project:release-notes <project> <release> --format=llm
+
+# List the branches and tags that contain a commit, without a local clone
+# Accepts a full or short SHA; project is auto-detected from git remote if omitted
+# Tags are ordered oldest first, so the first tag is the release that shipped it
+drupalorg project:contains [project] <sha> --format=llm
 
 # Open the project page in the default browser
 drupalorg project:link <project>
