@@ -354,6 +354,29 @@ class LlmFormatterTest extends TestCase
         self::assertStringContainsString('<body><![CDATA[This needs a <null> check.]]></body>', $output);
     }
 
+    public function testMergeRequestResultWithUncheckedConflicts(): void
+    {
+        $output = (new LlmFormatter())->format(MergeRequestResultFixture::make(hasConflicts: null));
+
+        self::assertStringContainsString('<has_conflicts>unknown</has_conflicts>', $output);
+    }
+
+    public function testMergeRequestResultFlagsAMissingLinkedNote(): void
+    {
+        $output = (new LlmFormatter())->format(MergeRequestResultFixture::make(withComments: true, targetNoteId: 999));
+
+        self::assertStringContainsString('<target_note_id missing="true">999</target_note_id>', $output);
+        self::assertStringNotContainsString('target="true"', $output);
+    }
+
+    public function testMergeRequestResultReportsUnavailableComments(): void
+    {
+        $output = (new LlmFormatter())->format(MergeRequestResultFixture::make(targetNoteId: 3625786, commentsError: 'Needs a <token>.'));
+
+        self::assertStringContainsString('<target_note_id>3625786</target_note_id>', $output);
+        self::assertStringContainsString('<comments_error>Needs a &lt;token&gt;.</comments_error>', $output);
+    }
+
     public function testXmlEscapingInTitle(): void
     {
         $result = new IssueResult(

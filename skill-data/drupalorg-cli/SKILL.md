@@ -163,12 +163,15 @@ drupalorg mr:status 'project/drupal!708' --format=llm
 # Show whether a merge request is ready: draft, detailed_merge_status,
 # has_conflicts, blocking_discussions_resolved, head pipeline, and the work
 # items it closes (an "Issue #N:" title does not close N; closes_issues shows
-# what will). Supports --format=text (default), json, md, llm
+# what will). has_conflicts is "unknown" until GitLab checks mergeability;
+# run again shortly. Supports --format=text (default), json, md, llm
 drupalorg mr:show 'project/drupal!708' --format=llm
 # --with-comments adds non-system notes, with file and line for inline notes.
-# drupalbot notes are skipped unless --include-bot-comments.
+# drupalbot notes are skipped unless --include-bot-comments. Comments need a
+# GitLab token; without one, the MR state still prints with a comments_error.
 drupalorg mr:show <nid> <mr-iid> --with-comments --format=llm
-# A #note_<id> link implies --with-comments and marks that note with target="true"
+# A #note_<id> link implies --with-comments and marks that note with target="true".
+# If the note is not on the MR, <target_note_id missing="true"> says so
 drupalorg mr:show 'https://git.drupalcode.org/project/drupal/-/merge_requests/708#note_3625786' --format=llm
 
 # Show failed job traces from the latest pipeline for a merge request

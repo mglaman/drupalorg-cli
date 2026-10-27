@@ -185,7 +185,11 @@ class MarkdownFormatter extends AbstractFormatter
         $lines[] = "- **Branch:** `{$result->sourceBranch}` → `{$result->targetBranch}`";
         $lines[] = "- **Head SHA:** `{$result->headSha}`";
         $mergeStatus = $result->detailedMergeStatus !== '' ? $result->detailedMergeStatus : 'unknown';
-        $conflicts = $result->hasConflicts ? 'yes' : 'no';
+        $conflicts = match ($result->hasConflicts) {
+            true => 'yes',
+            false => 'no',
+            null => 'unknown (not checked yet, run again)',
+        };
         $discussions = $result->blockingDiscussionsResolved ? 'resolved' : 'unresolved';
         $lines[] = "- **Merge status:** {$mergeStatus} | Conflicts: {$conflicts} | Discussions: {$discussions}";
         if ($result->pipelineStatus === null) {
@@ -203,6 +207,14 @@ class MarkdownFormatter extends AbstractFormatter
         foreach ($result->closesIssues as $issue) {
             $labels = $issue->labels !== [] ? ' — ' . implode(', ', $issue->labels) : '';
             $lines[] = "- [#{$issue->iid}]({$issue->webUrl}) [{$issue->state}] {$issue->title}{$labels}";
+        }
+        if ($result->commentsError !== null) {
+            $lines[] = '';
+            $lines[] = "> **Comments unavailable:** {$result->commentsError}";
+        }
+        if ($result->isTargetNoteMissing()) {
+            $lines[] = '';
+            $lines[] = "> **Linked note {$result->targetNoteId} not found** on this merge request.";
         }
         if ($result->comments !== []) {
             $lines[] = '';

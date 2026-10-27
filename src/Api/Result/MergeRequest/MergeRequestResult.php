@@ -11,6 +11,8 @@ use mglaman\DrupalOrg\Result\ResultInterface;
 class MergeRequestResult implements ResultInterface
 {
     /**
+     * @param bool|null $hasConflicts
+     *   Null while GitLab has not checked mergeability yet.
      * @param string|null $pipelineStatus
      *   The head pipeline status as GitLab reports it, or null when the merge
      *   request has no pipeline.
@@ -19,6 +21,8 @@ class MergeRequestResult implements ResultInterface
      * @param GitLabNote[] $comments
      * @param int|null $targetNoteId
      *   The note a "#note_<id>" link pointed at.
+     * @param string|null $commentsError
+     *   Why comments were requested but could not be read.
      */
     public function __construct(
         public readonly int $iid,
@@ -31,14 +35,32 @@ class MergeRequestResult implements ResultInterface
         public readonly string $headSha,
         public readonly string $webUrl,
         public readonly string $detailedMergeStatus,
-        public readonly bool $hasConflicts,
+        public readonly ?bool $hasConflicts,
         public readonly bool $blockingDiscussionsResolved,
         public readonly ?string $pipelineStatus,
         public readonly ?string $pipelineUrl,
         public readonly array $closesIssues,
         public readonly array $comments = [],
         public readonly ?int $targetNoteId = null,
+        public readonly ?string $commentsError = null,
     ) {
+    }
+
+    /**
+     * Whether a linked note was asked for and the comments loaded without it,
+     * because it was deleted or belongs to another merge request.
+     */
+    public function isTargetNoteMissing(): bool
+    {
+        if ($this->targetNoteId === null || $this->commentsError !== null) {
+            return false;
+        }
+        foreach ($this->comments as $comment) {
+            if ($this->isTargetNote($comment)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public function isTargetNote(GitLabNote $note): bool
@@ -76,6 +98,8 @@ class MergeRequestResult implements ResultInterface
                 $this->closesIssues
             ),
             'target_note_id' => $this->targetNoteId,
+            'target_note_missing' => $this->isTargetNoteMissing(),
+            'comments_error' => $this->commentsError,
             'comments' => array_map(
                 fn(GitLabNote $note) => [...(array) $note->jsonSerialize(), 'is_target' => $this->isTargetNote($note)],
                 $this->comments

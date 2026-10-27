@@ -342,6 +342,29 @@ class MarkdownFormatterTest extends TestCase
         self::assertSame(1, substr_count($output, '← linked note'));
     }
 
+    public function testMergeRequestResultWithUncheckedConflicts(): void
+    {
+        $output = (new MarkdownFormatter())->format(MergeRequestResultFixture::make(hasConflicts: null));
+
+        self::assertStringContainsString('Conflicts: unknown (not checked yet, run again)', $output);
+    }
+
+    public function testMergeRequestResultFlagsAMissingLinkedNote(): void
+    {
+        $output = (new MarkdownFormatter())->format(MergeRequestResultFixture::make(withComments: true, targetNoteId: 999));
+
+        self::assertStringContainsString('> **Linked note 999 not found** on this merge request.', $output);
+        self::assertStringNotContainsString('← linked note', $output);
+    }
+
+    public function testMergeRequestResultReportsUnavailableComments(): void
+    {
+        $output = (new MarkdownFormatter())->format(MergeRequestResultFixture::make(targetNoteId: 3625786, commentsError: 'Needs a token.'));
+
+        self::assertStringContainsString('> **Comments unavailable:** Needs a token.', $output);
+        self::assertStringNotContainsString('not found', $output);
+    }
+
     public function testUnsupportedResultTypeThrows(): void
     {
         $result = new class implements ResultInterface {

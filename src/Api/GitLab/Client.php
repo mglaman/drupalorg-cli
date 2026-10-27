@@ -194,12 +194,13 @@ class Client
     /**
      * GET /projects/{id}/merge_requests/{iid}
      *
+     * @param array<string, mixed> $params
      * @throws \Exception
      */
-    public function getMergeRequest(string|int $projectId, int $mrIid): \stdClass
+    public function getMergeRequest(string|int $projectId, int $mrIid, array $params = []): \stdClass
     {
         /** @var \stdClass $result */
-        $result = $this->get('projects/' . $projectId . '/merge_requests/' . $mrIid);
+        $result = $this->get('projects/' . $projectId . '/merge_requests/' . $mrIid, $params);
         return $result;
     }
 

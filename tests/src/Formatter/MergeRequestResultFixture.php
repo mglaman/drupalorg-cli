@@ -17,8 +17,13 @@ final class MergeRequestResultFixture
      * @param GitLabIssue[]|null $closesIssues
      *   Defaults to one closing work item.
      */
-    public static function make(bool $withComments = false, ?int $targetNoteId = null, ?array $closesIssues = null): MergeRequestResult
-    {
+    public static function make(
+        bool $withComments = false,
+        ?int $targetNoteId = null,
+        ?array $closesIssues = null,
+        ?bool $hasConflicts = false,
+        ?string $commentsError = null,
+    ): MergeRequestResult {
         return new MergeRequestResult(
             iid: 219,
             title: 'Issue #3625000: Fix <b>the</b> widget',
@@ -30,7 +35,7 @@ final class MergeRequestResultFixture
             headSha: 'abc123',
             webUrl: 'https://git.drupalcode.org/project/tool/-/merge_requests/219',
             detailedMergeStatus: 'draft_status',
-            hasConflicts: false,
+            hasConflicts: $hasConflicts,
             blockingDiscussionsResolved: false,
             pipelineStatus: 'success',
             pipelineUrl: 'https://git.drupalcode.org/project/tool/-/pipelines/99',
@@ -61,6 +66,7 @@ final class MergeRequestResultFixture
                 ),
             ] : [],
             targetNoteId: $targetNoteId,
+            commentsError: $commentsError,
         );
     }
 }

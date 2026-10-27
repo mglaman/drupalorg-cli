@@ -62,7 +62,11 @@ class Show extends MrCommandBase
         $this->stdOut->writeln(sprintf('Branch: %s -> %s', $result->sourceBranch, $result->targetBranch));
         $this->stdOut->writeln(sprintf('Head SHA: %s', $result->headSha));
         $this->stdOut->writeln(sprintf('Merge status: %s', $result->detailedMergeStatus));
-        $this->stdOut->writeln(sprintf('Has conflicts: %s', $result->hasConflicts ? 'yes' : 'no'));
+        $this->stdOut->writeln(sprintf('Has conflicts: %s', match ($result->hasConflicts) {
+            true => 'yes',
+            false => 'no',
+            null => 'unknown (not checked yet, run again)',
+        }));
         $this->stdOut->writeln(sprintf('Blocking discussions resolved: %s', $result->blockingDiscussionsResolved ? 'yes' : 'no'));
         $this->stdOut->writeln(trim(sprintf('Pipeline: %s %s', $result->pipelineStatus ?? 'none', $result->pipelineUrl ?? '')));
         $this->stdOut->writeln(sprintf('URL: %s', $result->webUrl));
@@ -76,6 +80,13 @@ class Show extends MrCommandBase
             if ($issue->labels !== []) {
                 $this->stdOut->writeln(sprintf('    Labels: %s', implode(', ', $issue->labels)));
             }
+        }
+
+        if ($result->commentsError !== null) {
+            $this->stdErr->writeln(sprintf('<comment>Comments unavailable: %s</comment>', $result->commentsError));
+        }
+        if ($result->isTargetNoteMissing()) {
+            $this->stdErr->writeln(sprintf('<comment>Linked note %d not found on this merge request.</comment>', $result->targetNoteId));
         }
 
         foreach ($result->comments as $comment) {

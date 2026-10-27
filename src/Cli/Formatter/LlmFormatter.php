@@ -233,7 +233,11 @@ XML;
         $headSha = $this->xmlEscape($result->headSha);
         $webUrl = $this->xmlEscape($result->webUrl);
         $detailedMergeStatus = $this->xmlEscape($result->detailedMergeStatus);
-        $hasConflicts = $result->hasConflicts ? 'yes' : 'no';
+        $hasConflicts = match ($result->hasConflicts) {
+            true => 'yes',
+            false => 'no',
+            null => 'unknown',
+        };
         $discussionsResolved = $result->blockingDiscussionsResolved ? 'yes' : 'no';
         $pipelineStatus = $this->xmlEscape($result->pipelineStatus ?? 'none');
         $pipelineUrl = $this->xmlEscape($result->pipelineUrl ?? '');
@@ -253,8 +257,13 @@ XML;
             $closesIssuesXml .= "    </issue>\n";
         }
 
-        $targetNoteXml = $result->targetNoteId !== null
-            ? "\n  <target_note_id>{$result->targetNoteId}</target_note_id>"
+        $targetNoteXml = '';
+        if ($result->targetNoteId !== null) {
+            $targetNoteMissing = $result->isTargetNoteMissing() ? ' missing="true"' : '';
+            $targetNoteXml = "\n  <target_note_id{$targetNoteMissing}>{$result->targetNoteId}</target_note_id>";
+        }
+        $commentsErrorXml = $result->commentsError !== null
+            ? "\n  <comments_error>" . $this->xmlEscape($result->commentsError) . '</comments_error>'
             : '';
 
         $commentsXml = '';
@@ -297,7 +306,7 @@ XML;
     <url>{$pipelineUrl}</url>
   </head_pipeline>
   <closes_issues>
-{$closesIssuesXml}  </closes_issues>{$targetNoteXml}{$commentsXml}
+{$closesIssuesXml}  </closes_issues>{$targetNoteXml}{$commentsErrorXml}{$commentsXml}
 </drupal_context>
 XML;
     }
