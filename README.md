@@ -112,6 +112,7 @@ Available commands:
   mr:logs                   Show failed job traces from the latest pipeline for a merge request.
   mr:status                 Show the pipeline status for a merge request.
  project
+  project:contains          Lists the branches and tags that contain a commit.
   project:issues      [pi]  Lists issues for a project.
   project:kanban            Opens project kanban
   project:link              Opens project page

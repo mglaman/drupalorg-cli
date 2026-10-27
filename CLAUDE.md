@@ -23,6 +23,7 @@ This CLI reads from Drupal.org and automates local merge request workflows. Its 
 | `issue:search` | `is` | Searches issues by title keyword (optional project scope) |
 | `project:releases` | | Lists available releases |
 | `project:release-notes` | `prn` | Displays release notes for a release |
+| `project:contains` | | Lists the branches and tags that contain a commit, oldest tag first |
 | `project:link` | | Opens project page in browser |
 | `project:kanban` | | Opens project kanban in browser |
 | `skill:install` | | Installs discovery stubs into `.claude/skills/` |

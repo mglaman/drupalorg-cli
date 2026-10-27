@@ -11,6 +11,7 @@ use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestItem;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestListResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestStatusResult;
+use mglaman\DrupalOrg\Result\Project\ProjectContainsResult;
 use mglaman\DrupalOrg\Result\Project\ProjectIssuesResult;
 use mglaman\DrupalOrg\Result\Project\ProjectReleasesResult;
 use mglaman\DrupalOrg\Result\ResultInterface;
@@ -189,6 +190,44 @@ class MarkdownFormatterTest extends TestCase
         self::assertStringContainsString('# Drupal', $output);
         self::assertStringContainsString('**10.3.8**', $output);
         self::assertStringContainsString('Security fixes', $output);
+    }
+
+    public function testProjectContainsResult(): void
+    {
+        $result = new ProjectContainsResult(
+            projectName: 'tool',
+            sha: 'd6ef1a7c0ffee',
+            title: 'Fix tool discovery cache',
+            committedDate: '2025-03-14T09:26:53.000+00:00',
+            webUrl: 'https://git.drupalcode.org/project/tool/-/commit/d6ef1a7c0ffee',
+            branches: ['1.x'],
+            tags: ['1.0.0-beta12', '1.0.0'],
+        );
+
+        $output = (new MarkdownFormatter())->format($result);
+
+        self::assertStringStartsWith('# Fix tool discovery cache', $output);
+        self::assertStringContainsString('- **Commit:** [d6ef1a7c0ffee](https://git.drupalcode.org/project/tool/-/commit/d6ef1a7c0ffee)', $output);
+        self::assertStringContainsString('- **Committed:** 2025-03-14T09:26:53.000+00:00', $output);
+        self::assertStringContainsString("## Branches\n\n- 1.x", $output);
+        self::assertStringContainsString("## Tags (oldest first)\n\n- 1.0.0-beta12\n- 1.0.0", $output);
+    }
+
+    public function testProjectContainsResultWithoutTags(): void
+    {
+        $result = new ProjectContainsResult(
+            projectName: 'tool',
+            sha: 'd6ef1a7c0ffee',
+            title: 'Fix tool discovery cache',
+            committedDate: '2025-03-14T09:26:53.000+00:00',
+            webUrl: 'https://git.drupalcode.org/project/tool/-/commit/d6ef1a7c0ffee',
+            branches: ['1.x'],
+            tags: [],
+        );
+
+        $output = (new MarkdownFormatter())->format($result);
+
+        self::assertStringEndsWith("## Tags (oldest first)\n\nNone", $output);
     }
 
     public function testSkillListResult(): void
