@@ -218,6 +218,16 @@ drupalorg issue:comment <ref> --file=note.md
 cat note.md | drupalorg issue:comment <ref> --file=-
 ```
 
+Link two work items, in the same project or across projects. `--type` is `relates_to`
+(default), `blocks`, or `is_blocked_by`. GitLab requires membership in both projects;
+on a 403 the command prints `issue:comment` commands to post a note on each side instead.
+
+```bash
+drupalorg issue:relate <ref> <target-ref>
+drupalorg issue:relate <ref> <target-ref> --type=is_blocked_by
+# Linking an already-linked pair succeeds and reports already_linked.
+```
+
 Authentication requires a GitLab token. The CLI reads `DRUPALORG_GITLAB_TOKEN` and
 falls back to `glab config get token --host git.drupalcode.org` when that env var is
 unset.

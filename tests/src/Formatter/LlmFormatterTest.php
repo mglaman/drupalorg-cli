@@ -8,6 +8,7 @@ use mglaman\DrupalOrg\Entity\Release;
 use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
 use mglaman\DrupalOrg\Result\Issue\IssueResult;
 use mglaman\DrupalOrg\Result\Issue\WorkItemCommentResult;
+use mglaman\DrupalOrg\Result\Issue\WorkItemLinkResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestItem;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestListResult;
@@ -488,5 +489,23 @@ class LlmFormatterTest extends TestCase
             '<url>https://git.drupalcode.org/project/tool/-/work_items/3583107#note_3625786</url>',
             $output,
         );
+    }
+
+    public function testWorkItemLinkResult(): void
+    {
+        $formatter = new LlmFormatter();
+        $output = $formatter->format(new WorkItemLinkResult('project/mcp_server_tool_bridge', 3618722, 'is_blocked_by', 'project/mcp_server', 3585914));
+
+        self::assertStringContainsString('<link_type>is_blocked_by</link_type>', $output);
+        self::assertStringContainsString("<source>\n    <project_path>project/mcp_server_tool_bridge</project_path>\n    <issue_iid>3618722</issue_iid>", $output);
+        self::assertStringContainsString('<url>https://git.drupalcode.org/project/mcp_server/-/work_items/3585914</url>', $output);
+        self::assertStringContainsString('<already_linked>no</already_linked>', $output);
+    }
+
+    public function testWorkItemLinkResultAlreadyLinked(): void
+    {
+        $output = (new LlmFormatter())->format(new WorkItemLinkResult('project/tool', 3583118, 'relates_to', 'project/tool', 3582968, alreadyLinked: true));
+
+        self::assertStringContainsString('<already_linked>yes</already_linked>', $output);
     }
 }

@@ -8,6 +8,7 @@ use mglaman\DrupalOrg\Entity\Release;
 use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
 use mglaman\DrupalOrg\Result\Issue\IssueResult;
 use mglaman\DrupalOrg\Result\Issue\WorkItemCommentResult;
+use mglaman\DrupalOrg\Result\Issue\WorkItemLinkResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestItem;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestListResult;
@@ -469,5 +470,23 @@ class MarkdownFormatterTest extends TestCase
             'Posted [note #3625786](https://git.drupalcode.org/project/tool/-/work_items/3583107#note_3625786) on project/tool#3583107.',
             $output,
         );
+    }
+
+    public function testWorkItemLinkResult(): void
+    {
+        $formatter = new MarkdownFormatter();
+        $output = $formatter->format(new WorkItemLinkResult('project/tool', 3583118, 'relates_to', 'project/tool', 3582968));
+
+        self::assertSame(
+            'Linked [project/tool#3583118](https://git.drupalcode.org/project/tool/-/work_items/3583118) `relates_to` [project/tool#3582968](https://git.drupalcode.org/project/tool/-/work_items/3582968).',
+            $output,
+        );
+    }
+
+    public function testWorkItemLinkResultAlreadyLinked(): void
+    {
+        $output = (new MarkdownFormatter())->format(new WorkItemLinkResult('project/tool', 3583118, 'relates_to', 'project/tool', 3582968, alreadyLinked: true));
+
+        self::assertStringStartsWith('Already linked [project/tool#3583118]', $output);
     }
 }
