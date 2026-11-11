@@ -93,6 +93,50 @@ jobs:
     - name: phpunit
       run: ./vendor/bin/phpunit
 
+  drupal-compat:
+    # Checks that this package can be installed as a dependency of a Drupal
+    # site, so its Symfony constraints don't conflict with Drupal core's.
+    runs-on: ubuntu-latest
+    needs: validate
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - drupal: "^10.6"
+            php: "8.1"
+          - drupal: "^11"
+            php: "8.3"
+          - drupal: "11.x-dev"
+            php: "8.4"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: drupalorg-cli
+      - name: "Install PHP"
+        uses: "shivammathur/setup-php@v2"
+        with:
+          coverage: "none"
+          php-version: ${{ matrix.php }}
+          tools: composer:v2
+      - name: Create a Drupal project that requires this package
+        run: |
+          mkdir site && cd site
+          cat > composer.json <<'JSON'
+          {
+            "name": "test/drupal-site",
+            "version": "1.0.0",
+            "minimum-stability": "dev",
+            "prefer-stable": true,
+            "repositories": [
+              {"type": "path", "url": "../drupalorg-cli", "options": {"versions": {"mglaman/drupalorg-cli": "999.0.0"}}},
+              {"type": "composer", "url": "https://packages.drupal.org/8"}
+            ],
+            "config": {"allow-plugins": false}
+          }
+          JSON
+          composer require --no-install --no-interaction "drupal/core-recommended:${{ matrix.drupal }}" "mglaman/drupalorg-cli:999.0.0"
+          composer show --locked | grep -E '^(drupal/core |mglaman/drupalorg-cli|symfony/(console|finder|process) |mcp/sdk)'
+
   phar:
     runs-on: ubuntu-latest
     needs:
