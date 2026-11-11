@@ -9,6 +9,7 @@ use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
 use mglaman\DrupalOrg\Result\Issue\IssueResult;
 use mglaman\DrupalOrg\Result\Issue\SlashCommandResult;
 use mglaman\DrupalOrg\Result\Issue\WorkItemCommentResult;
+use mglaman\DrupalOrg\Result\Issue\WorkItemCreatedResult;
 use mglaman\DrupalOrg\Result\Issue\WorkItemLinkResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestDiffResult;
@@ -486,6 +487,31 @@ XML;
   <issue_iid>{$result->issueIid}</issue_iid>
   <note_id>{$result->noteId}</note_id>
   <url>{$url}</url>
+</drupal_context>
+XML;
+    }
+
+    protected function formatWorkItemCreated(WorkItemCreatedResult $result): string
+    {
+        $projectPath = $this->xmlEscape($result->projectPath);
+        $title = $this->xmlEscape($result->title);
+        $labels = $this->xmlEscape(implode(', ', $result->labels));
+        $description = $this->xmlEscape($result->description);
+        $dryRun = $result->isDryRun() ? 'yes' : 'no';
+        $iid = $result->issueIid ?? '';
+        $ref = $this->xmlEscape($result->ref() ?? '');
+        $url = $this->xmlEscape($result->workItemUrl() ?? '');
+
+        return <<<XML
+<drupal_context>
+  <project_path>{$projectPath}</project_path>
+  <dry_run>{$dryRun}</dry_run>
+  <issue_iid>{$iid}</issue_iid>
+  <ref>{$ref}</ref>
+  <url>{$url}</url>
+  <title>{$title}</title>
+  <labels>{$labels}</labels>
+  <description>{$description}</description>
 </drupal_context>
 XML;
     }

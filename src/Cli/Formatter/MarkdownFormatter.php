@@ -9,6 +9,7 @@ use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
 use mglaman\DrupalOrg\Result\Issue\IssueResult;
 use mglaman\DrupalOrg\Result\Issue\SlashCommandResult;
 use mglaman\DrupalOrg\Result\Issue\WorkItemCommentResult;
+use mglaman\DrupalOrg\Result\Issue\WorkItemCreatedResult;
 use mglaman\DrupalOrg\Result\Issue\WorkItemLinkResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestDiffResult;
@@ -358,6 +359,22 @@ class MarkdownFormatter extends AbstractFormatter
             $result->projectPath,
             $result->issueIid,
         );
+    }
+
+    protected function formatWorkItemCreated(WorkItemCreatedResult $result): string
+    {
+        if ($result->isDryRun()) {
+            $lines = [sprintf('**Dry run:** would create an issue in %s.', $result->projectPath), ''];
+        } else {
+            $lines = [sprintf('Created [%s](%s).', $result->ref(), $result->workItemUrl()), ''];
+        }
+        $lines[] = sprintf('- **Title:** %s', $result->title);
+        $lines[] = sprintf('- **Labels:** %s', $result->labels === [] ? '(none)' : implode(', ', array_map(static fn(string $l) => "`$l`", $result->labels)));
+        if ($result->description !== '') {
+            $lines[] = '';
+            $lines[] = $result->description;
+        }
+        return implode("\n", $lines);
     }
 
     protected function formatWorkItemLink(WorkItemLinkResult $result): string

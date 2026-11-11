@@ -218,6 +218,19 @@ drupalorg issue:comment <ref> --file=note.md
 cat note.md | drupalorg issue:comment <ref> --file=-
 ```
 
+Create a new issue (work item) in a project whose issue queue lives on GitLab. `--title`
+is required; the description comes from `--message` or `--file` (optional). `--category`
+is `bug`, `task`, `feature`, `support`, or `plan`; `--label` adds extra labels and can be
+repeated. Run with `--dry-run` first to check the payload, since creating an issue is public.
+Projects still on the Drupal.org issue queue fail with a link to the web form. Prints the
+new `project/name#iid` ref, which the other issue commands accept.
+
+```bash
+drupalorg issue:create <project> --title="Add a dry run flag" --file=issue.md --category=feature --dry-run
+drupalorg issue:create <project> --title="Add a dry run flag" --file=issue.md --category=feature
+drupalorg issue:create <project> --title="Crash on save" --message="Steps..." --category=bug --label=state::needsWork --format=json
+```
+
 Link two work items, in the same project or across projects. `--type` is `relates_to`
 (default), `blocks`, or `is_blocked_by`. GitLab requires membership in both projects;
 on a 403 the command prints `issue:comment` commands to post a note on each side instead.

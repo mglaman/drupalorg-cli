@@ -141,6 +141,29 @@ class Client
     }
 
     /**
+     * POST /projects/{path}/issues
+     *
+     * Creates a GitLab issue (work item) in a project. Labels are sent as a
+     * comma-separated list, as the API expects.
+     *
+     * @param string[] $labels
+     * @throws \Exception
+     */
+    public function createIssue(string $projectPath, string $title, string $description, array $labels = []): \stdClass
+    {
+        $body = ['title' => $title];
+        if ($description !== '') {
+            $body['description'] = $description;
+        }
+        if ($labels !== []) {
+            $body['labels'] = implode(',', $labels);
+        }
+        /** @var \stdClass $result */
+        $result = $this->post('projects/' . urlencode($projectPath) . '/issues', $body);
+        return $result;
+    }
+
+    /**
      * POST /projects/{id}/issues/{iid}/links
      *
      * The links endpoint only accepts numeric project IDs. A URL-encoded
