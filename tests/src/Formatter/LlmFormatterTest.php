@@ -8,6 +8,7 @@ use mglaman\DrupalOrg\Entity\Release;
 use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
 use mglaman\DrupalOrg\Result\Issue\IssueResult;
 use mglaman\DrupalOrg\Result\Issue\WorkItemCommentResult;
+use mglaman\DrupalOrg\Result\Issue\WorkItemCreatedResult;
 use mglaman\DrupalOrg\Result\Issue\WorkItemLinkResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestItem;
@@ -476,6 +477,18 @@ class LlmFormatterTest extends TestCase
         $output = $formatter->format(new GitLabIssueResult(self::makeGitLabIssue()));
 
         self::assertStringNotContainsString('<comments>', $output);
+    }
+
+    public function testWorkItemCreatedResult(): void
+    {
+        $formatter = new LlmFormatter();
+        $output = $formatter->format(new WorkItemCreatedResult('project/tool', 'Fix <b>', 'Body & more', ['category::bug'], 3590001));
+
+        self::assertStringContainsString('<dry_run>no</dry_run>', $output);
+        self::assertStringContainsString('<ref>project/tool#3590001</ref>', $output);
+        self::assertStringContainsString('<url>https://git.drupalcode.org/project/tool/-/work_items/3590001</url>', $output);
+        self::assertStringContainsString('<title>Fix &lt;b&gt;</title>', $output);
+        self::assertStringContainsString('<description>Body &amp; more</description>', $output);
     }
 
     public function testWorkItemCommentResult(): void

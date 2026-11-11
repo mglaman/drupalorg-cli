@@ -138,6 +138,37 @@ class ClientTest extends TestCase
         self::assertSame('{"body":"\/do:fork"}', (string) $request->getBody());
     }
 
+    public function testCreateIssueSendsTitleDescriptionAndCommaSeparatedLabels(): void
+    {
+        $issue = $this->client(self::json(['iid' => 3590001], 201))
+            ->createIssue('project/tool', 'Add a "dry run" flag', "## Problem\n\n`code`", ['category::feature', 'state::needsWork']);
+
+        self::assertSame(3590001, $issue->iid);
+        $request = $this->sentRequest();
+        self::assertSame('POST', $request->getMethod());
+        self::assertSame(
+            'https://git.drupalcode.org/api/v4/projects/project%2Ftool/issues',
+            (string) $request->getUri()
+        );
+        self::assertSame('Bearer test-token', $request->getHeaderLine('Authorization'));
+        self::assertSame('application/json', $request->getHeaderLine('Content-Type'));
+        self::assertSame(
+            [
+                'title' => 'Add a "dry run" flag',
+                'description' => "## Problem\n\n`code`",
+                'labels' => 'category::feature,state::needsWork',
+            ],
+            json_decode((string) $request->getBody(), true, 512, JSON_THROW_ON_ERROR)
+        );
+    }
+
+    public function testCreateIssueOmitsEmptyDescriptionAndLabels(): void
+    {
+        $this->client(self::json(['iid' => 1], 201))->createIssue('project/tool', 'Title', '');
+
+        self::assertSame('{"title":"Title"}', (string) $this->sentRequest()->getBody());
+    }
+
     public function testGetIssueNotesStopsAfterAShortPage(): void
     {
         $notes = $this->client(self::json(self::notes(5)))->getIssueNotes('project/drupal', 12);

@@ -8,6 +8,7 @@ use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
 use mglaman\DrupalOrg\Result\Issue\IssueResult;
 use mglaman\DrupalOrg\Result\Issue\SlashCommandResult;
 use mglaman\DrupalOrg\Result\Issue\WorkItemCommentResult;
+use mglaman\DrupalOrg\Result\Issue\WorkItemCreatedResult;
 use mglaman\DrupalOrg\Result\Issue\WorkItemLinkResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestDiffResult;
@@ -43,6 +44,7 @@ abstract class AbstractFormatter implements FormatterInterface
             $result instanceof GitLabIssuesResult => $this->formatGitLabIssues($result),
             $result instanceof SlashCommandResult => $this->formatSlashCommand($result),
             $result instanceof WorkItemCommentResult => $this->formatWorkItemComment($result),
+            $result instanceof WorkItemCreatedResult => $this->formatWorkItemCreated($result),
             $result instanceof WorkItemLinkResult => $this->formatWorkItemLink($result),
             $result instanceof SkillListResult => $this->formatSkillList($result),
             default => throw new \InvalidArgumentException(
@@ -67,6 +69,7 @@ abstract class AbstractFormatter implements FormatterInterface
     abstract protected function formatGitLabIssues(GitLabIssuesResult $result): string;
     abstract protected function formatSlashCommand(SlashCommandResult $result): string;
     abstract protected function formatWorkItemComment(WorkItemCommentResult $result): string;
+    abstract protected function formatWorkItemCreated(WorkItemCreatedResult $result): string;
     abstract protected function formatWorkItemLink(WorkItemLinkResult $result): string;
     abstract protected function formatSkillList(SkillListResult $result): string;
 }
