@@ -9,6 +9,8 @@ use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
 use mglaman\DrupalOrg\Result\Issue\IssueResult;
 use mglaman\DrupalOrg\Result\Issue\SlashCommandResult;
 use mglaman\DrupalOrg\Result\Issue\WorkItemCommentResult;
+use mglaman\DrupalOrg\Result\Issue\IssueTemplateResult;
+use mglaman\DrupalOrg\Result\Issue\WorkItemCreatedResult;
 use mglaman\DrupalOrg\Result\Issue\WorkItemLinkResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
 use mglaman\DrupalOrg\Result\MergeRequest\MergeRequestDiffResult;
@@ -358,6 +360,57 @@ class MarkdownFormatter extends AbstractFormatter
             $result->projectPath,
             $result->issueIid,
         );
+    }
+
+    protected function formatWorkItemCreated(WorkItemCreatedResult $result): string
+    {
+        if ($result->isDryRun()) {
+            $lines = [sprintf('**Dry run:** would create an issue in %s.', $result->projectPath), ''];
+        } else {
+            $lines = [sprintf('Created [%s](%s).', $result->ref(), $result->workItemUrl()), ''];
+        }
+        $lines[] = sprintf('- **Title:** %s', $result->title);
+        $lines[] = sprintf('- **Labels:** %s', $result->labels === [] ? '(none)' : implode(', ', array_map(static fn(string $l) => "`$l`", $result->labels)));
+        if ($result->confidential) {
+            $lines[] = '- **Confidential:** yes';
+        }
+        if ($result->possibleDuplicates !== []) {
+            $lines[] = '';
+            $lines[] = '**Possible duplicates** (open issues with a near-identical title):';
+            $lines[] = '';
+            foreach ($result->possibleDuplicates as $issue) {
+                $lines[] = sprintf('- [#%d](%s) %s', $issue->iid, $issue->webUrl, $issue->title);
+            }
+        }
+        $notice = $result->templateNotice();
+        if ($notice !== null) {
+            $lines[] = '';
+            $lines[] = "> $notice";
+        }
+        if ($result->description !== '') {
+            $lines[] = '';
+            $lines[] = $result->description;
+        }
+        return implode("\n", $lines);
+    }
+
+    protected function formatIssueTemplate(IssueTemplateResult $result): string
+    {
+        if ($result->name === null) {
+            return sprintf(
+                '%s has no Default issue template.%s',
+                $result->projectPath,
+                $result->available === [] ? '' : ' Available: ' . implode(', ', $result->available) . '.',
+            );
+        }
+        $fence = str_contains($result->content, '```') ? '~~~~' : '```';
+        return implode("\n", [
+            sprintf('**%s** issue template for %s:', $result->name, $result->projectPath),
+            '',
+            $fence . 'markdown',
+            rtrim($result->content, "\n"),
+            $fence,
+        ]);
     }
 
     protected function formatWorkItemLink(WorkItemLinkResult $result): string
