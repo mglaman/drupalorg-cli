@@ -169,6 +169,50 @@ class ClientTest extends TestCase
         self::assertSame('{"title":"Title"}', (string) $this->sentRequest()->getBody());
     }
 
+    public function testCreateIssueSendsConfidential(): void
+    {
+        $this->client(self::json(['iid' => 1], 201))->createIssue('project/tool', 'Title', '', [], true);
+
+        self::assertSame('{"title":"Title","confidential":true}', (string) $this->sentRequest()->getBody());
+    }
+
+    public function testGetIssueTemplateNames(): void
+    {
+        $names = $this->client(self::json([['key' => 'Default', 'name' => 'Default'], ['key' => 'Bug', 'name' => 'Bug']]))
+            ->getIssueTemplateNames('project/tool');
+
+        self::assertSame(['Default', 'Bug'], $names);
+        self::assertSame(
+            'https://git.drupalcode.org/api/v4/projects/project%2Ftool/templates/issues?per_page=100',
+            (string) $this->sentRequest()->getUri()
+        );
+    }
+
+    public function testGetIssueTemplateEncodesName(): void
+    {
+        $content = $this->client(self::json(['name' => 'Bug report', 'content' => "## Steps\n"]))
+            ->getIssueTemplate('project/tool', 'Bug report');
+
+        self::assertSame("## Steps\n", $content);
+        self::assertSame(
+            'https://git.drupalcode.org/api/v4/projects/project%2Ftool/templates/issues/Bug%20report',
+            (string) $this->sentRequest()->getUri()
+        );
+    }
+
+    public function testGetLabelNamesFollowsPaginationAndIncludesGroupLabels(): void
+    {
+        $page = static fn(int $count, int $first) => array_map(static fn(int $i) => ['name' => "label$i"], range($first, $first + $count - 1));
+        $names = $this->client(self::json($page(100, 0)), self::json($page(2, 100)))->getLabelNames('project/tool');
+
+        self::assertCount(102, $names);
+        self::assertSame('label101', $names[101]);
+        self::assertCount(2, $this->history);
+        $query = self::query($this->sentRequest(1));
+        self::assertSame('2', $query['page']);
+        self::assertSame('true', $query['include_ancestor_groups']);
+    }
+
     public function testGetIssueNotesStopsAfterAShortPage(): void
     {
         $notes = $this->client(self::json(self::notes(5)))->getIssueNotes('project/drupal', 12);

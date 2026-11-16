@@ -218,17 +218,30 @@ drupalorg issue:comment <ref> --file=note.md
 cat note.md | drupalorg issue:comment <ref> --file=-
 ```
 
-Create a new issue (work item) in a project whose issue queue lives on GitLab. `--title`
-is required; the description comes from `--message` or `--file` (optional). `--category`
-is `bug`, `task`, `feature`, `support`, or `plan`; `--label` adds extra labels and can be
-repeated. Run with `--dry-run` first to check the payload, since creating an issue is public.
-Projects still on the Drupal.org issue queue fail with a link to the web form. Prints the
-new `project/name#iid` ref, which the other issue commands accept.
+Create a new issue (work item) in a project whose issue queue lives on GitLab. Creating an
+issue is public, so work through these steps:
+
+1. **Fetch the issue template.** Without a description, GitLab silently fills in the
+   project's Default template, including its AI-use policy and AI disclosure section.
+   Print the template, fill it in (remove the HTML comments and complete the AI disclosure,
+   since you are an AI tool), and pass the result with `--file`.
+2. **Dry run.** `--dry-run` lists open issues with a near-identical title (possible
+   duplicates) and rejects labels the project doesn't have, suggesting the closest match.
+   If it reports a duplicate, comment on that issue instead of creating a new one.
+3. **Create.** Prints the new `project/name#iid` ref, which the other issue commands accept.
+
+`--title` is required. `--category` is `bug`, `task`, `feature`, `support`, or `plan`;
+`--label` adds extra labels and can be repeated. Use `--confidential` for potential
+security issues. Projects still on the Drupal.org issue queue fail with a link to the web
+form.
 
 ```bash
+drupalorg issue:template <project> > issue.md            # then fill in issue.md
+drupalorg issue:template <project> --format=json         # name, content, and the available templates
 drupalorg issue:create <project> --title="Add a dry run flag" --file=issue.md --category=feature --dry-run
 drupalorg issue:create <project> --title="Add a dry run flag" --file=issue.md --category=feature
-drupalorg issue:create <project> --title="Crash on save" --message="Steps..." --category=bug --label=state::needsWork --format=json
+drupalorg issue:create <project> --title="Crash on save" --file=issue.md --category=bug --label=state::needsWork --format=json
+drupalorg issue:create <project> --title="XSS in the admin form" --file=issue.md --category=bug --confidential
 ```
 
 Link two work items, in the same project or across projects. `--type` is `relates_to`

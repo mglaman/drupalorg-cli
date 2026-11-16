@@ -9,6 +9,7 @@ use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
 use mglaman\DrupalOrg\Result\Issue\IssueResult;
 use mglaman\DrupalOrg\Result\Issue\SlashCommandResult;
 use mglaman\DrupalOrg\Result\Issue\WorkItemCommentResult;
+use mglaman\DrupalOrg\Result\Issue\IssueTemplateResult;
 use mglaman\DrupalOrg\Result\Issue\WorkItemCreatedResult;
 use mglaman\DrupalOrg\Result\Issue\WorkItemLinkResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
@@ -501,6 +502,24 @@ XML;
         $iid = $result->issueIid ?? '';
         $ref = $this->xmlEscape($result->ref() ?? '');
         $url = $this->xmlEscape($result->workItemUrl() ?? '');
+        $confidential = $result->confidential ? 'yes' : 'no';
+        $extra = '';
+        if ($result->possibleDuplicates !== []) {
+            $extra .= "\n  <possible_duplicates>";
+            foreach ($result->possibleDuplicates as $issue) {
+                $extra .= sprintf(
+                    "\n    <issue iid=\"%d\" url=\"%s\">%s</issue>",
+                    $issue->iid,
+                    $this->xmlEscape($issue->webUrl),
+                    $this->xmlEscape($issue->title),
+                );
+            }
+            $extra .= "\n  </possible_duplicates>";
+        }
+        $notice = $result->templateNotice();
+        if ($notice !== null) {
+            $extra .= "\n  <template_notice>" . $this->xmlEscape($notice) . '</template_notice>';
+        }
 
         return <<<XML
 <drupal_context>
@@ -511,7 +530,26 @@ XML;
   <url>{$url}</url>
   <title>{$title}</title>
   <labels>{$labels}</labels>
-  <description>{$description}</description>
+  <confidential>{$confidential}</confidential>
+  <description>{$description}</description>{$extra}
+</drupal_context>
+XML;
+    }
+
+    protected function formatIssueTemplate(IssueTemplateResult $result): string
+    {
+        $projectPath = $this->xmlEscape($result->projectPath);
+        $name = $this->xmlEscape($result->name ?? '');
+        $available = $this->xmlEscape(implode(', ', $result->available));
+        $content = $this->xmlEscape($result->content);
+
+        return <<<XML
+<drupal_context>
+  <project_path>{$projectPath}</project_path>
+  <template_name>{$name}</template_name>
+  <available_templates>{$available}</available_templates>
+  <template>{$content}</template>
+  <instructions>Fill in this template as the issue description and pass it to issue:create with --file. Remove the HTML comments and complete any AI disclosure section.</instructions>
 </drupal_context>
 XML;
     }

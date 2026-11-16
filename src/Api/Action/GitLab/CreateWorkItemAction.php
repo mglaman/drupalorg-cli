@@ -7,6 +7,7 @@ namespace mglaman\DrupalOrg\Action\GitLab;
 use mglaman\DrupalOrg\Client;
 use mglaman\DrupalOrg\Enum\ProjectIssueCategory;
 use mglaman\DrupalOrg\GitLab\Client as GitLabClient;
+use mglaman\DrupalOrg\GitLab\Entity\GitLabIssue;
 use mglaman\DrupalOrg\Result\Issue\WorkItemCreatedResult;
 
 /**
@@ -18,6 +19,10 @@ use mglaman\DrupalOrg\Result\Issue\WorkItemCreatedResult;
  */
 class CreateWorkItemAction
 {
+    use ResolvesGitLabProjectTrait;
+
+    private const DEFAULT_TEMPLATE = 'Default';
+
     public function __construct(
         private readonly Client $client,
         private readonly GitLabClient $gitLabClient,
@@ -34,32 +39,20 @@ class CreateWorkItemAction
         ?ProjectIssueCategory $category = null,
         array $labels = [],
         bool $dryRun = false,
+        bool $confidential = false,
     ): WorkItemCreatedResult {
         $title = trim($title);
         if ($title === '') {
             throw new \InvalidArgumentException('The issue title is empty.');
         }
 
-        $machineName = self::machineName($project);
-        $projectData = $this->client->getProject($machineName);
-        if ($projectData === null) {
-            throw new \InvalidArgumentException(sprintf('Project %s not found.', $machineName));
-        }
-        if ($projectData->hasIssueQueue) {
-            throw new \RuntimeException(sprintf(
-                'Project %s still uses the Drupal.org issue queue, which has no '
-                . 'write API. Create the issue at '
-                . 'https://www.drupal.org/node/add/project-issue/%s instead.',
-                $machineName,
-                $machineName,
-            ));
-        }
+        $projectPath = $this->resolveGitLabProjectPath($project);
 
         $labels = array_values(array_unique(array_filter(
             array_map('trim', [...($category !== null ? [$category->gitLabLabel()] : []), ...$labels]),
             static fn(string $label) => $label !== '',
         )));
-        $projectPath = 'project/' . $machineName;
+        $this->assertLabelsExist($projectPath, $labels);
 
         if ($dryRun) {
             return new WorkItemCreatedResult(
@@ -67,11 +60,14 @@ class CreateWorkItemAction
                 title: $title,
                 description: $description,
                 labels: $labels,
+                confidential: $confidential,
+                usesDefaultTemplate: $description === '' && $this->hasDefaultTemplate($projectPath),
+                possibleDuplicates: $this->findOpenIssuesWithTitle($projectPath, $title),
             );
         }
 
         try {
-            $response = $this->gitLabClient->createIssue($projectPath, $title, $description, $labels);
+            $response = $this->gitLabClient->createIssue($projectPath, $title, $description, $labels, $confidential);
         } catch (\Exception $e) {
             throw new \RuntimeException(sprintf(
                 'Failed to create an issue in %s: %s',
@@ -96,24 +92,105 @@ class CreateWorkItemAction
             labels: $labels,
             issueIid: (int) $response->iid,
             webUrl: isset($response->web_url) && is_string($response->web_url) ? $response->web_url : null,
+            confidential: $confidential,
+            usesDefaultTemplate: $description === '' && isset($response->description) && is_string($response->description) && $response->description !== '',
         );
     }
 
     /**
-     * Accepts `name` or `project/name` and returns the machine name.
+     * Refuses labels the project does not have.
+     *
+     * GitLab drops or creates unknown labels depending on the caller's role,
+     * so a typo would otherwise go unnoticed. When the label list cannot be
+     * read (no token, API error), the labels are sent unchecked.
+     *
+     * @param string[] $labels
      */
-    private static function machineName(string $project): string
+    private function assertLabelsExist(string $projectPath, array $labels): void
     {
-        $project = trim($project);
-        if (str_starts_with($project, 'project/')) {
-            $project = substr($project, strlen('project/'));
+        if ($labels === []) {
+            return;
         }
-        if ($project === '' || preg_match('/^[a-z0-9_]+$/', $project) !== 1) {
-            throw new \InvalidArgumentException(sprintf(
-                'Invalid project machine name "%s".',
-                $project,
-            ));
+        try {
+            $known = $this->gitLabClient->getLabelNames($projectPath);
+        } catch (\Exception) {
+            return;
         }
-        return $project;
+        if ($known === []) {
+            return;
+        }
+        $unknown = array_values(array_diff($labels, $known));
+        if ($unknown === []) {
+            return;
+        }
+        $messages = array_map(static function (string $label) use ($known): string {
+            $suggestion = self::closestLabel($label, $known);
+            return $suggestion === null ? $label : sprintf('%s (did you mean %s?)', $label, $suggestion);
+        }, $unknown);
+        throw new \InvalidArgumentException(sprintf(
+            '%s has no label %s.',
+            $projectPath,
+            implode(', ', $messages),
+        ));
+    }
+
+    /**
+     * @param string[] $known
+     */
+    private static function closestLabel(string $label, array $known): ?string
+    {
+        $best = null;
+        $bestDistance = PHP_INT_MAX;
+        foreach ($known as $candidate) {
+            $distance = levenshtein(strtolower($label), strtolower($candidate));
+            if ($distance < $bestDistance) {
+                $best = $candidate;
+                $bestDistance = $distance;
+            }
+        }
+        return $bestDistance <= 3 ? $best : null;
+    }
+
+    private function hasDefaultTemplate(string $projectPath): bool
+    {
+        try {
+            return in_array(self::DEFAULT_TEMPLATE, $this->gitLabClient->getIssueTemplateNames($projectPath), true);
+        } catch (\Exception) {
+            return false;
+        }
+    }
+
+    /**
+     * Open issues with a near-identical title, so a dry run can flag
+     * duplicates such as a retried create.
+     *
+     * GitLab's search matches substrings, so its hits are narrowed to titles
+     * at least 80% similar to this one.
+     *
+     * @return GitLabIssue[]
+     */
+    private function findOpenIssuesWithTitle(string $projectPath, string $title): array
+    {
+        try {
+            $issues = $this->gitLabClient->getIssues($projectPath, [
+                'state' => 'opened',
+                'search' => $title,
+                'in' => 'title',
+                'per_page' => 20,
+            ]);
+        } catch (\Exception) {
+            return [];
+        }
+        $normalize = static fn(string $text) => mb_strtolower(trim((string) preg_replace('/\s+/u', ' ', $text)));
+        $wanted = $normalize($title);
+        $matches = [];
+        foreach ($issues as $data) {
+            $issue = GitLabIssue::fromStdClass($data);
+            similar_text($wanted, $normalize($issue->title), $percent);
+            if ($percent >= 80) {
+                $matches[] = $issue;
+            }
+        }
+        return $matches;
     }
 }

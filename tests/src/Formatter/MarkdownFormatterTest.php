@@ -8,6 +8,7 @@ use mglaman\DrupalOrg\Entity\Release;
 use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
 use mglaman\DrupalOrg\Result\Issue\IssueResult;
 use mglaman\DrupalOrg\Result\Issue\WorkItemCommentResult;
+use mglaman\DrupalOrg\Result\Issue\IssueTemplateResult;
 use mglaman\DrupalOrg\Result\Issue\WorkItemCreatedResult;
 use mglaman\DrupalOrg\Result\Issue\WorkItemLinkResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
@@ -478,6 +479,32 @@ class MarkdownFormatterTest extends TestCase
 
         self::assertStringContainsString('**Dry run:** would create an issue in project/tool.', $output);
         self::assertStringContainsString('- **Labels:** (none)', $output);
+    }
+
+    public function testWorkItemCreatedDryRunWithDuplicatesAndTemplate(): void
+    {
+        $formatter = new MarkdownFormatter();
+        $output = $formatter->format(new WorkItemCreatedResult(
+            'project/tool',
+            'Title',
+            '',
+            [],
+            confidential: true,
+            usesDefaultTemplate: true,
+            possibleDuplicates: [GitLabIssue::fromStdClass((object) ['iid' => 7, 'title' => 'Title', 'web_url' => 'https://example.com/7'])],
+        ));
+
+        self::assertStringContainsString('- **Confidential:** yes', $output);
+        self::assertStringContainsString('- [#7](https://example.com/7) Title', $output);
+        self::assertStringContainsString('> No description given', $output);
+    }
+
+    public function testIssueTemplateResult(): void
+    {
+        $formatter = new MarkdownFormatter();
+        $output = $formatter->format(new IssueTemplateResult('project/tool', 'Default', "Use ```code```\n", ['Default']));
+
+        self::assertSame("**Default** issue template for project/tool:\n\n~~~~markdown\nUse ```code```\n~~~~", $output);
     }
 
     public function testWorkItemCommentResult(): void

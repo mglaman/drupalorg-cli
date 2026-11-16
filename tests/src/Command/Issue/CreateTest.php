@@ -24,13 +24,15 @@ class CreateTest extends TestCase
      */
     private ?array $created = null;
 
-    private function tester(): CommandTester
+    private function tester(string $createdDescription = ''): CommandTester
     {
         $issue = new \stdClass();
         $issue->iid = 3590001;
         $issue->web_url = 'https://git.drupalcode.org/project/tool/-/work_items/3590001';
+        $issue->description = $createdDescription;
 
         $gitLabClient = $this->createMock(GitLabClient::class);
+        $gitLabClient->method('getIssueTemplateNames')->willReturn(['Default']);
         $gitLabClient->method('createIssue')
             ->willReturnCallback(function (...$args) use ($issue): \stdClass {
                 $this->created = $args;
@@ -75,7 +77,7 @@ class CreateTest extends TestCase
 
         self::assertSame(0, $tester->getStatusCode());
         self::assertSame(
-            ['project/tool', 'Add a dry run flag', 'Body with `code`.', ['category::feature', 'state::needsWork']],
+            ['project/tool', 'Add a dry run flag', 'Body with `code`.', ['category::feature', 'state::needsWork'], false],
             $this->created,
         );
         self::assertSame(
@@ -122,6 +124,34 @@ class CreateTest extends TestCase
             "Dry run: would create an issue in project/tool.\nTitle: Title\nLabels: category::bug\nDescription:\nBody\n",
             $tester->getDisplay(),
         );
+    }
+
+    public function testSendsConfidential(): void
+    {
+        $tester = $this->tester();
+        $tester->execute(['project' => 'tool', '--title' => 'Title', '--message' => 'Body', '--confidential' => true]);
+
+        self::assertSame(0, $tester->getStatusCode());
+        self::assertIsArray($this->created);
+        self::assertTrue($this->created[4]);
+    }
+
+    public function testWarnsWhenGitLabFilledInTemplate(): void
+    {
+        $tester = $this->tester('<!-- template -->');
+        $tester->execute(['project' => 'tool', '--title' => 'Title'], ['capture_stderr_separately' => true]);
+
+        self::assertSame(0, $tester->getStatusCode());
+        self::assertStringContainsString("filled in the project's Default issue template", $tester->getErrorOutput());
+    }
+
+    public function testDryRunWithoutDescriptionPointsAtTemplate(): void
+    {
+        $tester = $this->tester();
+        $tester->execute(['project' => 'tool', '--title' => 'Title', '--dry-run' => true]);
+
+        self::assertSame(0, $tester->getStatusCode());
+        self::assertStringContainsString('Run `drupalorg issue:template project/tool`', $tester->getDisplay());
     }
 
     public function testJsonFormat(): void

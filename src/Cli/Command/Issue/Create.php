@@ -27,7 +27,8 @@ class Create extends Command
             ->addOption('file', null, InputOption::VALUE_REQUIRED, 'Read the description from a file. Use - to read from stdin.')
             ->addOption('category', 'c', InputOption::VALUE_REQUIRED, "Issue category: $categories.")
             ->addOption('label', 'l', InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Extra GitLab label to add (repeatable), e.g. state::needsReview.')
-            ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Print what would be created without creating it.')
+            ->addOption('confidential', null, InputOption::VALUE_NONE, 'Create a confidential issue, e.g. for a potential security problem.')
+            ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Print what would be created, possible duplicates, and the template GitLab would apply, without creating it.')
             ->addOption('format', 'f', InputOption::VALUE_OPTIONAL, 'Output format: text, json, md, llm.', 'text')
             ->setDescription('Create an issue (GitLab work item) for a project.');
     }
@@ -56,18 +57,32 @@ class Create extends Command
         /** @var string[] $labels */
         $labels = $this->stdIn->getOption('label');
         $dryRun = (bool) $this->stdIn->getOption('dry-run');
+        $confidential = (bool) $this->stdIn->getOption('confidential');
 
         $action = new CreateWorkItemAction($this->client, $this->createGitLabClient());
-        $result = $action($project, $title, $description, $category, $labels, $dryRun);
+        $result = $action($project, $title, $description, $category, $labels, $dryRun, $confidential);
 
         $format = (string) $this->stdIn->getOption('format');
         if ($this->writeFormatted($result, $format)) {
             return 0;
         }
+        $notice = $result->templateNotice();
         if ($result->isDryRun()) {
             $this->stdOut->writeln(sprintf('Dry run: would create an issue in %s.', $result->projectPath));
             $this->stdOut->writeln(sprintf('Title: %s', $result->title));
             $this->stdOut->writeln(sprintf('Labels: %s', $result->labels === [] ? '(none)' : implode(', ', $result->labels)));
+            if ($result->confidential) {
+                $this->stdOut->writeln('Confidential: yes');
+            }
+            if ($result->possibleDuplicates !== []) {
+                $this->stdOut->writeln('Possible duplicates (open issues with a near-identical title):');
+                foreach ($result->possibleDuplicates as $issue) {
+                    $this->stdOut->writeln(sprintf('  #%d %s %s', $issue->iid, $issue->title, $issue->webUrl), OutputInterface::OUTPUT_RAW);
+                }
+            }
+            if ($notice !== null) {
+                $this->stdOut->writeln($notice, OutputInterface::OUTPUT_RAW);
+            }
             if ($result->description !== '') {
                 $this->stdOut->writeln('Description:');
                 $this->stdOut->writeln($result->description, OutputInterface::OUTPUT_RAW);
@@ -75,6 +90,9 @@ class Create extends Command
             return 0;
         }
         $this->stdOut->writeln(sprintf('Created %s: %s', $result->ref(), $result->workItemUrl()));
+        if ($notice !== null) {
+            $this->stdErr->writeln(sprintf('<comment>%s</comment>', $notice));
+        }
         return 0;
     }
 

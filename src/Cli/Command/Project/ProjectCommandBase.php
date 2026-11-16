@@ -46,11 +46,19 @@ abstract class ProjectCommandBase extends Command
         // but checking that the project exists makes sense for all project commands.
         $project = $this->client->getProject($this->projectName);
         if ($project === null) {
-            $this->stdErr->writeln("Project $this->projectName not found.");
+            $this->stdErr->writeln("Project $this->projectName not found." . $this->projectNotFoundHint());
             exit(1);
         }
 
         $this->projectData = $project;
+    }
+
+    /**
+     * Extra guidance appended to the "Project not found" error.
+     */
+    protected function projectNotFoundHint(): string
+    {
+        return '';
     }
 
     /**

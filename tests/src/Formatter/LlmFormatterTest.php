@@ -8,6 +8,7 @@ use mglaman\DrupalOrg\Entity\Release;
 use mglaman\DrupalOrg\Result\Issue\IssueForkResult;
 use mglaman\DrupalOrg\Result\Issue\IssueResult;
 use mglaman\DrupalOrg\Result\Issue\WorkItemCommentResult;
+use mglaman\DrupalOrg\Result\Issue\IssueTemplateResult;
 use mglaman\DrupalOrg\Result\Issue\WorkItemCreatedResult;
 use mglaman\DrupalOrg\Result\Issue\WorkItemLinkResult;
 use mglaman\DrupalOrg\Result\Maintainer\MaintainerIssuesResult;
@@ -489,6 +490,34 @@ class LlmFormatterTest extends TestCase
         self::assertStringContainsString('<url>https://git.drupalcode.org/project/tool/-/work_items/3590001</url>', $output);
         self::assertStringContainsString('<title>Fix &lt;b&gt;</title>', $output);
         self::assertStringContainsString('<description>Body &amp; more</description>', $output);
+    }
+
+    public function testWorkItemCreatedDryRunWithDuplicatesAndTemplate(): void
+    {
+        $formatter = new LlmFormatter();
+        $output = $formatter->format(new WorkItemCreatedResult(
+            'project/tool',
+            'Title',
+            '',
+            [],
+            confidential: true,
+            usesDefaultTemplate: true,
+            possibleDuplicates: [GitLabIssue::fromStdClass((object) ['iid' => 7, 'title' => 'A & B', 'web_url' => 'https://example.com/7'])],
+        ));
+
+        self::assertStringContainsString('<confidential>yes</confidential>', $output);
+        self::assertStringContainsString('<issue iid="7" url="https://example.com/7">A &amp; B</issue>', $output);
+        self::assertStringContainsString('<template_notice>No description given', $output);
+    }
+
+    public function testIssueTemplateResult(): void
+    {
+        $formatter = new LlmFormatter();
+        $output = $formatter->format(new IssueTemplateResult('project/tool', 'Default', '<!-- note -->', ['Bug', 'Default']));
+
+        self::assertStringContainsString('<template_name>Default</template_name>', $output);
+        self::assertStringContainsString('<available_templates>Bug, Default</available_templates>', $output);
+        self::assertStringContainsString('<template>&lt;!-- note --&gt;</template>', $output);
     }
 
     public function testWorkItemCommentResult(): void
