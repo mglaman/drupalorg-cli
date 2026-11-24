@@ -13,6 +13,7 @@ class MaintainerReleaseNotesResult implements ResultInterface
      * @param list<string> $nidList
      * @param ChangeRecord[] $changeRecords
      * @param array<string, string> $issueLinks nid => resolved issue URL
+     * @param list<string> $unresolvedIssueIds work item iids GitLab did not return
      */
     public function __construct(
         public readonly string $ref1,
@@ -24,6 +25,7 @@ class MaintainerReleaseNotesResult implements ResultInterface
         public readonly array $changeRecords,
         public readonly array $issueLinks = [],
         public readonly bool $isGitLab = false,
+        public readonly array $unresolvedIssueIds = [],
     ) {
     }
 
@@ -42,6 +44,7 @@ class MaintainerReleaseNotesResult implements ResultInterface
             ),
             'issue_links' => $this->issueLinks,
             'is_gitlab' => $this->isGitLab,
+            'unresolved_issue_ids' => $this->unresolvedIssueIds,
         ];
     }
 }

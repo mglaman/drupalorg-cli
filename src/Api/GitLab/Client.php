@@ -2,7 +2,9 @@
 
 namespace mglaman\DrupalOrg\GitLab;
 
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Promise\Utils;
 use GuzzleRetry\GuzzleRetryMiddleware;
@@ -13,7 +15,14 @@ class Client
 {
     public const API_URL = 'https://git.drupalcode.org/api/v4/';
 
+    private const DEFAULT_HEADERS = [
+        'User-Agent' => 'DrupalOrgCli/0.0.1',
+        'Accept' => 'application/json',
+    ];
+
     private \GuzzleHttp\Client $client;
+
+    private bool $sendsToken = false;
 
     /**
      * @param \GuzzleHttp\HandlerStack|null $handler
@@ -29,14 +38,12 @@ class Client
             'default_retry_multiplier' => 1.5,
         ]), 'retry');
 
-        $headers = [
-            'User-Agent' => 'DrupalOrgCli/0.0.1',
-            'Accept' => 'application/json',
-        ];
+        $headers = self::DEFAULT_HEADERS;
 
         $token = self::resolveToken();
         if ($token !== null) {
             $headers['Authorization'] = 'Bearer ' . $token;
+            $this->sendsToken = true;
         }
 
         $this->client = new \GuzzleHttp\Client([
@@ -360,6 +367,9 @@ class Client
      * Work item iids are unique only within a project, so this fetches each iid
      * from the same project path. Failed or non-decodable responses map to null.
      *
+     * GitLab rejects an expired or revoked token with a 401 even for public work
+     * items, so iids rejected that way are fetched again without the token.
+     *
      * @param int[] $iids
      * @return array<int, GitLabIssue|null>
      */
@@ -370,13 +380,27 @@ class Client
         }
 
         $path = 'projects/' . urlencode($projectPath) . '/issues/';
-        $issues = [];
         $promises = [];
         foreach ($iids as $iid) {
             $promises[$iid] = $this->client->requestAsync('GET', $path . $iid);
         }
-
         $results = Utils::settle($promises)->wait();
+
+        if ($this->sendsToken) {
+            $anonymousPromises = [];
+            foreach ($results as $iid => $result) {
+                if (self::isUnauthorized($result)) {
+                    $anonymousPromises[$iid] = $this->client->sendAsync(
+                        new Request('GET', $path . $iid, self::DEFAULT_HEADERS),
+                        // Dropping the client's default headers leaves out the token.
+                        ['headers' => null]
+                    );
+                }
+            }
+            $results = array_replace($results, Utils::settle($anonymousPromises)->wait());
+        }
+
+        $issues = [];
         foreach ($results as $iid => $result) {
             if ($result['state'] !== PromiseInterface::FULFILLED) {
                 $issues[$iid] = null;
@@ -391,6 +415,15 @@ class Client
         }
 
         return $issues;
+    }
+
+    /**
+     * @param array{state: string, value?: mixed, reason?: mixed} $result
+     */
+    private static function isUnauthorized(array $result): bool
+    {
+        $reason = $result['reason'] ?? null;
+        return $reason instanceof RequestException && $reason->getResponse()?->getStatusCode() === 401;
     }
 
     /**

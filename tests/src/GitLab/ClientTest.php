@@ -272,6 +272,35 @@ class ClientTest extends TestCase
         );
     }
 
+    public function testGetIssuesByIidRetriesWithoutTokenAfterUnauthorized(): void
+    {
+        $issues = $this->client(
+            new Response(401),
+            self::json(['iid' => 1, 'title' => 'Public work item']),
+        )->getIssuesByIid('project/drupal', [1]);
+
+        self::assertInstanceOf(GitLabIssue::class, $issues[1]);
+        self::assertSame('Public work item', $issues[1]->title);
+        self::assertCount(2, $this->history);
+        self::assertSame('Bearer test-token', $this->sentRequest(0)->getHeaderLine('Authorization'));
+        $retry = $this->sentRequest(1);
+        self::assertFalse($retry->hasHeader('Authorization'));
+        self::assertSame('DrupalOrgCli/0.0.1', $retry->getHeaderLine('User-Agent'));
+        self::assertSame(
+            'https://git.drupalcode.org/api/v4/projects/project%2Fdrupal/issues/1',
+            (string) $retry->getUri()
+        );
+    }
+
+    public function testGetIssuesByIidReturnsNullWhenAnonymousRetryFails(): void
+    {
+        $issues = $this->client(new Response(401), new Response(404))
+            ->getIssuesByIid('project/drupal', [1]);
+
+        self::assertNull($issues[1]);
+        self::assertCount(2, $this->history);
+    }
+
     public function testGetIssuesByIidSendsNothingForNoIids(): void
     {
         self::assertSame([], $this->client()->getIssuesByIid('project/drupal', []));
