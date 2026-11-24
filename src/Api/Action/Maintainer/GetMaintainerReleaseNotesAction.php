@@ -117,7 +117,7 @@ class GetMaintainerReleaseNotesAction implements ActionInterface
         $sourceLinks = [];
         foreach ($nidList as $nid) {
             $sourceLinks[$nid] = $isGitLab
-                ? sprintf('https://git.drupalcode.org/project/%s/-/work_items/%s', $machineName, $nid)
+                ? self::workItemUrl($machineName, $nid)
                 : sprintf('https://www.drupal.org/node/%s', $nid);
         }
         $contributorsFromApi = $drupalOrg->getContributorsFromJsonApi($sourceLinks);
@@ -135,6 +135,10 @@ class GetMaintainerReleaseNotesAction implements ActionInterface
         // Map each issue ID to its resolved canonical URL.
         $issueLinks = [];
 
+        // Work items GitLab did not return, so their links and categories are
+        // built without the API data.
+        $unresolvedIssueIds = [];
+
         // Process commits into categorized changes.
         $categorizedChanges = [];
         foreach ($commits as $commit) {
@@ -145,7 +149,7 @@ class GetMaintainerReleaseNotesAction implements ActionInterface
             if ($nid !== null) {
                 if ($isGitLab) {
                     $issue = $gitLabIssues[(int) $nid] ?? null;
-                    $link = sprintf('https://www.drupal.org/project/%s/issues/%s', $machineName, $nid);
+                    $link = self::workItemUrl($machineName, $nid);
                     if ($issue !== null) {
                         $issueCategoryLabel = self::categoryFromGitLabLabels($issue->labels)
                             ?? CommitParser::categoryFromConventionalCommit($commit->title)
@@ -155,6 +159,7 @@ class GetMaintainerReleaseNotesAction implements ActionInterface
                         }
                     } else {
                         $issueCategoryLabel = CommitParser::categoryFromConventionalCommit($commit->title) ?? 'Misc';
+                        $unresolvedIssueIds[$nid] = $nid;
                     }
                 } elseif (isset($issueDetails[$nid])) {
                     $issueCategory = $issueDetails[$nid]->fieldIssueCategory;
@@ -213,7 +218,13 @@ class GetMaintainerReleaseNotesAction implements ActionInterface
             changeRecords: $changeRecords,
             issueLinks: $issueLinks,
             isGitLab: $isGitLab,
+            unresolvedIssueIds: array_values($unresolvedIssueIds),
         );
+    }
+
+    private static function workItemUrl(string $machineName, string $iid): string
+    {
+        return sprintf('https://git.drupalcode.org/project/%s/-/work_items/%s', $machineName, $iid);
     }
 
     /**
