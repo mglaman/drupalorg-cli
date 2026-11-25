@@ -97,6 +97,14 @@ class ReleaseNotes extends Command
             return 1;
         }
 
+        if ($result->unresolvedIssueIds !== []) {
+            $this->stdErr->writeln(sprintf(
+                '<comment>Could not load %d work item(s) from GitLab: #%s. Their links still point to the work item, but their category comes from the commit message, so check it before publishing.</comment>',
+                count($result->unresolvedIssueIds),
+                implode(', #', $result->unresolvedIssueIds)
+            ));
+        }
+
         $project = $result->project;
         $ref1url = "https://www.drupal.org/project/{$project}/releases/$ref1";
 

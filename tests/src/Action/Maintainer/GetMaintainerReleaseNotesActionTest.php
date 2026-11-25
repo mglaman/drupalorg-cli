@@ -183,9 +183,10 @@ class GetMaintainerReleaseNotesActionTest extends TestCase
             'https://git.drupalcode.org/project/canvas/-/work_items/1234567',
             $result->issueLinks[1234567]
         );
+        self::assertSame([], $result->unresolvedIssueIds);
     }
 
-    public function testInvokeGitLabWorkItemFallsBackToCanonicalLink(): void
+    public function testInvokeGitLabWorkItemFallsBackToWorkItemLink(): void
     {
         $client = $this->makeClientWithMockResponses([
             new Response(200, [], json_encode(['list' => [[
@@ -197,7 +198,8 @@ class GetMaintainerReleaseNotesActionTest extends TestCase
             new Response(200, [], json_encode(['list' => []])),
         ]);
 
-        // GitLab fetch fails for the iid (null), so the canonical link is used.
+        // GitLab fetch fails for the iid (null), so the link is built from the
+        // project and iid instead of the web_url.
         $gitLabClient = $this->createMock(GitLabClient::class);
         $gitLabClient->method('getIssuesByIid')->willReturn([1234567 => null]);
 
@@ -206,9 +208,10 @@ class GetMaintainerReleaseNotesActionTest extends TestCase
 
         self::assertTrue($result->isGitLab);
         self::assertSame(
-            'https://www.drupal.org/project/canvas/issues/1234567',
+            'https://git.drupalcode.org/project/canvas/-/work_items/1234567',
             $result->issueLinks[1234567]
         );
+        self::assertSame(['1234567'], $result->unresolvedIssueIds);
     }
 
     public function testJsonSerialize(): void
