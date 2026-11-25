@@ -77,7 +77,7 @@ class WorkItemCreatedResult implements ResultInterface
     }
 
     /**
-     * The shorthand other issue commands accept, e.g. `tool#3583107`.
+     * The shorthand other issue commands accept, e.g. `project/tool#3583107`.
      */
     public function ref(): ?string
     {

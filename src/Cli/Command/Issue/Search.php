@@ -79,11 +79,18 @@ class Search extends ProjectCommandBase
         }
         // A common mix-up is passing the query first: `issue:search fix tool`.
         if (preg_match('/^[a-z0-9_]+$/', $query) === 1) {
-            return sprintf(
-                ' The project comes first; did you mean: drupalorg issue:search %s %s',
-                $query,
-                $this->projectName,
-            );
+            try {
+                $project = $this->client->getProject($query);
+            } catch (\Exception) {
+                $project = null;
+            }
+            if ($project !== null) {
+                return sprintf(
+                    ' The project comes first; did you mean: drupalorg issue:search %s %s',
+                    $query,
+                    $this->projectName,
+                );
+            }
         }
         return ' The project comes first: drupalorg issue:search <project> <query>';
     }

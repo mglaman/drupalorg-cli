@@ -107,6 +107,35 @@ class CreateTest extends TestCase
         self::assertSame('', $this->created[2]);
     }
 
+    public function testRejectsWhitespaceOnlyMessage(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Pass a non-empty issue description');
+        $this->tester()->execute(['project' => 'tool', '--title' => 'Title', '--message' => " \t\n"]);
+    }
+
+    public function testRejectsEmptyDescriptionFileInDryRun(): void
+    {
+        $file = tempnam(sys_get_temp_dir(), 'issue-description-');
+        self::assertIsString($file);
+        try {
+            $this->expectException(\InvalidArgumentException::class);
+            $this->expectExceptionMessage('Pass a non-empty issue description');
+            $this->tester()->execute(['project' => 'tool', '--title' => 'Title', '--file' => $file, '--dry-run' => true]);
+        } finally {
+            unlink($file);
+        }
+    }
+
+    public function testRejectsEmptyDescriptionFromStdin(): void
+    {
+        $tester = $this->tester();
+        $tester->setInputs([]);
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Pass a non-empty issue description');
+        $tester->execute(['project' => 'tool', '--title' => 'Title', '--file' => '-']);
+    }
+
     public function testDryRunPrintsPayloadWithoutCreating(): void
     {
         $tester = $this->tester();

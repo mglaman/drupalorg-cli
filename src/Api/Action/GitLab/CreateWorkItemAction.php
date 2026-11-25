@@ -21,8 +21,6 @@ class CreateWorkItemAction
 {
     use ResolvesGitLabProjectTrait;
 
-    private const DEFAULT_TEMPLATE = 'Default';
-
     public function __construct(
         private readonly Client $client,
         private readonly GitLabClient $gitLabClient,
@@ -43,7 +41,7 @@ class CreateWorkItemAction
     ): WorkItemCreatedResult {
         $title = trim($title);
         if ($title === '') {
-            throw new \InvalidArgumentException('The issue title is empty.');
+            throw new \InvalidArgumentException('The issue title is empty. Pass the issue title with --title.');
         }
 
         $projectPath = $this->resolveGitLabProjectPath($project);
@@ -154,7 +152,7 @@ class CreateWorkItemAction
     private function hasDefaultTemplate(string $projectPath): bool
     {
         try {
-            return in_array(self::DEFAULT_TEMPLATE, $this->gitLabClient->getIssueTemplateNames($projectPath), true);
+            return in_array(GetIssueTemplateAction::DEFAULT_TEMPLATE, $this->gitLabClient->getIssueTemplateNames($projectPath), true);
         } catch (\Exception) {
             return false;
         }
