@@ -53,6 +53,19 @@ class GetMaintainerReleaseNotesActionTest extends TestCase
         $run(['git', 'commit', '-m', 'Issue #1234567: Fix the thing by testuser:']);
         $run(['git', 'tag', '1.1.0']);
 
+        // Commits with no issue ID, one of them merged from a branch + tag 1.2.0
+        $mainBranch = trim((new Process(['git', 'branch', '--show-current'], self::$tmpDir))->mustRun()->getOutput());
+        $run(['git', 'checkout', '-b', 'docs']);
+        file_put_contents(self::$tmpDir . '/CONTRIBUTING.md', 'Docs');
+        $run(['git', 'add', 'CONTRIBUTING.md']);
+        $run(['git', 'commit', '-m', 'Add contributing guide']);
+        $run(['git', 'checkout', $mainBranch]);
+        file_put_contents(self::$tmpDir . '/README.md', 'Updated again');
+        $run(['git', 'add', 'README.md']);
+        $run(['git', 'commit', '-m', 'Update the README']);
+        $run(['git', 'merge', '--no-ff', '-m', "Merge branch 'docs'", 'docs']);
+        $run(['git', 'tag', '1.2.0']);
+
         $git = new Git();
         self::$gitRepo = $git->open(self::$tmpDir);
     }
@@ -146,6 +159,25 @@ class GetMaintainerReleaseNotesActionTest extends TestCase
         self::assertArrayHasKey('testuser', $result->contributors);
         // No change records (projectId returned null)
         self::assertSame([], $result->changeRecords);
+        self::assertSame([], $result->otherCommits);
+    }
+
+    public function testInvokeListsCommitsWithoutIssueIds(): void
+    {
+        $client = $this->makeClientWithMockResponses([
+            new Response(200, [], json_encode(['list' => []])),          // project lookup (null → legacy)
+            new Response(200, [], json_encode(['data' => []])),
+            new Response(200, [], json_encode([])),
+        ]);
+
+        $action = new GetMaintainerReleaseNotesAction($client);
+        $result = $action(self::$gitRepo, self::$tmpDir, '1.1.0', '1.2.0');
+
+        self::assertSame([], $result->categorizedChanges);
+        self::assertSame([], $result->nidList);
+        // The merge commit is left out; git log lists newest first.
+        self::assertSame(['Update the README', 'Add contributing guide'], $result->otherCommits);
+        self::assertSame(['Update the README', 'Add contributing guide'], $result->jsonSerialize()['other_commits']);
     }
 
     public function testInvokeGitLabWorkItem(): void

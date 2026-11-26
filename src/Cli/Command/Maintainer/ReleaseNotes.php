@@ -157,6 +157,14 @@ class ReleaseNotes extends Command
                     }
                     $this->stdOut->writeln('');
                 }
+                if ($result->otherCommits !== []) {
+                    $this->stdOut->writeln('#### Other commits');
+                    $this->stdOut->writeln('');
+                    foreach ($result->otherCommits as $title) {
+                        $this->stdOut->writeln(sprintf('* %s', $title), OutputInterface::OUTPUT_RAW);
+                    }
+                    $this->stdOut->writeln('');
+                }
                 if ($result->changeRecords !== []) {
                     $this->stdOut->writeln('### Change Records');
                     $this->stdOut->writeln('');
@@ -217,6 +225,15 @@ class ReleaseNotes extends Command
                             sprintf('  <li>%s</li>', $this->formatLine($change, $format, $link)),
                             OutputInterface::OUTPUT_RAW
                         );
+                    }
+                    $this->stdOut->writeln('</ul>');
+                }
+
+                if ($result->otherCommits !== []) {
+                    $this->stdOut->writeln('<h4>Other commits</h4>');
+                    $this->stdOut->writeln('<ul>');
+                    foreach ($result->otherCommits as $title) {
+                        $this->stdOut->writeln(sprintf('  <li>%s</li>', htmlspecialchars($title)), OutputInterface::OUTPUT_RAW);
                     }
                     $this->stdOut->writeln('</ul>');
                 }

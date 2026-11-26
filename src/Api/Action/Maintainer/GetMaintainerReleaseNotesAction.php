@@ -50,7 +50,7 @@ class GetMaintainerReleaseNotesAction implements ActionInterface
             'git',
             'log',
             '-s',
-            '--format=%x00%s%x1f%ae%x1f%ce%x1f%b',
+            '--format=%x00%s%x1f%ae%x1f%ce%x1f%P%x1f%b',
             "$ref1..$ref2",
         ], $cwd);
         $process->run();
@@ -72,12 +72,13 @@ class GetMaintainerReleaseNotesAction implements ActionInterface
         $commits = [];
         $commitBlocks = array_filter(explode("\x00", $process->getOutput()));
         foreach ($commitBlocks as $block) {
-            $parts = explode("\x1f", $block, 4);
+            $parts = explode("\x1f", $block, 5);
             $commit = new \stdClass();
             $commit->title = trim($parts[0]);
             $commit->author_email = trim($parts[1] ?? '');
             $commit->committer_email = trim($parts[2] ?? '');
-            $commit->message = $parts[3] ?? '';
+            $commit->is_merge = str_contains(trim($parts[3] ?? ''), ' ');
+            $commit->message = $parts[4] ?? '';
             $commits[] = $commit;
         }
 
@@ -141,6 +142,9 @@ class GetMaintainerReleaseNotesAction implements ActionInterface
 
         // Process commits into categorized changes.
         $categorizedChanges = [];
+        // Commits with no issue ID. Merge commits are left out, because the
+        // commits they merge are listed on their own.
+        $otherCommits = [];
         foreach ($commits as $commit) {
             $nid = CommitParser::getNid($commit->title);
 
@@ -198,6 +202,8 @@ class GetMaintainerReleaseNotesAction implements ActionInterface
 
             if ($nid !== null && !isset($categorizedChanges[$issueCategoryLabel][$nid])) {
                 $categorizedChanges[$issueCategoryLabel][$nid] = $this->cleanCommitTitle($commit->title);
+            } elseif ($nid === null && !$commit->is_merge) {
+                $otherCommits[] = $commit->title;
             }
         }
         ksort($categorizedChanges);
@@ -219,6 +225,7 @@ class GetMaintainerReleaseNotesAction implements ActionInterface
             issueLinks: $issueLinks,
             isGitLab: $isGitLab,
             unresolvedIssueIds: array_values($unresolvedIssueIds),
+            otherCommits: $otherCommits,
         );
     }
 
