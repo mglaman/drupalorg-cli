@@ -2,6 +2,7 @@
 
 namespace mglaman\DrupalOrg\Action\Maintainer;
 
+use CzProject\GitPhp\GitException;
 use CzProject\GitPhp\GitRepository;
 use mglaman\DrupalOrg\Action\ActionInterface;
 use mglaman\DrupalOrg\Client;
@@ -37,13 +38,10 @@ class GetMaintainerReleaseNotesAction implements ActionInterface
         string $ref1,
         string $ref2
     ): MaintainerReleaseNotesResult {
-        $tags = $repository->getTags() ?? [];
-
-        if (!in_array($ref1, $tags, true)) {
-            throw new \InvalidArgumentException(sprintf('The %s tag is not valid.', $ref1));
-        }
-        if (($ref2 !== 'HEAD') && !in_array($ref2, $tags, true)) {
-            throw new \InvalidArgumentException(sprintf('The %s tag is not valid.', $ref2));
+        foreach ([$ref1, $ref2] as $ref) {
+            if (!self::isCommit($repository, $ref)) {
+                throw new \InvalidArgumentException(sprintf('%s is not a tag, branch, or commit in this repository.', $ref));
+            }
         }
 
         $process = new Process([
@@ -220,6 +218,19 @@ class GetMaintainerReleaseNotesAction implements ActionInterface
             isGitLab: $isGitLab,
             unresolvedIssueIds: array_values($unresolvedIssueIds),
         );
+    }
+
+    /**
+     * Whether a tag, branch, or SHA resolves to a commit.
+     */
+    private static function isCommit(GitRepository $repository, string $ref): bool
+    {
+        try {
+            $repository->execute('rev-parse', '--verify', '--quiet', $ref . '^{commit}');
+        } catch (GitException) {
+            return false;
+        }
+        return true;
     }
 
     private static function workItemUrl(string $machineName, string $iid): string

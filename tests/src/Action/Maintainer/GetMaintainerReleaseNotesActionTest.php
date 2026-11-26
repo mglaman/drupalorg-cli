@@ -52,6 +52,7 @@ class GetMaintainerReleaseNotesActionTest extends TestCase
         $run(['git', 'add', 'README.md']);
         $run(['git', 'commit', '-m', 'Issue #1234567: Fix the thing by testuser:']);
         $run(['git', 'tag', '1.1.0']);
+        $run(['git', 'branch', 'release-branch']);
 
         $git = new Git();
         self::$gitRepo = $git->open(self::$tmpDir);
@@ -79,28 +80,54 @@ class GetMaintainerReleaseNotesActionTest extends TestCase
 
     public function testInvokeThrowsOnInvalidRef1(): void
     {
-        $repository = $this->createMock(GitRepository::class);
-        $repository->method('getTags')->willReturn(['1.0.0', '1.1.0']);
-
         $client = $this->createMock(Client::class);
         $action = new GetMaintainerReleaseNotesAction($client);
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('The invalid-tag tag is not valid.');
-        $action($repository, self::$tmpDir, 'invalid-tag', '1.1.0');
+        $this->expectExceptionMessage('invalid-tag is not a tag, branch, or commit in this repository.');
+        $action(self::$gitRepo, self::$tmpDir, 'invalid-tag', '1.1.0');
     }
 
     public function testInvokeThrowsOnInvalidRef2(): void
     {
-        $repository = $this->createMock(GitRepository::class);
-        $repository->method('getTags')->willReturn(['1.0.0', '1.1.0']);
-
         $client = $this->createMock(Client::class);
         $action = new GetMaintainerReleaseNotesAction($client);
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('The invalid-ref2 tag is not valid.');
-        $action($repository, self::$tmpDir, '1.0.0', 'invalid-ref2');
+        $this->expectExceptionMessage('invalid-ref2 is not a tag, branch, or commit in this repository.');
+        $action(self::$gitRepo, self::$tmpDir, '1.0.0', 'invalid-ref2');
+    }
+
+    /**
+     * @return array<string, array{0: string}>
+     */
+    public static function ref2Provider(): array
+    {
+        return [
+            'tag' => ['1.1.0'],
+            'branch' => ['release-branch'],
+            'sha' => ['sha'],
+        ];
+    }
+
+    #[DataProvider('ref2Provider')]
+    public function testInvokeAcceptsTagBranchOrSha(string $ref2): void
+    {
+        // Data providers run before setUpBeforeClass(), so the SHA is looked up here.
+        if ($ref2 === 'sha') {
+            $ref2 = trim((new Process(['git', 'rev-parse', '1.1.0'], self::$tmpDir))->mustRun()->getOutput());
+        }
+        $client = $this->makeClientWithMockResponses([
+            new Response(200, [], json_encode(['list' => []])),          // project lookup (null → legacy)
+            new Response(200, [], json_encode(['data' => []])),          // contributors (empty)
+            new Response(200, [], json_encode(['nid' => '1234567', 'title' => 'Fix the thing', 'field_issue_category' => 1])), // issue details
+        ]);
+
+        $action = new GetMaintainerReleaseNotesAction($client);
+        $result = $action(self::$gitRepo, self::$tmpDir, '1.0.0', $ref2);
+
+        self::assertSame($ref2, $result->ref2);
+        self::assertSame(['1234567'], $result->nidList);
     }
 
     public function testInvokeRef2HeadAllowed(): void
