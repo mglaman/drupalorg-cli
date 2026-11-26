@@ -53,15 +53,23 @@ class Show extends Command
         return $this->showWorkItem($ref, $withComments, $format);
     }
 
+    protected function createGitLabClient(): GitLabClient
+    {
+        return new GitLabClient();
+    }
+
     private function showWorkItem(WorkItemRef $ref, bool $withComments, string $format): int
     {
         $includeBotComments = (bool) $this->stdIn->getOption('include-bot-comments');
-        $result = (new GetGitLabIssueAction(new GitLabClient()))($ref, $withComments, $includeBotComments);
+        $result = (new GetGitLabIssueAction($this->createGitLabClient()))($ref, $withComments, $includeBotComments);
         if ($this->writeFormatted($result, $format)) {
             return 0;
         }
         $issue = $result->issue;
-        $this->stdOut->writeln(sprintf('Title: %s', $issue->title));
+        // Titles, descriptions, and comments are user-written Markdown. Write
+        // them raw so the console formatter doesn't treat `<comment>` as a
+        // style tag or drop the backslash in `\<`.
+        $this->stdOut->writeln(sprintf('Title: %s', $issue->title), OutputInterface::OUTPUT_RAW);
         $this->stdOut->writeln(sprintf('State: %s', $issue->state));
         $this->stdOut->writeln(sprintf('Author: %s', $issue->author));
         if ($issue->assignees !== []) {
@@ -73,7 +81,7 @@ class Show extends Command
         $this->stdOut->writeln(sprintf('Created: %s', $issue->createdAt));
         $this->stdOut->writeln(sprintf('Updated: %s', $issue->updatedAt));
         $this->stdOut->writeln(sprintf('URL: %s', $issue->webUrl));
-        $this->stdOut->writeln(sprintf("\nDescription:\n%s", $issue->description));
+        $this->stdOut->writeln(sprintf("\nDescription:\n%s", $issue->description), OutputInterface::OUTPUT_RAW);
         foreach ($result->comments as $index => $comment) {
             $this->stdOut->writeln(sprintf(
                 "\nComment #%d by %s (%s):\n%s",
@@ -81,7 +89,7 @@ class Show extends Command
                 $comment->author,
                 $comment->createdAt,
                 $comment->body
-            ));
+            ), OutputInterface::OUTPUT_RAW);
         }
         return 0;
     }
@@ -91,7 +99,7 @@ class Show extends Command
         if ($this->writeFormatted($result, $format)) {
             return 0;
         }
-        $this->stdOut->writeln(sprintf('Title: %s', $result->title));
+        $this->stdOut->writeln(sprintf('Title: %s', $result->title), OutputInterface::OUTPUT_RAW);
         $this->stdOut->writeln(sprintf('Status: %s', $this->getIssueStatusLabel($result->fieldIssueStatus)));
         $this->stdOut->writeln(sprintf('Project: %s', $result->fieldProjectMachineName));
         $this->stdOut->writeln(sprintf('Version: %s', $result->fieldIssueVersion));
@@ -101,7 +109,7 @@ class Show extends Command
         $this->stdOut->writeln(sprintf('Reporter: %s', $result->authorId ?? ''));
         $this->stdOut->writeln(sprintf('Created: %s', date('r', $result->created)));
         $this->stdOut->writeln(sprintf('Updated: %s', date('r', $result->changed)));
-        $this->stdOut->writeln(sprintf("\nIssue summary:\n%s", strip_tags($result->bodyValue ?? '')));
+        $this->stdOut->writeln(sprintf("\nIssue summary:\n%s", strip_tags($result->bodyValue ?? '')), OutputInterface::OUTPUT_RAW);
         if ($result->comments !== []) {
             $this->stdOut->writeln('');
             foreach ($result->comments as $index => $comment) {
@@ -111,7 +119,7 @@ class Show extends Command
                     $comment->authorName,
                     date('r', $comment->created)
                 ));
-                $this->stdOut->writeln(strip_tags($comment->bodyValue ?? ''));
+                $this->stdOut->writeln(strip_tags($comment->bodyValue ?? ''), OutputInterface::OUTPUT_RAW);
                 $this->stdOut->writeln('');
             }
         }

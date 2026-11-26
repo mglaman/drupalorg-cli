@@ -153,7 +153,7 @@ class ReleaseNotes extends Command
                     $this->stdOut->writeln('');
                     foreach ($changeCategoryItems as $nid => $change) {
                         $link = $result->isGitLab ? ($result->issueLinks[$nid] ?? null) : null;
-                        $this->stdOut->writeln(sprintf('* %s', $this->formatLine($change, $format, $link)));
+                        $this->stdOut->writeln(sprintf('* %s', $this->formatLine($change, $format, $link)), OutputInterface::OUTPUT_RAW);
                     }
                     $this->stdOut->writeln('');
                 }
@@ -162,9 +162,9 @@ class ReleaseNotes extends Command
                     $this->stdOut->writeln('');
                     foreach ($result->changeRecords as $record) {
                         if ($record->url !== '') {
-                            $this->stdOut->writeln(sprintf('* [%s](%s)', $record->title, $record->url));
+                            $this->stdOut->writeln(sprintf('* [%s](%s)', $record->title, $record->url), OutputInterface::OUTPUT_RAW);
                         } else {
-                            $this->stdOut->writeln(sprintf('* %s', $record->title));
+                            $this->stdOut->writeln(sprintf('* %s', $record->title), OutputInterface::OUTPUT_RAW);
                         }
                     }
                     $this->stdOut->writeln('');
@@ -214,7 +214,8 @@ class ReleaseNotes extends Command
                     foreach ($changeCategoryItems as $nid => $change) {
                         $link = $result->isGitLab ? ($result->issueLinks[$nid] ?? null) : null;
                         $this->stdOut->writeln(
-                            sprintf('  <li>%s</li>', $this->formatLine($change, $format, $link))
+                            sprintf('  <li>%s</li>', $this->formatLine($change, $format, $link)),
+                            OutputInterface::OUTPUT_RAW
                         );
                     }
                     $this->stdOut->writeln('</ul>');
