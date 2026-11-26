@@ -36,9 +36,9 @@ class Create extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $project = (string) $this->stdIn->getArgument('project');
-        $title = (string) $input->getOption('title');
+        $title = (string) $this->stdIn->getOption('title');
         $description = $this->readBody($input, 'issue description', false);
-        $hasDescriptionOption = $input->getOption('message') !== null || $input->getOption('file') !== null;
+        $hasDescriptionOption = $this->stdIn->getOption('message') !== null || $this->stdIn->getOption('file') !== null;
         if ($hasDescriptionOption && trim($description) === '') {
             throw new \InvalidArgumentException('Pass a non-empty issue description with --message or --file.');
         }
