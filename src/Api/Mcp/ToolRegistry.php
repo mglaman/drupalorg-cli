@@ -85,14 +85,14 @@ class ToolRegistry
         return (new GetIssueForkAction($this->client, $this->gitLabClient))($nid)->jsonSerialize();
     }
 
-    #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'project_get_issues', description: 'Get open issues for a Drupal.org project. Projects that migrated their issue queue to GitLab return GitLab work items in the gitlab_project_issues shape; the core filter does not apply to them.')]
+    #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'project_get_issues', description: 'Get open issues for a Drupal.org project. Projects that migrated their issue queue to GitLab return GitLab work items in the gitlab_project_issues shape.')]
     public function projectGetIssues(
         #[Schema(description: "The project machine name (e.g. 'drupal', 'token', 'pathauto').")]
         string $machineName,
         #[Schema(description: 'Filter issues by status type.', enum: ['all', 'rtbc', 'review'])]
         string $type = 'all',
-        #[Schema(description: "Core compatibility branch to filter by (e.g. '10.x', '11.x').")]
-        string $core = '10.x',
+        #[Schema(description: 'Deprecated and ignored. It will be removed in the next release.')]
+        ?string $core = null,
         #[Schema(description: 'Maximum number of issues to return.', minimum: 1, maximum: 100)]
         int $limit = 50,
         #[Schema(description: 'Filter issues by category.', enum: ['bug', 'task', 'feature', 'support', 'plan'])]
@@ -107,7 +107,7 @@ class ToolRegistry
         if (!$project->hasIssueQueue) {
             return (new ListGitLabIssuesAction($this->gitLabClient))($project->machineName, limit: $limit, type: $issueType, category: $issueCategory)->jsonSerialize();
         }
-        return (new GetProjectIssuesAction($this->client))($project, $issueType, $core, $limit, $issueCategory)->jsonSerialize();
+        return (new GetProjectIssuesAction($this->client))($project, $issueType, $limit, $issueCategory)->jsonSerialize();
     }
 
     #[McpTool(annotations: new ToolAnnotations(readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true), name: 'issue_search', description: 'Search issues for a Drupal.org project by title keyword.')]

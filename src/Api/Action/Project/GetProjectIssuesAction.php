@@ -17,17 +17,8 @@ class GetProjectIssuesAction implements ActionInterface
     {
     }
 
-    public function __invoke(Project $project, ProjectIssueType $type, string $core, int $limit, ?ProjectIssueCategory $category = null): ProjectIssuesResult
+    public function __invoke(Project $project, ProjectIssueType $type, int $limit, ?ProjectIssueCategory $category = null): ProjectIssuesResult
     {
-        $rawReleases = $this->client->requestRaw(new Request('node.json', [
-            'field_release_project' => $project->nid,
-            'type' => 'project_release',
-            'sort' => 'nid',
-            'direction' => 'DESC',
-            'limit' => 100,
-        ]));
-        $releaseList = (array) ($rawReleases->list ?? []);
-
         /** @var array<string, mixed> $apiParams */
         $apiParams = [
             'type' => 'project_issue',
@@ -43,12 +34,6 @@ class GetProjectIssuesAction implements ActionInterface
             ProjectIssueType::Review => [8],
             ProjectIssueType::All => [1, 8, 13, 14, 16],
         };
-
-        foreach ($releaseList as $release) {
-            if (strpos($release->field_release_version, $core) === 0) {
-                $apiParams['field_issue_version']['value'][] = $release->field_release_version;
-            }
-        }
 
         if ($category !== null) {
             $apiParams['field_issue_category'] = $category->categoryId();

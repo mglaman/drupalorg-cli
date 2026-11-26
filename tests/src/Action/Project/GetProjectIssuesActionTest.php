@@ -27,16 +27,6 @@ class GetProjectIssuesActionTest extends TestCase
         );
     }
 
-    private static function makeRawReleases(): \stdClass
-    {
-        return (object) [
-            'list' => [
-                (object) ['field_release_version' => '8.x-1.5', 'nid' => '100'],
-                (object) ['field_release_version' => '8.x-1.4', 'nid' => '99'],
-            ],
-        ];
-    }
-
     private static function makeRawIssues(): \stdClass
     {
         return (object) [
@@ -60,11 +50,11 @@ class GetProjectIssuesActionTest extends TestCase
         );
 
         $action = new GetProjectIssuesAction($client);
-        $action($project, ProjectIssueType::All, '8.x', 10, ProjectIssueCategory::Bug);
+        $action($project, ProjectIssueType::All, 10, ProjectIssueCategory::Bug);
 
-        // Second call is the issues request — it should include field_issue_category = 1 (Bug)
-        self::assertArrayHasKey('field_issue_category', $capturedParams[1]);
-        self::assertSame(1, $capturedParams[1]['field_issue_category']);
+        // The issues request should include field_issue_category = 1 (Bug)
+        self::assertArrayHasKey('field_issue_category', $capturedParams[0]);
+        self::assertSame(1, $capturedParams[0]['field_issue_category']);
     }
 
     public function testInvokeWithoutCategoryDoesNotAddParam(): void
@@ -81,9 +71,30 @@ class GetProjectIssuesActionTest extends TestCase
         );
 
         $action = new GetProjectIssuesAction($client);
-        $action($project, ProjectIssueType::All, '8.x', 10);
+        $action($project, ProjectIssueType::All, 10);
 
-        self::assertArrayNotHasKey('field_issue_category', $capturedParams[1]);
+        self::assertArrayNotHasKey('field_issue_category', $capturedParams[0]);
+    }
+
+    public function testInvokeSendsOneRequestWithoutVersionFilter(): void
+    {
+        $project = Project::fromStdClass(self::projectFixture());
+
+        $client = $this->createMock(Client::class);
+        $capturedParams = [];
+        $client->method('requestRaw')->willReturnCallback(
+            function (Request $request) use (&$capturedParams) {
+                $capturedParams[] = $request->getOptions();
+                return (object) ['list' => []];
+            }
+        );
+
+        $action = new GetProjectIssuesAction($client);
+        $action($project, ProjectIssueType::All, 10);
+
+        self::assertCount(1, $capturedParams);
+        self::assertSame('project_issue', $capturedParams[0]['type']);
+        self::assertArrayNotHasKey('field_issue_version', $capturedParams[0]);
     }
 
     public function testInvoke(): void
@@ -91,13 +102,10 @@ class GetProjectIssuesActionTest extends TestCase
         $project = Project::fromStdClass(self::projectFixture());
 
         $client = $this->createMock(Client::class);
-        $client->method('requestRaw')->willReturnOnConsecutiveCalls(
-            self::makeRawReleases(),
-            self::makeRawIssues()
-        );
+        $client->method('requestRaw')->willReturn(self::makeRawIssues());
 
         $action = new GetProjectIssuesAction($client);
-        $result = $action($project, ProjectIssueType::All, '8.x', 10);
+        $result = $action($project, ProjectIssueType::All, 10);
 
         self::assertInstanceOf(ProjectIssuesResult::class, $result);
         self::assertSame('Address', $result->projectTitle);
@@ -112,13 +120,10 @@ class GetProjectIssuesActionTest extends TestCase
         $project = Project::fromStdClass(self::projectFixture());
 
         $client = $this->createMock(Client::class);
-        $client->method('requestRaw')->willReturnOnConsecutiveCalls(
-            self::makeRawReleases(),
-            self::makeRawIssues()
-        );
+        $client->method('requestRaw')->willReturn(self::makeRawIssues());
 
         $action = new GetProjectIssuesAction($client);
-        $result = $action($project, ProjectIssueType::All, '8.x', 10);
+        $result = $action($project, ProjectIssueType::All, 10);
 
         $json = json_encode($result);
         self::assertIsString($json);

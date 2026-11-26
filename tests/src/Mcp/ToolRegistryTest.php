@@ -55,9 +55,9 @@ class ToolRegistryTest extends TestCase
 
     public function testProjectGetIssuesListsDrupalOrgIssuesForProjectWithIssueQueue(): void
     {
+        // Project lookup, then the issues request.
         $http = new MockHandler([
             self::nodeListResponse(self::project(true)),
-            self::nodeListResponse(),
             self::nodeListResponse(),
         ]);
         $gitLabClient = $this->createMock(GitLabClient::class);
