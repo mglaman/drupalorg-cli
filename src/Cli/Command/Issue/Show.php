@@ -38,7 +38,7 @@ class Show extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $nid = (string) $this->stdIn->getArgument('nid');
+        $nid = $this->qualifyIssueRef((string) $this->stdIn->getArgument('nid'));
         $format = (string) $this->stdIn->getOption('format');
         $withComments = (bool) $this->stdIn->getOption('with-comments');
 

@@ -25,7 +25,7 @@ class Reassign extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $ref = (string) $this->stdIn->getArgument('ref');
+        $ref = $this->qualifyIssueRef((string) $this->stdIn->getArgument('ref'));
         /** @var array<int, string> $users */
         $users = $this->stdIn->getArgument('users');
 

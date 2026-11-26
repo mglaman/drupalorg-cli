@@ -56,6 +56,12 @@ place of a plain Drupal.org NID:
 | Explicit path | `project/ai_context#3586157` |
 | Full URL | `https://git.drupalcode.org/project/ai_context/-/work_items/3586157` |
 
+Inside a clone of a project that uses GitLab work items, a bare number is that
+project's work item. Elsewhere, a bare number is looked up as a Drupal.org node
+ID, and work item IDs collide with other projects' node IDs. For projects on
+GitLab work items, pass `project/<machine_name>#<id>` when you are not in their
+clone.
+
 ```bash
 drupalorg <command> [arguments]
 ```

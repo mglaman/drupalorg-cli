@@ -26,8 +26,8 @@ class Relate extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $ref = (string) $this->stdIn->getArgument('ref');
-        $target = (string) $this->stdIn->getArgument('target');
+        $ref = $this->qualifyIssueRef((string) $this->stdIn->getArgument('ref'));
+        $target = $this->qualifyIssueRef((string) $this->stdIn->getArgument('target'));
         $type = (string) $this->stdIn->getOption('type');
         $linkType = IssueLinkType::tryFrom($type) ?? throw new \InvalidArgumentException(sprintf(
             'Unknown link type "%s". Expected one of: %s.',
