@@ -43,7 +43,7 @@ abstract class IssueCommandBase extends Command
     ): void {
         parent::initialize($input, $output);
 
-        $nidArg = (string) $this->stdIn->getArgument('nid');
+        $nidArg = $this->qualifyIssueRef((string) $this->stdIn->getArgument('nid'));
         $ref = $nidArg !== '' ? WorkItemRef::tryParse($nidArg) : null;
         if ($ref !== null) {
             $this->workItemRef = $ref;
@@ -66,6 +66,7 @@ abstract class IssueCommandBase extends Command
                     'Argument nid not provided and not able to get it from current branch name.'
                 );
             }
+            $this->workItemRef = WorkItemRef::tryParse($this->qualifyIssueRef($this->nid));
         } elseif ($this->requiresRepository) {
             $this->initRepo();
         }

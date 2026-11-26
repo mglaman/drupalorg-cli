@@ -28,7 +28,7 @@ class Comment extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $ref = (string) $this->stdIn->getArgument('ref');
+        $ref = $this->qualifyIssueRef((string) $this->stdIn->getArgument('ref'));
         $body = $this->readBody($input, 'comment body');
 
         $action = new PostWorkItemCommentAction($this->client, $this->createGitLabClient());

@@ -3,6 +3,8 @@
 namespace mglaman\DrupalOrgCli\Command;
 
 use mglaman\DrupalOrg\Client;
+use mglaman\DrupalOrg\GitLab\BareIssueIdQualifier;
+use mglaman\DrupalOrg\ProjectRemote;
 use mglaman\DrupalOrg\Result\ResultInterface;
 use mglaman\DrupalOrgCli\Formatter\JsonFormatter;
 use mglaman\DrupalOrgCli\Formatter\LlmFormatter;
@@ -47,6 +49,20 @@ abstract class Command extends BaseCommand
         self::$interactive = $input->isInteractive();
         $noCache = $input->hasOption('no-cache') && (bool) $input->getOption('no-cache');
         $this->client = new Client($noCache);
+    }
+
+    /**
+     * Scopes a bare issue ID to the checkout's project when it uses work items.
+     *
+     * @see \mglaman\DrupalOrg\GitLab\BareIssueIdQualifier
+     */
+    protected function qualifyIssueRef(string $refOrNid): string
+    {
+        // Only a bare ID needs the checkout, so skip running git otherwise.
+        if (!ctype_digit(trim($refOrNid))) {
+            return $refOrNid;
+        }
+        return (new BareIssueIdQualifier($this->client))->qualify($refOrNid, ProjectRemote::detect());
     }
 
     protected function debug(string $message): void
