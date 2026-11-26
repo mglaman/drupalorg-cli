@@ -2,14 +2,14 @@
     "name": "mglaman/drupalorg-cli",
     "description": "Command line interface for interacting with Drupal.org",
     "require": {
-        "php": "^8.1",
+        "php": "^8.2",
         "ext-dom": "*",
         "ext-json": "*",
         "composer-runtime-api": "^2.0.0",
         "caseyamcl/guzzle_retry_middleware": "^2.13",
         "consolidation/self-update": "^3.1",
         "czproject/git-php": "^4.1",
-        "dg/rss-php": "^1.2",
+        "dg/rss-php": "^1.7",
         "guzzlehttp/guzzle": "^6.1 || ^7.3",
         "jolicode/jolinotif": "^2.3",
         "mcp/sdk": "^0.9 || ^0.10",
@@ -41,7 +41,7 @@
         "optimize-autoloader": true,
         "preferred-install": "dist",
         "platform": {
-            "php": "8.1.99"
+            "php": "8.2.99"
           },
         "allow-plugins": {
             "php-http/discovery": true,

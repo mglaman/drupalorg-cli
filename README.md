@@ -6,7 +6,7 @@ A command line tool for interfacing with Drupal.org and GitLab (git.drupalcode.o
 
 ## Requirements
 
-* PHP 8.1 or higher, with cURL support
+* PHP 8.2 or higher, with cURL support
 * [Git](https://git-scm.com/) - Required by the `issue:branch`, `issue:setup-remote`, and `issue:checkout` commands that work with issue forks.
 
 ## Installation

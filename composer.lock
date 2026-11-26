@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e852c3f9c43eaf6e82771e9166230a0e",
+    "content-hash": "c8b86ae873138cd0d9beece9ee7a5f63",
     "packages": [
         {
             "name": "caseyamcl/guzzle_retry_middleware",
@@ -280,21 +280,27 @@
         },
         {
             "name": "dg/rss-php",
-            "version": "v1.5",
+            "version": "v1.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dg/rss-php.git",
-                "reference": "18f00ab1828948a8cfe107729ca1f11c20129b47"
+                "reference": "bf5ab497046f9979a3a210104f7c73ce86bf68fe"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dg/rss-php/zipball/18f00ab1828948a8cfe107729ca1f11c20129b47",
-                "reference": "18f00ab1828948a8cfe107729ca1f11c20129b47",
+                "url": "https://api.github.com/repos/dg/rss-php/zipball/bf5ab497046f9979a3a210104f7c73ce86bf68fe",
+                "reference": "bf5ab497046f9979a3a210104f7c73ce86bf68fe",
                 "shasum": ""
             },
             "require": {
                 "ext-simplexml": "*",
-                "php": ">=5.3"
+                "php": ">=8.2"
+            },
+            "require-dev": {
+                "nette/phpstan-rules": "^1.0",
+                "nette/tester": "^2.6",
+                "phpstan/extension-installer": "^1.4",
+                "phpstan/phpstan": "^2.1"
             },
             "type": "library",
             "autoload": {
@@ -320,9 +326,9 @@
                 "rss"
             ],
             "support": {
-                "source": "https://github.com/dg/rss-php/tree/v1.5"
+                "source": "https://github.com/dg/rss-php/tree/v1.7"
             },
-            "time": "2020-11-25T22:57:16+00:00"
+            "time": "2026-02-25T00:47:42+00:00"
         },
         {
             "name": "doctrine/deprecations",
@@ -5490,14 +5496,14 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": "^8.1",
+        "php": "^8.2",
         "ext-dom": "*",
         "ext-json": "*",
         "composer-runtime-api": "^2.0.0"
     },
     "platform-dev": {},
     "platform-overrides": {
-        "php": "8.1.99"
+        "php": "8.2.99"
     },
     "plugin-api-version": "2.9.0"
 }
