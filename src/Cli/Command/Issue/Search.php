@@ -71,6 +71,30 @@ class Search extends ProjectCommandBase
         parent::initialize($input, $output);
     }
 
+    protected function projectNotFoundHint(): string
+    {
+        $query = $this->stdIn->getArgument('query');
+        if (!is_string($query) || $query === '') {
+            return '';
+        }
+        // A common mix-up is passing the query first: `issue:search fix tool`.
+        if (preg_match('/^[a-z0-9_]+$/', $query) === 1) {
+            try {
+                $project = $this->client->getProject($query);
+            } catch (\Exception) {
+                $project = null;
+            }
+            if ($project !== null) {
+                return sprintf(
+                    ' The project comes first; did you mean: drupalorg issue:search %s %s',
+                    $query,
+                    $this->projectName,
+                );
+            }
+        }
+        return ' The project comes first: drupalorg issue:search <project> <query>';
+    }
+
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $query = (string) $this->stdIn->getArgument('query');

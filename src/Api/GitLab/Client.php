@@ -148,6 +148,33 @@ class Client
     }
 
     /**
+     * POST /projects/{path}/issues
+     *
+     * Creates a GitLab issue (work item) in a project. Labels are sent as a
+     * comma-separated list, as the API expects. Without a description, GitLab
+     * fills in the project's Default issue template, if it has one.
+     *
+     * @param string[] $labels
+     * @throws \Exception
+     */
+    public function createIssue(string $projectPath, string $title, string $description, array $labels = [], bool $confidential = false): \stdClass
+    {
+        $body = ['title' => $title];
+        if ($description !== '') {
+            $body['description'] = $description;
+        }
+        if ($labels !== []) {
+            $body['labels'] = implode(',', $labels);
+        }
+        if ($confidential) {
+            $body['confidential'] = true;
+        }
+        /** @var \stdClass $result */
+        $result = $this->post('projects/' . urlencode($projectPath) . '/issues', $body);
+        return $result;
+    }
+
+    /**
      * POST /projects/{id}/issues/{iid}/links
      *
      * The links endpoint only accepts numeric project IDs. A URL-encoded
@@ -334,6 +361,68 @@ class Client
     {
         $result = $this->get('projects/' . $projectId . '/pipelines/' . $pipelineId . '/jobs');
         return is_array($result) ? $result : [];
+    }
+
+    /**
+     * GET /projects/{path}/templates/issues
+     *
+     * Lists the names of a project's issue description templates, which live
+     * in the repository under `.gitlab/issue_templates/`.
+     *
+     * @return string[]
+     * @throws \Exception
+     */
+    public function getIssueTemplateNames(string $projectPath): array
+    {
+        $result = $this->get('projects/' . urlencode($projectPath) . '/templates/issues', ['per_page' => 100]);
+        $names = [];
+        foreach (is_array($result) ? $result : [] as $template) {
+            if (is_object($template) && isset($template->name) && is_string($template->name)) {
+                $names[] = $template->name;
+            }
+        }
+        return $names;
+    }
+
+    /**
+     * GET /projects/{path}/templates/issues/{name}
+     *
+     * @throws \Exception
+     */
+    public function getIssueTemplate(string $projectPath, string $name): string
+    {
+        $result = $this->get('projects/' . urlencode($projectPath) . '/templates/issues/' . rawurlencode($name));
+        return is_object($result) && isset($result->content) && is_string($result->content) ? $result->content : '';
+    }
+
+    /**
+     * GET /projects/{path}/labels
+     *
+     * Lists every label available to a project, including inherited group
+     * labels. Requires authentication on git.drupalcode.org.
+     *
+     * @return string[]
+     * @throws \Exception
+     */
+    public function getLabelNames(string $projectPath): array
+    {
+        $names = [];
+        $page = 1;
+        do {
+            $result = $this->get('projects/' . urlencode($projectPath) . '/labels', [
+                'per_page' => 100,
+                'page' => $page,
+                'include_ancestor_groups' => 'true',
+            ]);
+            $batch = is_array($result) ? $result : [];
+            foreach ($batch as $label) {
+                if (is_object($label) && isset($label->name) && is_string($label->name)) {
+                    $names[] = $label->name;
+                }
+            }
+            $page++;
+        } while (count($batch) === 100);
+        return $names;
     }
 
     /**
