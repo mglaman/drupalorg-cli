@@ -86,7 +86,7 @@ class ReleaseNotes extends Command
 
         $format = $this->stdIn->getOption('format');
 
-        $action = new GetMaintainerReleaseNotesAction($this->client);
+        $action = $this->createAction();
         try {
             $result = $action($this->repository, $this->cwd, $ref1, $ref2);
         } catch (\InvalidArgumentException $e) {
@@ -197,7 +197,8 @@ class ReleaseNotes extends Command
                                 array_keys($result->contributors)
                             )
                         )
-                    )
+                    ),
+                    OutputInterface::OUTPUT_RAW
                 );
                 $this->stdOut->writeln('<h3>Changelog</h3>');
                 $this->stdOut->writeln(
@@ -209,9 +210,10 @@ class ReleaseNotes extends Command
                 $this->stdOut->writeln(
                     sprintf(
                         '<p>Changes since <a href="%s">%s</a>:</p>',
-                        $ref1url,
-                        $ref1
-                    )
+                        htmlspecialchars($ref1url),
+                        htmlspecialchars($ref1)
+                    ),
+                    OutputInterface::OUTPUT_RAW
                 );
 
                 foreach ($result->categorizedChanges as $changeCategory => $changeCategoryItems) {
@@ -256,12 +258,21 @@ class ReleaseNotes extends Command
         return 0;
     }
 
+    protected function createAction(): GetMaintainerReleaseNotesAction
+    {
+        return new GetMaintainerReleaseNotesAction($this->client);
+    }
+
     protected function formatUsername(string $user, string $format): string
     {
         $baseUrl = 'https://www.drupal.org/u/%1$s';
         $userAlias = str_replace(' ', '-', mb_strtolower($user));
         if ($format === 'html') {
-            $replacement = '<a href="' . $baseUrl . '">%2$s</a>';
+            return sprintf(
+                '<a href="%s">%s</a>',
+                htmlspecialchars(sprintf($baseUrl, $userAlias)),
+                htmlspecialchars($user)
+            );
         } elseif ($format === 'markdown' || $format === 'md') {
             $replacement = '[%2$s](' . $baseUrl . ')';
         } else {
@@ -275,6 +286,12 @@ class ReleaseNotes extends Command
         // A resolved $link (GitLab work item or canonical issue URL) overrides the
         // default; otherwise each "#nid" links to its own global node. The URL is
         // emitted via a callback, never interpolated into the regex replacement.
+        if ($format === 'html') {
+            // Escape the commit title before adding the links. ENT_NOQUOTES
+            // because quotes don't need escaping in text, and `&#039;` would
+            // match "#nid" below.
+            $value = htmlspecialchars($value, ENT_NOQUOTES);
+        }
         return preg_replace_callback(
             '/#(\d+)/S',
             static function (array $matches) use ($format, $link): string {
