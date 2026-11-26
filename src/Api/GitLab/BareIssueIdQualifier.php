@@ -27,7 +27,8 @@ final class BareIssueIdQualifier
      * Returns `project_name#id` for a bare ID in a work item project's clone.
      *
      * Any other input, including a bare ID outside such a clone, is returned
-     * unchanged.
+     * unchanged. So is a bare ID when the project lookup fails, so commands
+     * that don't otherwise need Drupal.org keep working offline.
      */
     public function qualify(string $refOrNid, ?ProjectRemote $checkout): string
     {
@@ -35,7 +36,11 @@ final class BareIssueIdQualifier
         if ($checkout === null || $id === '' || !ctype_digit($id)) {
             return $refOrNid;
         }
-        $project = $this->client->getProject($checkout->machineName);
+        try {
+            $project = $this->client->getProject($checkout->machineName);
+        } catch (\Exception) {
+            return $refOrNid;
+        }
         if ($project === null || $project->hasIssueQueue) {
             return $refOrNid;
         }

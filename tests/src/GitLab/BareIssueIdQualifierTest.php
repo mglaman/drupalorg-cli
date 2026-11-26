@@ -53,6 +53,16 @@ class BareIssueIdQualifierTest extends TestCase
         self::assertSame('3612675', $qualifier->qualify('3612675', new ProjectRemote('jsonapi_search_api')));
     }
 
+    public function testLeavesBareIdWhenProjectLookupFails(): void
+    {
+        $client = $this->createMock(Client::class);
+        $client->method('getProject')->willThrowException(new \RuntimeException('Connection timed out'));
+
+        $qualified = (new BareIssueIdQualifier($client))->qualify('3612675', new ProjectRemote('jsonapi_search_api'));
+
+        self::assertSame('3612675', $qualified);
+    }
+
     public function testLeavesBareIdOutsideDrupalCheckout(): void
     {
         $client = $this->createMock(Client::class);
