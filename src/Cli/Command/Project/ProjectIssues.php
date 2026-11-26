@@ -30,12 +30,6 @@ class ProjectIssues extends ProjectCommandBase
                 'all'
             )
             ->addOption(
-                'core',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Deprecated and ignored. It will be removed in the next release.'
-            )
-            ->addOption(
                 'limit',
                 null,
                 InputOption::VALUE_OPTIONAL,
@@ -67,9 +61,6 @@ class ProjectIssues extends ProjectCommandBase
         InputInterface $input,
         OutputInterface $output
     ): int {
-        if ($this->stdIn->hasParameterOption('--core')) {
-            $this->stdErr->writeln('<comment>--core is deprecated and ignored. It will be removed in the next release.</comment>');
-        }
         $format = (string) $this->stdIn->getOption('format');
         $limit = (int) $this->stdIn->getOption('limit');
         $type = ProjectIssueType::from((string) $this->stdIn->getArgument('type'));
