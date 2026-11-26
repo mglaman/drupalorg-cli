@@ -91,8 +91,6 @@ class ToolRegistry
         string $machineName,
         #[Schema(description: 'Filter issues by status type.', enum: ['all', 'rtbc', 'review'])]
         string $type = 'all',
-        #[Schema(description: 'Deprecated and ignored. It will be removed in the next release.')]
-        ?string $core = null,
         #[Schema(description: 'Maximum number of issues to return.', minimum: 1, maximum: 100)]
         int $limit = 50,
         #[Schema(description: 'Filter issues by category.', enum: ['bug', 'task', 'feature', 'support', 'plan'])]
