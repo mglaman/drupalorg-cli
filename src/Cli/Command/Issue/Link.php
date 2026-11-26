@@ -18,6 +18,8 @@ class Link extends IssueCommandBase
 {
     use BrowserTrait;
 
+    protected bool $requiresRepository = false;
+
     protected function configure(): void
     {
         $this
