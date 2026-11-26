@@ -263,9 +263,9 @@ unset.
 ```bash
 # List open issues for a project
 # For projects using GitLab work items, fetches from GitLab API automatically
-# type: all (default), rtbc, or review; --core defaults to 8.x; --limit defaults to 10
+# type: all (default), rtbc, or review; --limit defaults to 10
 # --category filters by issue type: bug, task, feature, support, plan (omit for all categories)
-# Note: type/core/category filters only apply to D.o issue queue projects
+# Note: type and category filters only apply to D.o issue queue projects
 drupalorg project:issues [project] [type] [--category=bug|task|feature|support|plan] --format=llm
 
 # Search issues for a project by title keyword
